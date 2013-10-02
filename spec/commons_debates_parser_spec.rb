@@ -301,6 +301,7 @@ describe CommonsDebatesParser do
       question.expects(:title=).with("Syria")
       question.expects(:number=).with("66855")
       question.expects(:asked_by=).with("David Hanson")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:k_html=).with("<h3>Foreign and Commonwealth Office</h3><p>&nbsp;</p><p>The Secretary of State was asked - </p><p>&nbsp;</p><h4>Syria</h4><p>&nbsp;</p><p>1. <b>Mr David Hanson</b> (Delyn) (Lab): When he next expects to discuss the situation in Syria with his US counterpart. [66855]</p><p>&nbsp;</p><p><b>The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)</b>: I am in regular contact with Secretary Clinton and I last discussed Syria with her on Friday.</p><p>&nbsp;</p><p><b>Mr Hanson</b>: I thank the Foreign Secretary for that answer. Given the recent violence, including the reported shooting of unarmed protesters, does he agree with Secretary of State Clinton that the Syrian Government have lost legitimacy? Given the level of violence, particularly the attacks on the US embassy and the French embassy, what steps is he taking to ensure the security of British citizens who work for the United Kingdom and are operating in Syria now?</p><p>&nbsp;</p><p><b>Mr Hague</b>: The right hon. Gentleman raises some important issues in relation to recent events in Syria. We absolutely deplore the continuing violence against protesters. Reports overnight from the city of Homs suggest that between 10 and 14 people were killed, including a 12-year-old child. We have condemned the attacks on the American and French embassies and we called in the Syrian ambassador last Wednesday to deliver our protests and to demand that Syria observes the requirements of the Vienna convention. The US and British Governments are united in saying that President Assad is losing legitimacy and should reform or step aside, and that continues to be our message.</p><p>&nbsp;</p><p><b>Mr Philip Hollobone</b> (Kettering) (Con): Iran has been involved in training Syrian troops and providing materi&eacute;l assistance, including crowd-dispersal equipment. What assessment has the Foreign Secretary made of the dark hand of Iran in fomenting trouble in the middle east and in supporting illegitimate regimes?</p><p>&nbsp;</p><p><b>Mr Hague</b>: Iran has certainly been involved in the way that my hon. Friend describes, and I set out a few weeks ago that I believed it to be involved in that way. It shows the extraordinary hypocrisy of the Iranian leadership</p><p>&nbsp;</p><p>on this that it has been prepared to encourage protests in Egypt, Tunisia and other countries while it has brutally repressed protest in its own country and is prepared to connive in doing so in Syria.</p><p>&nbsp;</p><p><b>Stephen Twigg</b> (Liverpool, West Derby) (Lab/Co-op): Does the Foreign Secretary agree that the world has been far too slow in its response to the appalling abuses of human rights in Syria? Surely, after the events of the weekend and the past few days in particular, there is now an urgent need for a clear and strong United Nations Security Council resolution.</p><p>&nbsp;</p><p><b>Mr Hague</b>: I think the world has been not so much slow as not sufficiently united on this. It has not been possible for the Arab League to arrive at a clear, strong position, which makes the situation entirely different to that in Libya, where the Arab League called on the international community to assist and intervene. There has not been the necessary unity at the United Nations Security Council and at times Russia has threatened to veto any resolution. Our resolution, which was put forward with our EU partners, remains very much on the table and certainly has the support of nine countries. We would like the support of more than nine countries to be able to put it to a vote in the Security Council, but it is very much on the table and we reserve the right at any time to press it to a vote in the United Nations. The hon. Gentleman is quite right to say that recent events add further to the case for doing so.</p>")
       question.expects(:url=).with("#{@url}\#11071988000022")
       
@@ -370,6 +371,7 @@ describe CommonsDebatesParser do
       question.expects(:title=).with("Nuclear Non-proliferation and Disarmament")
       question.expects(:number=).with("66858")
       question.expects(:asked_by=).with("Paul Flynn")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:k_html=).with("<h4>Nuclear Non-proliferation and Disarmament</h4><p>&nbsp;</p><p>3. <b>Paul Flynn</b> (Newport West) (Lab): What recent progress his Department has made on nuclear non-proliferation and disarmament. [66858]</p><p>&nbsp;</p><p><b>The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)</b>: We continue to work across all three pillars of the non-proliferation treaty to build on the success of last year&apos;s review conference in New York. I am particularly proud of the work we have done towards ensuring the first conference of nuclear weapon states, which was held recently in Paris - the P5 conference - in which further progress was made, particularly towards disarmament.</p>")
       
       contribution = ContributionPara.new
@@ -414,6 +416,7 @@ describe CommonsDebatesParser do
       question.expects(:department=).with("Foreign and Commonwealth Office")
       question.expects(:title=).with("Nuclear Non-proliferation and Disarmament")
       question.expects(:asked_by=).with("Paul Flynn")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:number=).with("66858")
       
       ncpara = NonContributionPara.new
@@ -441,6 +444,7 @@ describe CommonsDebatesParser do
       question.expects(:title=).with("Topical Questions - T1")
       question.expects(:number=).with("66880")
       question.expects(:asked_by=).with("Harriett Baldwin")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:k_html=).with("<h4>Topical Questions</h4><p>&nbsp;</p><p>T1. [66880] <b>Harriett Baldwin</b> (West Worcestershire) (Con): If he will make a statement on his departmental responsibilities.</p><p>&nbsp;</p><p><b>The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)</b>: Statement goes here</p>")
       
       contribution = ContributionPara.new
@@ -463,6 +467,7 @@ describe CommonsDebatesParser do
       question.expects(:title=).with("Topical Questions - T2")
       question.expects(:asked_by=).with("Stephen Mosley")
       question.expects(:number=).with("66881")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:k_html=).with("<p>T2. [66881] <b>Stephen Mosley</b> (City of Chester) (Con): One of the remaining issues in South Sudan is that of Abyei. Will my right hon. Friend give us an update on what action is being taken to ensure that the promised referendum in Abyei goes ahead successfully?</p><p>&nbsp;</p><p><b>Mr Hague</b>: The urgent thing has been to bring peace and order to Abyei, and that is something that I have discussed with those in the north and south in Sudan, as well as with the Ethiopian Prime Minister and Foreign Minister on my visit to Ethiopia 10 days or so ago. Up to 4,200 Ethiopian troops will go to Abyei, and we have been active in quickly passing the necessary United Nations authority for them to do so. That is designed to pave the way for political progress in Abyei, but the most urgent thing has been to get that Ethiopian force there and to prevent continuing violence.</p>")
       
       contribution = ContributionPara.new
@@ -507,6 +512,7 @@ describe CommonsDebatesParser do
       question.expects(:department=).with("Foreign and Commonwealth Office")
       question.expects(:title=).with("Topical Questions - T1")
       question.expects(:asked_by=).with("Harriett Baldwin")
+      question.expects(:question_type=).with("for oral answer")
       question.expects(:number=).with("66880")
       
       contribution = ContributionPara.new

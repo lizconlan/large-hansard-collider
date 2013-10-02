@@ -55,7 +55,7 @@ class Question < Fragment
   key :members, Array
   key :number, String
   key :asked_by, String
-  key :type, String
+  key :question_type, String
 end
 
 class Intro < Fragment

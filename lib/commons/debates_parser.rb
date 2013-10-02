@@ -551,6 +551,7 @@ class CommonsDebatesParser < CommonsParser
             @debate.number = @questions.last
             @debate.department = @department
             @debate.asked_by = @asked_by
+            @debate.question_type = "for oral answer"
             @asked_by = ""
           else
             @debate = Debate.find_or_create_by_id(segment_id)
