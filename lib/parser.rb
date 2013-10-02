@@ -45,10 +45,10 @@ class Parser
     @contribution = nil
     
     @last_link = ""
-    @snippet = []
+    @fragment = []
     @k_html = []
     @questions = []
-    @intro = {:snippets => [], :columns => [], :links => []}
+    @intro = {:fragments => [], :columns => [], :links => []}
     @subject = ""
     @start_column = ""
     @end_column = ""
@@ -137,7 +137,7 @@ class Parser
       end
       
       #flush the buffer
-      if @snippet.empty? == false or @intro[:title]
+      if @fragment.empty? == false or @intro[:title]
         store_debate(page)
         reset_vars()
       end
@@ -169,29 +169,29 @@ class Parser
     end
   end
   
-  def determine_snippet_type(node)
+  def determine_fragment_type(node)
     case node.attr("name")
       when /^hd_/
         #heading e.g. the date, The House met at..., The Deputy PM was asked
-        @snippet_type = "heading"
+        @fragment_type = "heading"
         @link = node.attr("name")
       when /^place_/
-        @snippet_type = "location heading"
+        @fragment_type = "location heading"
         @link = node.attr("name")
       when /^dpthd_/
-        @snippet_type = "department heading"
+        @fragment_type = "department heading"
         @link = node.attr("name")
       when /^subhd_/
-        @snippet_type = "subject heading"
+        @fragment_type = "subject heading"
         @link = node.attr("name")
       when /^qn_/
-        @snippet_type = "question"
+        @fragment_type = "question"
         @link = node.attr("name")
       when /^st_/
-        @snippet_type = "contribution"
+        @fragment_type = "contribution"
         @link = node.attr("name")
       when /^divlst_/
-        @snippet_type = "division"
+        @fragment_type = "division"
         @link = node.attr("name")
     end 
   end

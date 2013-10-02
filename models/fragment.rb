@@ -54,6 +54,7 @@ class Question < Fragment
   key :subject, String
   key :members, Array
   key :number, String
+  key :asked_by, String
   key :type, String
 end
 
