@@ -53,7 +53,7 @@ describe CommonsDebatesParser do
       
       CommonsDebatesParser.any_instance.stubs(:house=)
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).returns("d")
+      @parser.expects(:section_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
@@ -108,7 +108,7 @@ describe CommonsDebatesParser do
       Section.stubs(:find_or_create_by_id).returns(@section)
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).returns("d")
+      @parser.expects(:section_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
@@ -223,7 +223,7 @@ describe CommonsDebatesParser do
       stub_part("Commons", "2099-01-01", nil, "531")
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).returns("d")
+      @parser.expects(:section_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
@@ -553,7 +553,7 @@ describe CommonsDebatesParser do
       stub_part("Commons", "2099-01-01", nil, "531")
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).returns("d")
+      @parser.expects(:section_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
