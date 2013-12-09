@@ -38,7 +38,6 @@ class CommonsParser
     if node.attr("class") == "anchor" or node.attr("name") =~ /^\d*$/
       @last_link = node.attr("name")
     end
-    p "link: " + @last_link if @house == "Lords"
     
     column = set_column(node)
     if @start_column.empty? and column
@@ -48,15 +47,6 @@ class CommonsParser
       #need to set the end column
       @end_column = set_column(node)
     end
-  end
-  
-  def set_column(node)
-    if node.attr("class") == "anchor-column"
-      return node.attr("name").gsub("column_", "")
-    elsif node.attr("name") =~ /column_(.*)/  #older page format
-      return node.attr("name").gsub("column_", "")
-    end
-    false
   end
   
   def get_sequence(component)

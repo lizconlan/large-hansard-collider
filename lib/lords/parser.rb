@@ -44,15 +44,6 @@ class LordsParser
     end
   end
   
-  def set_column(node)
-    if node.attr("class") == "anchor-column"
-      return node.attr("name").gsub("column_", "")
-    elsif node.attr("name") =~ /column_(.*)/  #older page format
-      return node.attr("name").gsub("column_", "")
-    end
-    false
-  end
-  
   def get_sequence(component)
     sequence = nil
     case component
