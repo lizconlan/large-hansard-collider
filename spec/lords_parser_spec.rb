@@ -13,7 +13,7 @@ describe LordsParser do
   context "in general" do
     before(:all) do
       @html = File.read("./spec/data/lords_by_date.html")
-      @section_list = {
+      @component_list = {
         "Debates and Oral Answers" => "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/index/110117.html",
         "Grand Committee" => "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/index/110117.html#start_grand",
         "Written Statements" => "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/index/110117.html#start_minist",
@@ -21,33 +21,33 @@ describe LordsParser do
       }
     end
     
-    it "should retrieve an unordered Hash of section names and urls" do
+    it "should retrieve an unordered Hash of component names and urls" do
       index_url = "http://www.parliament.uk/business/publications/hansard/lords/by-date/?d=1&m=1&y=2099"
       response = mock()
       response.expects(:body).returns(@html)
       RestClient.expects(:get).with(index_url).returns(response)
       
-      @parser.get_section_links.should == @section_list
+      @parser.get_component_links.should == @component_list
     end
     
-    it "should load a section page for a given section name" do
+    it "should load a component page for a given component name" do
       response = mock()
       response.expects("body").returns("html goes here")
-      @parser.expects(:get_section_links).returns(@section_list)
+      @parser.expects(:get_component_links).returns(@component_list)
       url = "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/index/110117.html#start_grand"
       RestClient.expects(:get).with(url).returns(response)
-      @parser.get_section_index("Grand Committee").should eq "html goes here"
+      @parser.get_component_index("Grand Committee").should eq "html goes here"
     end
   end
   
   context "when dealing with index pages" do
     before(:all) do
-      @section_html = File.read("./spec/data/lords/index_jan_2011.html")
+      @_html = File.read("./spec/data/lords/index_jan_2011.html")
     end
     
     it "should work out the link to the first content page" do
       url = "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/text/110117-gc0001.htm#11011725000111"
-      @parser.expects(:get_section_index).returns(@section_html)
+      @parser.expects(:get_component_index).returns(@_html)
       
       @parser.link_to_first_page.should eq url
     end

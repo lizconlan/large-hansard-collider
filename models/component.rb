@@ -2,7 +2,9 @@
 
 require 'mongo_mapper'
 
-class Section
+# slightly odd choice of word, but have confirmed that
+# Section was misleading
+class Component
   include MongoMapper::Document
   
   belongs_to :daily_part

@@ -1,16 +1,16 @@
 require './lib/commons/parser'
 
 class CommonsDebatesParser < CommonsParser
-  attr_reader :section, :section_prefix
+  attr_reader :component, :component_prefix
   
-  def initialize(date, section="Debates and Oral Answers")
+  def initialize(date, component="Debates and Oral Answers")
     super(date)
-    @section = section
-    @section_prefix = "d"
+    @component = component
+    @component_prefix = "d"
   end
   
-  def get_section_index
-    super(section)
+  def get_component_index
+    super(component)
   end
   
   def init_vars
@@ -21,7 +21,7 @@ class CommonsDebatesParser < CommonsParser
     @petitions = []
     
     @column = ""
-    @subsection = ""
+    @subcomponent = ""
     @asked_by = ""
     @div_fragment = nil
   end
@@ -65,7 +65,7 @@ class CommonsDebatesParser < CommonsParser
     @segment_link = ""
     @questions = []
     @petitions = []
-    @section_members = {}
+    @component_members = {}
   end
   
   def process_h2(text, title, page)
@@ -78,13 +78,13 @@ class CommonsDebatesParser < CommonsParser
     end
     
     if text == "Oral Answers to Questions"
-      @subsection = "Oral Answer"
+      @subcomponent = "Oral Answer"
       setup_intro(text, page.url, title, "h3")
     end
   end
   
   def process_h3(text, page)
-    if (@fragment_type == "department heading" and @subsection == "Oral Answer")
+    if (@fragment_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @intro[:title])
         store_and_reset(page)
@@ -101,7 +101,7 @@ class CommonsDebatesParser < CommonsParser
           @segment_link = "#{page.url}\##{@last_link}"
         end
       end
-    elsif @fragment_type == "subject heading" and @subsection == "Oral Answer"
+    elsif @fragment_type == "subject heading" and @subcomponent == "Oral Answer"
       if (fragment_has_text and @subject != "") or @intro[:title]
         store_and_reset(page)
       end
@@ -109,7 +109,7 @@ class CommonsDebatesParser < CommonsParser
       @k_html << "<h4>#{text}</h4>"
       @segment_link = "#{page.url}\##{@last_link}"
     else
-      @subsection = ""
+      @subcomponent = ""
       if text.downcase == "prayers"
         build_intro(text, page.url)
       else
@@ -138,7 +138,7 @@ class CommonsDebatesParser < CommonsParser
           store_and_reset(page)
         end
         @intro[:title] = text
-        @subsection = ""
+        @subcomponent = ""
         if text =~ day_regex
           @k_html << "<h2>#{text}</h2>"
         else
@@ -147,13 +147,13 @@ class CommonsDebatesParser < CommonsParser
       else              
         fragment = create_fragment(text)
         @fragment << fragment
-        unless @subsection == "Oral Answer"
+        unless @subcomponent == "Oral Answer"
           @subject = sanitize_text(text)
         end
         @segment_link = "#{page.url}\##{@last_link}"
         if text =~ day_regex
           @k_html << "<h2>#{text}</h2>"
-        elsif @subsection == "Oral Answer" and !(text =~ / was asked /)
+        elsif @subcomponent == "Oral Answer" and !(text =~ / was asked /)
           @k_html << "<h4>#{text}</h4>"
         else
           @k_html << "<p>#{text}</p>"
@@ -173,7 +173,7 @@ class CommonsDebatesParser < CommonsParser
   def setup_new_fragment(text, page)
     case text.downcase
     when "business without debate"
-      @subsection = ""
+      @subcomponent = ""
     when /^business/,
          "european union documents",
          "points of order",
@@ -181,14 +181,14 @@ class CommonsDebatesParser < CommonsParser
          "royal assent",
          "bill presented"
       @subject = text
-      @subsection = ""
+      @subcomponent = ""
     when "petition"
-      @subsection = "Petition"
+      @subcomponent = "Petition"
     when /adjournment/
-      @subsection = "Adjournment Debate"
+      @subcomponent = "Adjournment Debate"
     else
-      if @subsection == ""
-        @subsection = "Debate"
+      if @subcomponent == ""
+        @subcomponent = "Debate"
       end
     end
     unless text.downcase == "petition"
@@ -262,18 +262,18 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def override_subsection(node)
+  def override_subcomponent(node)
     case node.xpath("i").first.text.strip
     when /^Motion/
       unless (node.xpath("i").map { |x| x.text }).join(" ") =~ /and Question p/
-        @subsection = "Motion"
+        @subcomponent = "Motion"
         @member = nil
       end
     when /^Debate resumed/
       @subject = "#{@subject} (resumed)"
       @member = nil
     when /^Ordered/, /^Question put/
-      @subsection = ""
+      @subcomponent = ""
       @member = nil
     end
   end
@@ -421,9 +421,9 @@ class CommonsDebatesParser < CommonsParser
     column_desc = ""
     member_name = ""
     
-    #check for inner subsections
-    if @subsection == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
-      override_subsection(node)
+    #check for inner subcomponents
+    if @subcomponent == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
+      override_subcomponent(node)
     end
     
     unless @fragment.empty? and node.xpath("center") and node.xpath("center").text == node.text
@@ -454,7 +454,7 @@ class CommonsDebatesParser < CommonsParser
     elsif @fragment_type == "division"
       process_division(text)
     end
-    if @subsection == "Petition" and text =~ /\[(P[^\]]*)\]/
+    if @subcomponent == "Petition" and text =~ /\[(P[^\]]*)\]/
       @petitions << $1
     end
     
@@ -491,11 +491,11 @@ class CommonsDebatesParser < CommonsParser
   
   def store_intro
     @fragment_seq += 1
-    intro_id = "#{@hansard_section.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
+    intro_id = "#{@hansard_component.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
     intro = Intro.find_or_create_by_id(intro_id)
     @para_seq = 0
     intro.title = @intro[:title]
-    intro.section = @hansard_section
+    intro.component = @hansard_component
     intro.url = @intro[:link]
     intro.sequence = @fragment_seq
     
@@ -509,8 +509,8 @@ class CommonsDebatesParser < CommonsParser
     intro.k_html = @k_html.join("<p>&nbsp;</p>")
     
     intro.save
-    @hansard_section.fragments << intro
-    @hansard_section.save
+    @hansard_component.fragments << intro
+    @hansard_component.save
     
     @intro = {:fragments => [], :columns => [], :links => []}
   end
@@ -595,7 +595,7 @@ class CommonsDebatesParser < CommonsParser
   
   def store_segment(page)
     @fragment_seq += 1
-    segment_id = "#{@hansard_section.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
+    segment_id = "#{@hansard_component.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
     
     column_text = ""
     if @start_column == @end_column or @end_column == ""
@@ -604,21 +604,21 @@ class CommonsDebatesParser < CommonsParser
       column_text = "#{@start_column} to #{@end_column}"
     end
     
-    if @subsection == "Oral Answer"
+    if @subcomponent == "Oral Answer"
       create_question(segment_id)
     else
       @debate = Debate.find_or_create_by_id(segment_id)
     end
     
     @para_seq = 0
-    @hansard_section.fragments << @debate
-    @hansard_section.save
+    @hansard_component.fragments << @debate
+    @hansard_component.save
     
     @daily_part.volume = page.volume
     @daily_part.part = sanitize_text(page.part.to_s)
     @daily_part.save
     
-    @debate.section = @hansard_section
+    @debate.component = @hansard_component
     @debate.title = @subject
     @debate.url = @segment_link
     
@@ -630,7 +630,7 @@ class CommonsDebatesParser < CommonsParser
   
   def store_debate(page)
     unless @questions.empty?
-      @subsection = "Oral Answer"
+      @subcomponent = "Oral Answer"
     end
     if @intro[:title]
       store_intro()

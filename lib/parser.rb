@@ -8,11 +8,11 @@ require './models/hansard_page'
 require './models/hansard_member'
 
 require './models/daily_part'
-require './models/section'
+require './models/component'
 require './models/fragment'
 require './models/paragraph'
 
-class Parser
+module Parser
   attr_reader :date, :doc_id, :house
   
   def initialize(date, house)
@@ -23,7 +23,7 @@ class Parser
     @daily_part = DailyPart.find_or_create_by_id(@doc_id)
     @daily_part.house = house
     @daily_part.date = date
-    @hansard_section = nil
+    @hansard_component = nil
     @fragment = nil
     @element = nil
     @current_speaker = ""
@@ -34,13 +34,13 @@ class Parser
   
   def init_vars
     @page = 0
-    @section_seq = 0
+    @component_seq = 0
     @fragment_seq = 0
     @para_seq = 0
     @contribution_seq = 0
 
     @members = {}
-    @section_members = {}
+    @component_members = {}
     @member = nil
     @contribution = nil
     
@@ -59,8 +59,8 @@ class Parser
   def reset_vars
   end
   
-  def get_section_index(section)
-    url = get_section_links[section]
+  def get_component_index(component)
+    url = get_component_links[component]
     if url
       @start_url = url
       return get_page(url)
@@ -76,7 +76,7 @@ class Parser
     result.body
   end
   
-  def get_section_links
+  def get_component_links
     parse_date = Date.parse(date)
     index_page = "http://www.parliament.uk/business/publications/hansard/#{house.downcase()}/by-date/?d=#{parse_date.day}&m=#{parse_date.month}&y=#{parse_date.year}"
     urls = Hash.new
@@ -111,9 +111,9 @@ class Parser
     first_page = link_to_first_page
     
     unless first_page
-      warn "No #{@section} data available for this date".squeeze(' ')
+      warn "No #{@component} data available for this date".squeeze(' ')
     else
-      create_first_section()
+      create_first_component()
       
       page = HansardPage.new(first_page)
       parse_page(page)
@@ -141,25 +141,25 @@ class Parser
     text.gsub("\n", " ").gsub("\r", "").gsub(column_ref, "").squeeze(" ").strip
   end
   
-  def create_first_section
-    if section_prefix.empty?
-      section_id = @doc_id
+  def create_first_component
+    if component_prefix.empty?
+      component_id = @doc_id
     else
-      section_id = "#{@doc_id}_#{section_prefix}"
+      component_id = "#{@doc_id}_#{component_prefix}"
     end
     
-    @hansard_section = Section.find_or_create_by_id(section_id)
-    @hansard_section.url = @start_url
+    @hansard_component = Component.find_or_create_by_id(component_id)
+    @hansard_component.url = @start_url
     @fragment_seq = 0
-    @hansard_section.daily_part = @daily_part
+    @hansard_component.daily_part = @daily_part
     
-    @hansard_section.sequence = get_sequence(@section)
+    @hansard_component.sequence = get_sequence(@component)
     
-    @daily_part.sections << @hansard_section
+    @daily_part.components << @hansard_component
     @daily_part.save
     
-    @hansard_section.name = @section
-    @hansard_section.save
+    @hansard_component.name = @component
+    @hansard_component.save
   end
   
   def setup_intro(text, url, title, tag)
@@ -170,35 +170,15 @@ class Parser
   
   def build_intro(text, url)
     @intro[:fragments] << text
-    @intro[:columns] << @end_column
+    if @end_column.empty?
+      @intro[:columns] << @start_column
+    else
+      @intro[:columns] << @end_column
+    end
     @intro[:links] << "#{url}\##{@last_link}"
   end
   
-  def get_sequence(section)
-  end
-  
-  def process_links_and_columns(node)
-    if node.attr("class") == "anchor" or node.attr("name") =~ /^\d*$/
-      @last_link = node.attr("name")
-    end
-    
-    column = set_column(node)
-    if @start_column.empty? and column
-      #need to set the start column
-      @start_column = set_column(node)
-    elsif column
-      #need to set the end column
-      @end_column = set_column(node)
-    end
-  end
-  
-  def set_column(node)
-    if node.attr("class") == "anchor-column"
-      return node.attr("name").gsub("column_", "")
-    elsif node.attr("name") =~ /column_(.*)/  #older page format
-      return node.attr("name").gsub("column_", "")
-    end
-    false
+  def get_sequence(component)
   end
   
   def determine_fragment_type(node)
@@ -246,11 +226,11 @@ class Parser
   
   def link_member_to_contribution(member)
     unless @members.keys.include?(member.search_name)
-      if @section_members.keys.include?(member.search_name)
-        @members[member.search_name] = @section_members[member.search_name]
+      if @component_members.keys.include?(member.search_name)
+        @members[member.search_name] = @component_members[member.search_name]
       else
         @members[member.search_name] = member
-        @section_members[member.search_name] = member
+        @component_members[member.search_name] = member
       end
     end
     @members[member.search_name].contributions << @contribution
@@ -259,11 +239,11 @@ class Parser
   def resolve_member_name(new_member)
     if @members.keys.include?(new_member.search_name)
       new_member = @members[new_member.search_name]
-    elsif @section_members.keys.include?(new_member.search_name)
-      new_member = @section_members[new_member.search_name]
+    elsif @component_members.keys.include?(new_member.search_name)
+      new_member = @component_members[new_member.search_name]
     else
       @members[new_member.search_name] = new_member
-      @section_members[new_member.search_name] = new_member
+      @component_members[new_member.search_name] = new_member
     end
     @member = new_member
   end

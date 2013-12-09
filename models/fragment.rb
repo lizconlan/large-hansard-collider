@@ -7,11 +7,11 @@ class Fragment
   include MongoMapper::Document
   #include Tire::Model::Search
   
-  belongs_to :section
+  belongs_to :component
   many :paragraphs, :in => :paragraph_ids, :order => :sequence
   
   key :_type, String
-  key :section_id, BSON::ObjectId
+  key :component_id, BSON::ObjectId
   key :title, String
   key :url, String
   key :paragraph_ids, Array
@@ -59,4 +59,11 @@ class Question < Fragment
 end
 
 class Intro < Fragment
+end
+
+class MemberIntroduction < Fragment
+  key :members, Array  # will probably only ever contain one name but, hey, consistency
+end
+
+class Tributes < Fragment
 end

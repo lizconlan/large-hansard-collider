@@ -13,7 +13,7 @@ describe CommonsParser do
   context "in general" do
     before(:all) do
       @html = File.read("./spec/data/commons_by_date.html")
-      @section_list = {
+      @component_list = {
         "Debates and Oral Answers"=>"http://www.publications.parliament.uk/pa/cm201314/cmhansrd/cm130913/debindx/130913-x.htm",
         "Written Statements"=>"http://www.publications.parliament.uk/pa/cm201314/cmhansrd/cm130913/wmsindx/130913-x.htm",
         "Written Answers"=>"http://www.publications.parliament.uk/pa/cm201314/cmhansrd/cm130913/index/130913-x.htm",
@@ -22,33 +22,33 @@ describe CommonsParser do
       }
     end
     
-    it "should retrieve an unordered Hash of section names and urls" do
+    it "should retrieve an unordered Hash of component names and urls" do
       index_url = "http://www.parliament.uk/business/publications/hansard/commons/by-date/?d=1&m=1&y=2099"
       response = mock()
       response.expects(:body).returns(@html)
       RestClient.expects(:get).with(index_url).returns(response)
           
-      @parser.get_section_links.should == @section_list
+      @parser.get_component_links.should == @component_list
     end
     
-    it "should load a section page for a given section name" do
+    it "should load a component page for a given component name" do
       response = mock()
       response.expects("body").returns("html goes here")
-      @parser.expects(:get_section_links).returns(@section_list)
+      @parser.expects(:get_component_links).returns(@component_list)
       url = "http://www.publications.parliament.uk/pa/cm201314/cmhansrd/cm130913/wmsindx/130913-x.htm"
       RestClient.expects(:get).with(url).returns(response)
-      @parser.get_section_index("Written Statements").should eq "html goes here"
+      @parser.get_component_index("Written Statements").should eq "html goes here"
     end
     
     context "when dealing with pages that use the maincontent1 format (up to Feb 17 2011)" do
       before(:all) do
-        @section_html = File.read("./spec/data/commons/wms_index_jan_2011.html")
+        @component_html = File.read("./spec/data/commons/wms_index_jan_2011.html")
       end
       
-      it "should work out the link to the first content page for a given section when the maincontent1 format is used" do
-        section = "Written Statements"
+      it "should work out the link to the first content page for a given component when the maincontent1 format is used" do
+        component = "Written Statements"
         url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110110/wmstext/110110m0001.htm"
-        @parser.expects(:get_section_index).returns(@section_html)
+        @parser.expects(:get_component_index).returns(@component_html)
         
         @parser.link_to_first_page.should eq url
       end
@@ -56,13 +56,13 @@ describe CommonsParser do
     
     context "when dealing with pages that use the content-small id (Feb 28 2011 onwards)" do
       before(:all) do
-        @section_html = File.read("./spec/data/commons/wms_index_nov_2011.html")
+        @component_html = File.read("./spec/data/commons/wms_index_nov_2011.html")
       end
       
-      it "should work out the link to the first content page for a given section" do
-        section = "Written Statements"
+      it "should work out the link to the first content page for a given component" do
+        component = "Written Statements"
         url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm111121/wmstext/111121m0001.htm"
-        @parser.expects(:get_section_index).returns(@section_html)
+        @parser.expects(:get_component_index).returns(@component_html)
         
         @parser.link_to_first_page.should eq url
       end
@@ -82,7 +82,7 @@ describe CommonsParser do
       end
       
       context "when no data is found" do
-        it "should report that no section data is found" do
+        it "should report that no component data is found" do
           daily_part = DailyPart.new
           @parser.expects(:link_to_first_page).returns(nil)
           $stderr.expects(:write).with("No data available for this date")

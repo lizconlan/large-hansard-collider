@@ -9,7 +9,7 @@ describe CommonsDebatesParser do
     NonContributionPara.any_instance.stubs(:save)
     ContributionPara.any_instance.stubs(:save)
     Timestamp.any_instance.stubs(:save)
-    Section.any_instance.stubs(:save)
+    Component.any_instance.stubs(:save)
     DailyPart.any_instance.stubs(:save)
     Debate.any_instance.stubs(:save)
     Question.any_instance.stubs(:save)
@@ -39,7 +39,7 @@ describe CommonsDebatesParser do
     @daily_part.stubs(:id)
     @daily_part.stubs(:volume=).with(volume)
     @daily_part.stubs(:save)
-    @daily_part.stubs(:sections).returns([])
+    @daily_part.stubs(:components).returns([])
   end
   
   context "in general" do
@@ -47,13 +47,13 @@ describe CommonsDebatesParser do
       @url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
       stub_part("Commons", "2099-01-01", "190", "531")
       
-      @section = Section.new
-      @section.stubs(:fragments).returns([])
-      Section.stubs(:find_or_create_by_id).returns(@section)
+      @component = Component.new
+      @component.stubs(:fragments).returns([])
+      Component.stubs(:find_or_create_by_id).returns(@component)
       
       CommonsDebatesParser.any_instance.stubs(:house=)
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).times(2).returns("d")
+      @parser.expects(:component_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
@@ -98,21 +98,21 @@ describe CommonsDebatesParser do
     end
   end
     
-  context "when handling Backbench Business section" do
+  context "when handling Backbench Business component" do
     before(:each) do
       @url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
       stub_part("Commons", "2099-01-01", nil, "531")
       
-      @section = Section.new
-      @section.stubs(:fragments).returns([])
-      Section.stubs(:find_or_create_by_id).returns(@section)
+      @component = Component.new
+      @component.stubs(:fragments).returns([])
+      Component.stubs(:find_or_create_by_id).returns(@component)
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).times(2).returns("d")
+      @parser.expects(:component_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
-    it "should correctly recognise the Backbench Business section" do
+    it "should correctly recognise the Backbench Business component" do
       stub_page("spec/data/commons/backbench_business_header.html")
       
       intro = Intro.new
@@ -143,12 +143,12 @@ describe CommonsDebatesParser do
       NonContributionPara.any_instance.stubs(:url=)
       NonContributionPara.any_instance.stubs(:column=)
       
-      @section.stubs(:id).returns("2099-01-01_hansard_c_d")
+      @component.stubs(:id).returns("2099-01-01_hansard_c_d")
       
       intro = Intro.new
       Intro.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000001').returns(intro)
       intro.expects(:title=).with('Backbench Business')
-      intro.expects(:section=).with(@section)
+      intro.expects(:component=).with(@component)
       intro.expects(:url=)
       intro.expects(:sequence=).with(1)
       intro.stubs(:columns=)
@@ -217,13 +217,13 @@ describe CommonsDebatesParser do
     end
   end
   
-  context "when handling the Oral Answers section" do
+  context "when handling the Oral Answers component" do
     before(:each) do
       @url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
       stub_part("Commons", "2099-01-01", nil, "531")
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).times(2).returns("d")
+      @parser.expects(:component_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
@@ -231,14 +231,14 @@ describe CommonsDebatesParser do
       stub_page("spec/data/commons/debates_and_oral_answers_header.html")
       HansardPage.expects(:new).returns(@page)
       
-      section = Section.new
-      Section.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(section)
-      section.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
+      component = Component.new
+      Component.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(component)
+      component.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
       
       intro = Intro.new
       Intro.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000001').returns(intro)
       intro.expects(:title=).with('House of Commons')
-      intro.expects(:section=).with(section)
+      intro.expects(:component=).with(component)
       intro.expects(:url=).with("#{@url}\#11071988000007")
       intro.expects(:sequence=).with(1)
       intro.stubs(:columns=)
@@ -275,9 +275,9 @@ describe CommonsDebatesParser do
     it "should create a Question for each question found" do
       stub_page("spec/data/commons/debates_and_oral_answers.html")
       
-      section = Section.new
-      Section.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(section)
-      section.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
+      component = Component.new
+      Component.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(component)
+      component.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
       
       intro = Intro.new
       Intro.any_instance.stubs(:paragraphs).returns([])
@@ -389,12 +389,12 @@ describe CommonsDebatesParser do
       @parser.parse_pages
     end
     
-    it "should deal with the Topical Questions section" do
+    it "should deal with the Topical Questions component" do
       stub_page("spec/data/commons/topical_questions.html")
       
-      section = Section.new
-      Section.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(section)
-      section.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
+      component = Component.new
+      Component.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(component)
+      component.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
       
       intro = Intro.new
       Intro.any_instance.stubs(:paragraphs).returns([])
@@ -488,9 +488,9 @@ describe CommonsDebatesParser do
     it "should not treat the first Debate as another Question" do
       stub_page("spec/data/commons/topical_questions_end.html")
       
-      section = Section.new
-      Section.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(section)
-      section.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
+      component = Component.new
+      Component.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(component)
+      component.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
       
       intro = Intro.new
       Intro.any_instance.stubs(:paragraphs).returns([])
@@ -553,16 +553,16 @@ describe CommonsDebatesParser do
       stub_part("Commons", "2099-01-01", nil, "531")
       
       @parser = CommonsDebatesParser.new("2099-01-01")
-      @parser.expects(:section_prefix).times(2).returns("d")
+      @parser.expects(:component_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
     it "should not handle store the Division with Ayes and Noes" do
       stub_page("spec/data/commons/debate_with_division.html")
       
-      section = Section.new
-      Section.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(section)
-      section.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
+      component = Component.new
+      Component.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d').returns(component)
+      component.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d')
       
       intro = Intro.new
       Intro.any_instance.stubs(:paragraphs).returns([])

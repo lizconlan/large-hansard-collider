@@ -5,13 +5,13 @@ require 'mongo_mapper'
 class DailyPart
   include MongoMapper::Document
   
-  many :sections, :in => :section_ids, :order => :sequence
+  many :component, :in => :component_ids, :order => :sequence
   
   key :date, String
   key :volume, String
   key :part, String
   key :house, String
-  key :section_ids, Array
+  key :component_ids, Array
   
   # def contributions_by_member(member_name)
   #   contribs = []
