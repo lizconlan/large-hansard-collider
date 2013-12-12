@@ -10,6 +10,7 @@ GEM
     builder (3.0.4)
     htmlentities (4.3.1)
     i18n (0.6.1)
+    mime-types (2.0)
     mini_portile (0.5.2)
     mongo (1.9.0)
       bson (~> 1.9.0)
@@ -22,6 +23,8 @@ GEM
       mini_portile (~> 0.5.0)
     plucky (0.5.2)
       mongo (~> 1.5)
+    rest-client (1.6.7)
+      mime-types (>= 1.16)
 
 PLATFORMS
   ruby
@@ -30,3 +33,4 @@ DEPENDENCIES
   htmlentities
   mongo_mapper (= 0.12.0)
   nokogiri
+  rest-client
