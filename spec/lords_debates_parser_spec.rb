@@ -157,7 +157,6 @@ describe LordsDebatesParser do
     #   intro.stubs(:columns=)
     #   intro.expects(:paragraphs).at_least_once.returns([])
     #   intro.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d_000001')
-    #   intro.expects(:k_html=).with("<h3>Backbench Business</h3><p>&nbsp;</p><p>[30th Allotted Day]</p>")
     #   
     #   ncpara.expects(:text=).with("[30th Allotted Day]")
     #   
@@ -166,7 +165,6 @@ describe LordsDebatesParser do
     #   Debate.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000002').returns(debate)
     #   debate.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d_000002')
     #   debate.expects(:title=).with("Summer Adjournment")
-    #   debate.expects(:k_html=).with(%Q|<h3>Summer Adjournment</h3><p>&nbsp;</p><div>2.44 pm</div><p>&nbsp;</p><p><b>Natascha Engel</b> (North East Derbyshire) (Lab):I beg to move,</p><p>&nbsp;</p><p>That this House has considered matters to be raised before the forthcoming adjournment.</p><p>&nbsp;</p><p>Thank you for calling me, Mr Deputy Speaker; I thought that this moment would never arrive. A total of 66 Members want to participate in the debate, including our newest Member - my hon. Friend the Member for Inverclyde (Mr McKenzie) - who is hoping to make his maiden speech. [Hon. Members: "Hear, hear."] It is unfortunate therefore that two Government statements, important though they both were, have taken almost two hours out of Back Benchers&apos; time. To set an example of brevity and to prepare us for all the constituency carnivals and fairs at which we will be spending most of our time during the recess, I hereby declare the debate open.</p><p>&nbsp;</p><p><b>Mr Deputy Speaker (Mr Lindsay Hoyle)</b>: We are now coming to a maiden speech, and I remind hon. Members not to intervene on it.</p>|)
     #   
     #   timestamp = Timestamp.new
     #   Timestamp.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000002_p000001").returns(timestamp)
@@ -247,7 +245,6 @@ describe LordsDebatesParser do
   #     intro.stubs(:columns=)
   #     intro.expects(:paragraphs).at_least_once.returns([])
   #     intro.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d_000001')
-  #     intro.expects(:k_html=).with("<h1>House of Commons</h1><p>&nbsp;</p><h2>Tuesday 19 July 2011</h2><p>&nbsp;</p><p>The House met at half-past Eleven o'clock</p><p>&nbsp;</p><h3>Prayers</h3><p>&nbsp;</p><p>[Mr Speaker in the Chair]</p>")
   #     
   #     ncpara = NonContributionPara.new
   #     NonContributionPara.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000001_p000001').returns(ncpara)
@@ -270,7 +267,6 @@ describe LordsDebatesParser do
   #     intro.expects(:id).at_least_once.returns('2099-01-01_hansard_c_d_000002')
   #     intro.expects(:title=).with("Oral Answers to Questions")
   #     intro.stubs(:paragraphs).returns([])
-  #     intro.expects(:k_html=).with("<h3>Oral Answers to Questions</h3>")
   #           
   #     @parser.parse_pages
   #   end
@@ -287,7 +283,6 @@ describe LordsDebatesParser do
   #     intro.stubs(:text=)
   #     intro.stubs(:id).returns("intro")
   #     Intro.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000001').returns(intro)
-  #     intro.stubs(:k_html=)
   #     Intro.expects(:find_or_create_by_id).with('2099-01-01_hansard_c_d_000002').returns(intro)
   #     
   #     ncpara = NonContributionPara.new
@@ -303,7 +298,6 @@ describe LordsDebatesParser do
   #     question.expects(:department=).with("Foreign and Commonwealth Office")
   #     question.expects(:title=).with("Syria")
   #     question.expects(:number=).with("66855")
-  #     question.expects(:k_html=).with("<h3>Foreign and Commonwealth Office</h3><p>&nbsp;</p><p>The Secretary of State was asked - </p><p>&nbsp;</p><h4>Syria</h4><p>&nbsp;</p><p>1. <b>Mr David Hanson</b> (Delyn) (Lab): When he next expects to discuss the situation in Syria with his US counterpart. [66855]</p><p>&nbsp;</p><p><b>The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)</b>: I am in regular contact with Secretary Clinton and I last discussed Syria with her on Friday.</p><p>&nbsp;</p><p><b>Mr Hanson</b>: I thank the Foreign Secretary for that answer. Given the recent violence, including the reported shooting of unarmed protesters, does he agree with Secretary of State Clinton that the Syrian Government have lost legitimacy? Given the level of violence, particularly the attacks on the US embassy and the French embassy, what steps is he taking to ensure the security of British citizens who work for the United Kingdom and are operating in Syria now?</p><p>&nbsp;</p><p><b>Mr Hague</b>: The right hon. Gentleman raises some important issues in relation to recent events in Syria. We absolutely deplore the continuing violence against protesters. Reports overnight from the city of Homs suggest that between 10 and 14 people were killed, including a 12-year-old child. We have condemned the attacks on the American and French embassies and we called in the Syrian ambassador last Wednesday to deliver our protests and to demand that Syria observes the requirements of the Vienna convention. The US and British Governments are united in saying that President Assad is losing legitimacy and should reform or step aside, and that continues to be our message.</p><p>&nbsp;</p><p><b>Mr Philip Hollobone</b> (Kettering) (Con): Iran has been involved in training Syrian troops and providing materi&eacute;l assistance, including crowd-dispersal equipment. What assessment has the Foreign Secretary made of the dark hand of Iran in fomenting trouble in the middle east and in supporting illegitimate regimes?</p><p>&nbsp;</p><p><b>Mr Hague</b>: Iran has certainly been involved in the way that my hon. Friend describes, and I set out a few weeks ago that I believed it to be involved in that way. It shows the extraordinary hypocrisy of the Iranian leadership</p><p>&nbsp;</p><p>on this that it has been prepared to encourage protests in Egypt, Tunisia and other countries while it has brutally repressed protest in its own country and is prepared to connive in doing so in Syria.</p><p>&nbsp;</p><p><b>Stephen Twigg</b> (Liverpool, West Derby) (Lab/Co-op): Does the Foreign Secretary agree that the world has been far too slow in its response to the appalling abuses of human rights in Syria? Surely, after the events of the weekend and the past few days in particular, there is now an urgent need for a clear and strong United Nations Security Council resolution.</p><p>&nbsp;</p><p><b>Mr Hague</b>: I think the world has been not so much slow as not sufficiently united on this. It has not been possible for the Arab League to arrive at a clear, strong position, which makes the situation entirely different to that in Libya, where the Arab League called on the international community to assist and intervene. There has not been the necessary unity at the United Nations Security Council and at times Russia has threatened to veto any resolution. Our resolution, which was put forward with our EU partners, remains very much on the table and certainly has the support of nine countries. We would like the support of more than nine countries to be able to put it to a vote in the Security Council, but it is very much on the table and we reserve the right at any time to press it to a vote in the United Nations. The hon. Gentleman is quite right to say that recent events add further to the case for doing so.</p>")
   #     question.expects(:url=).with("#{@url}\#11071988000022")
   #     
   #     ncpara = NonContributionPara.new
@@ -371,7 +365,6 @@ describe LordsDebatesParser do
   #     question.expects(:department=).with("Foreign and Commonwealth Office")
   #     question.expects(:title=).with("Nuclear Non-proliferation and Disarmament")
   #     question.expects(:number=).with("66858")
-  #     question.expects(:k_html=).with("<h4>Nuclear Non-proliferation and Disarmament</h4><p>&nbsp;</p><p>3. <b>Paul Flynn</b> (Newport West) (Lab): What recent progress his Department has made on nuclear non-proliferation and disarmament. [66858]</p><p>&nbsp;</p><p><b>The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)</b>: We continue to work across all three pillars of the non-proliferation treaty to build on the success of last year&apos;s review conference in New York. I am particularly proud of the work we have done towards ensuring the first conference of nuclear weapon states, which was held recently in Paris - the P5 conference - in which further progress was made, particularly towards disarmament.</p>")
   #     
   #     contribution = ContributionPara.new
   #     ContributionPara.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000004_p000001").returns(contribution)
@@ -440,7 +433,6 @@ describe LordsDebatesParser do
   #     question.expects(:department=).with("Foreign and Commonwealth Office")
   #     question.expects(:title=).with("Topical Questions - T1")
   #     question.expects(:number=).with("66880")
-  #     question.expects(:k_html=).with("<h4>Topical Questions</h4><p>&nbsp;</p><p>T1. [66880] <b>Harriett Baldwin</b> (West Worcestershire) (Con): If he will make a statement on his departmental responsibilities.</p><p>&nbsp;</p><p><b>The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)</b>: Statement goes here</p>")
   #     
   #     contribution = ContributionPara.new
   #     ContributionPara.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000004_p000001").returns(contribution)
@@ -461,7 +453,6 @@ describe LordsDebatesParser do
   #     question.expects(:department=).with("Foreign and Commonwealth Office")
   #     question.expects(:title=).with("Topical Questions - T2")
   #     question.expects(:number=).with("66881")
-  #     question.expects(:k_html=).with("<p>T2. [66881] <b>Stephen Mosley</b> (City of Chester) (Con): One of the remaining issues in South Sudan is that of Abyei. Will my right hon. Friend give us an update on what action is being taken to ensure that the promised referendum in Abyei goes ahead successfully?</p><p>&nbsp;</p><p><b>Mr Hague</b>: The urgent thing has been to bring peace and order to Abyei, and that is something that I have discussed with those in the north and south in Sudan, as well as with the Ethiopian Prime Minister and Foreign Minister on my visit to Ethiopia 10 days or so ago. Up to 4,200 Ethiopian troops will go to Abyei, and we have been active in quickly passing the necessary United Nations authority for them to do so. That is designed to pave the way for political progress in Abyei, but the most urgent thing has been to get that Ethiopian force there and to prevent continuing violence.</p>")
   #     
   #     contribution = ContributionPara.new
   #     ContributionPara.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000005_p000001").returns(contribution)
@@ -522,7 +513,6 @@ describe LordsDebatesParser do
   #     Debate.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000004").returns(debate)
   #     debate.expects(:id).at_least_once.returns("2099-01-01_hansard_c_d_000004")
   #     debate.stubs(:paragraphs).returns([])
-  #     debate.expects(:k_html=).with("<h3>Point of Order</h3><p>&nbsp;</p><div>12.34 pm</div><p>&nbsp;</p><p><b>Hilary Benn</b> (Leeds Central) (Lab): On a point of order, Mr Speaker. Thank you for taking this point of order, which, for reasons that will readily become apparent, is time critical. Last night, a Member on the Government Benches objected to my hon. Friend the Member for Kilmarnock and Loudoun (Cathy Jamieson) being put on to the Select Committee on Culture, Media and Sport. This was done in the knowledge that it would prevent her from being able to attend today&apos;s very important Committee meeting, at which Rebekah Brooks, James Murdoch and Rupert Murdoch are giving evidence. There is, however, a motion on the Order Paper, tabled by the Committee of Selection, that will allow the House to vote to put this right, but it will not be debated until later. Is there anything you can do, Mr Speaker, to enable it to be taken now, or earlier, so that my hon. Friend can take her place alongside the other members of the Committee when they meet at 2.30 this afternoon?</p>")
   #     
   #     timestamp = Timestamp.new
   #     Timestamp.expects(:find_or_create_by_id).with("2099-01-01_hansard_c_d_000004_p000001").returns(timestamp)
@@ -572,7 +562,6 @@ describe LordsDebatesParser do
   #     debate.expects(:id).at_least_once.returns("2099-01-01_hansard_c_d_000002")
   #     debate.stubs(:paragraphs).returns([])
   #     debate.expects(:title=).with("Public Bodies Bill [Lords]")
-  #     debate.expects(:k_html=).with("<h3>Public Bodies Bill [Lords]</h3><p>&nbsp;</p><p>[Relevant documents: The Fifth Report from the Public Administration Select Committee, Smaller Government: Shrinking the Quango State, HC 537, and the Government response, Cm 8044 .]</p><p>&nbsp;</p><p>Second Reading</p><p>&nbsp;</p><p><b>Mr Hurd</b>: In summary, the reforms we have proposed and that have been debated again today will produce a leaner and more effective system of public bodies centred on the principle of ministerial accountability. We have listened intently to the comments and concerns expressed during the debate and recognise that there are areas where the Government can helpfully produce further clarity and assurance, and the Deputy Leader of the House and I look forward to continuing to engage with hon. Members in Committee and elsewhere.</p><p>&nbsp;</p><p>However, I reiterate my hope that the House can come together in support of the belief that ministerial accountability for public functions and the use of public money should be at the heart of how we conduct ourselves. The Government believe that the proposals embodied in the Bill and in our plans for a regular comprehensive review of all public bodies will set a new standard for the management and review of public bodies, and on that basis I commend the Bill to the House.</p><p>&nbsp;</p><p>Question put, That the amendment be made.</p><p>&nbsp;</p><p>The House divided: Ayes 231, Noes 307.</p><p>&nbsp;</p><div>Division No. 321 - 9.59 pm</div><p>&nbsp;</p><div><b>AYES</b></div><div>Abbott, Ms Diane</div><div>Abrahams, Debbie</div><div>Ainsworth, rh Mr Bob</div><div>Morris, Grahame M. (Easington)</div><div>Tellers for the Ayes: Lilian Greenwood and Gregg McClymont</div><p>&nbsp;</p><div><b>NOES</b></div><div>Adams, Nigel</div><div>Afriyie, Adam</div><div>Aldous, Peter</div><div>Alexander, rh Danny</div><div>Davies, David T. C. (Monmouth)</div><div>Tellers for the Noes: James Duddridge and Norman Lamb</div><p>&nbsp;</p><p>Question accordingly negatived.</p><p>&nbsp;</p><p>Question put forthwith (Standing Order No. 62(2)), That the Bill be now read a Second Time.</p><p>&nbsp;</p><p>Question agreed to .</p><p>&nbsp;</p><p>Bill accordingly read a Second time.</p>")
   #     debate.expects(:url=).with("#{@url}\#11071272000001")
   #     
   #     ncpara = NonContributionPara.new

@@ -46,7 +46,6 @@ module Parser
     
     @last_link = ""
     @fragment = []
-    @k_html = []
     @questions = []
     @intro = {:fragments => [], :columns => [], :links => []}
     @subject = ""
@@ -174,7 +173,6 @@ module Parser
   def setup_intro(text, url, title, tag)
     @intro[:title] = title
     @intro[:link] = "#{url}\##{@last_link}"
-    @k_html << "<#{tag}>#{text}</#{tag}>"
   end
   
   def build_intro(text, url)

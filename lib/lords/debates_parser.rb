@@ -105,8 +105,6 @@ class LordsDebatesParser < LordsParser
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @intro[:title])
         store_and_reset(page)
-        
-        @k_html << "<h3>#{text}</h3>"
         @segment_link = "#{page.url}\##{@last_link}"
       else
         @subject = text
@@ -123,7 +121,6 @@ class LordsDebatesParser < LordsParser
         store_and_reset(page)
       end
       @subject = text
-      @k_html << "<h4>#{text}</h4>"
       @segment_link = "#{page.url}\##{@last_link}"
     else
       @subcomponent = ""
@@ -135,7 +132,6 @@ class LordsDebatesParser < LordsParser
         end
         setup_new_fragment(text, page)
       end
-      @k_html << "<h3>#{text}</h3>"
     end
   end
   
@@ -143,11 +139,6 @@ class LordsDebatesParser < LordsParser
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @intro[:title]
       build_intro(text, page.url)
-      if text =~ day_regex
-        @k_html << "<h2>#{text}</h2>"
-      else
-        @k_html << "<p>#{text}</p>"
-      end
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
@@ -156,11 +147,6 @@ class LordsDebatesParser < LordsParser
         end
         @intro[:title] = text
         @subcomponent = ""
-        if text =~ day_regex
-          @k_html << "<h2>#{text}</h2>"
-        else
-          @k_html << "<h3>#{text}</h3>"
-        end
       else              
         fragment = create_fragment(text)
         @fragment << fragment
@@ -168,13 +154,6 @@ class LordsDebatesParser < LordsParser
           @subject = sanitize_text(text)
         end
         @segment_link = "#{page.url}\##{@last_link}"
-        if text =~ day_regex
-          @k_html << "<h2>#{text}</h2>"
-        elsif @subcomponent == "Oral Answer" and !(text =~ / was asked /)
-          @k_html << "<h4>#{text}</h4>"
-        else
-          @k_html << "<p>#{text}</p>"
-        end
       end
     end
   end
@@ -184,7 +163,6 @@ class LordsDebatesParser < LordsParser
     fragment.desc = "timestamp"
     fragment.link = "#{page.url}\##{@last_link}"
     @fragment << fragment
-    @k_html << "<div>#{text}</div>"
   end
   
   def setup_new_fragment(text, page)
@@ -218,7 +196,6 @@ class LordsDebatesParser < LordsParser
   
   def stash_division
     @fragment << @div_fragment
-    @k_html << html_fix(@coder.encode("<p>#{@div_fragment.overview}</p><p>&nbsp;</p><div>Division No. #{@div_fragment.number} - #{@div_fragment.timestamp}</div><p>&nbsp;</p><div><b>AYES</b></div><div>#{@div_fragment.ayes.join("</div><div>")}</div><div>Tellers for the Ayes: #{@div_fragment.tellers_ayes}</div><p>&nbsp;</p><div><b>NOES</b></div><div>#{@div_fragment.noes.join("</div><div>")}</div><div>Tellers for the Noes: #{@div_fragment.tellers_noes}</div><p>&nbsp;</p><p>#{@div_fragment.summary}</p>"))
     @div_fragment = nil
   end
   
@@ -420,17 +397,6 @@ class LordsDebatesParser < LordsParser
     fragment
   end
   
-  def fix_fragment_text(fragment)
-    unless fragment.text == ""
-      if fragment.printed_name and fragment.text.strip =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
-        k_html = format_fragment_html($1, fragment)
-        @k_html << html_fix(k_html.gsub("\t"," ").squeeze(" "))
-      else
-        @k_html << "<p>#{html_fix(@coder.encode(fragment.text.strip, :named))}</p>"
-      end
-    end
-  end
-  
   def format_fragment_html(prefix, fragment)
     if prefix
       pref_length = prefix.length
@@ -488,14 +454,11 @@ class LordsDebatesParser < LordsParser
       
       if @intro[:title]
         build_intro(text, page.url)
-        @k_html << "<p>#{text}</p>"
       elsif @fragment_type != "division"
         fragment = create_fragment(text)
         
         @fragment << fragment
         @segment_link = "#{page.url}\##{@last_link}" if @segment_link == ""
-        
-        fix_fragment_text(fragment)
       end
     end
   end
@@ -530,7 +493,6 @@ class LordsDebatesParser < LordsParser
     cols = intro.paragraphs.map { |x| x.column }.uniq
     cols.delete_if { |x| x.nil? or x.empty? }
     intro.columns = cols
-    intro.k_html = @k_html.join("<p>&nbsp;</p>")
     
     intro.save
     @hansard_component.fragments << intro
@@ -674,12 +636,10 @@ class LordsDebatesParser < LordsParser
         print_debug(segment_id)
       end
     end
-    @k_html = []
   end
   
   def set_columns_and_save
     @debate.columns = @debate.paragraphs.map {|x| x.column}.uniq
-    @debate.k_html = @k_html.join("<p>&nbsp;</p>")
     @debate.save
     @start_column = @end_column if @end_column != ""
   end
