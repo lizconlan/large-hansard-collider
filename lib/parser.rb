@@ -164,10 +164,10 @@ module Parser
     @hansard_component.sequence = get_sequence(@component)
     
     @daily_part.components << @hansard_component
-    @daily_part.save
+    @daily_part.save(:safe => true)
     
     @hansard_component.name = @component
-    @hansard_component.save
+    @hansard_component.save(:safe => true)
   end
   
   def setup_intro(text, url, title, tag)

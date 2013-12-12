@@ -470,7 +470,7 @@ class LordsDebatesParser < LordsParser
     para.sequence = @para_seq
     para.url = @intro[:links][idx]
     para.column = @intro[:columns][idx]
-    para.save
+    para.save(:safe => true)
     para
   end
   
@@ -494,9 +494,9 @@ class LordsDebatesParser < LordsParser
     cols.delete_if { |x| x.nil? or x.empty? }
     intro.columns = cols
     
-    intro.save
+    intro.save(:safe => true)
     @hansard_component.fragments << intro
-    @hansard_component.save
+    @hansard_component.save(:safe => true)
     
     @intro = {:fragments => [], :columns => [], :links => []}
   end
@@ -574,7 +574,7 @@ class LordsDebatesParser < LordsParser
     para.column = fragment.column
     para.sequence = @para_seq
     para.fragment = @debate
-    para.save
+    para.save(:safe => true)
     
     @debate.paragraphs << para
   end
@@ -601,11 +601,11 @@ class LordsDebatesParser < LordsParser
     
     @para_seq = 0
     @hansard_component.fragments << @debate
-    @hansard_component.save
+    @hansard_component.save(:safe => true)
     
     @daily_part.volume = page.volume
     @daily_part.part = sanitize_text(page.part.to_s)
-    @daily_part.save
+    @daily_part.save(:safe => true)
     
     @debate.component = @hansard_component
     @debate.title = @subject
@@ -640,7 +640,7 @@ class LordsDebatesParser < LordsParser
   
   def set_columns_and_save
     @debate.columns = @debate.paragraphs.map {|x| x.column}.uniq
-    @debate.save
+    @debate.save(:safe => true)
     @start_column = @end_column if @end_column != ""
   end
   
