@@ -13,11 +13,27 @@ class CommonsParser
     super(date, "Commons")
   end
   
+  def get_component_links
+    parse_date = Date.parse(date)
+    index_page = "http://www.parliament.uk/business/publications/hansard/#{house.downcase()}/by-date/?d=#{parse_date.day}&m=#{parse_date.month}&y=#{parse_date.year}"
+    urls = Hash.new
+    
+    html = get_page(index_page)
+    
+    if html
+      doc = Nokogiri::HTML(html)
+      doc.xpath("//ul[@class='publications']/li/a").each do |link|
+        urls["#{link.text.strip}"] = link.attribute("href").value.to_s
+      end
+    end
+    urls
+  end
+  
   def link_to_first_page
     unless self.respond_to?(:component)
       component = 0
     end
-    html = get_component_index(component)
+    html = get_component_index
     return nil unless html
     doc = Nokogiri::HTML(html)
     
