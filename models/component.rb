@@ -1,14 +1,12 @@
 #encoding: utf-8
 
-require 'mongo_mapper'
+require 'active_record'
 
 # slightly odd choice of word, but have confirmed that
 # Section was misleading
-class Component
-  include MongoMapper::Document
-  
+class Component < ActiveRecord::Base
   belongs_to :daily_part
-  many :fragments, :in => :fragment_ids, :order => :sequence
+  has_many :fragments
   
   def date
     daily_part.date
@@ -26,25 +24,20 @@ class Component
     daily_part.house
   end
   
-  key :fragment_ids, Array
-  key :name, String
-  key :sequence, Integer
-  key :url, String
-  
   def contributions_by_member(member_name)
     contribs = []
     contrib = []
-    last_id = ""
-    paras = Paragraph.by_member_and_fragment_id_start(member_name, id).all
+    last_ident = ""
+    paras = Paragraph.by_member_and_fragment_id_start(member_name, ident).all
     paras.each do |para|
-      unless para.contribution_id == last_id
+      unless para.contribution_ident == last_ident
         unless contribs.empty? and contrib.empty?
           contribs << contrib
           contrib = []
         end
       end
       contrib << para
-      last_id = para.contribution_id
+      last_ident = para.contribution_ident
     end
     contribs << contrib unless contrib.empty?
     contribs

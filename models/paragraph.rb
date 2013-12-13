@@ -1,18 +1,9 @@
 #encoding: utf-8
 
-require 'mongo_mapper'
+require 'active_record'
 
-class Paragraph
-  include MongoMapper::Document
+class Paragraph < ActiveRecord::Base
   belongs_to :fragment
-    
-  key :_type, String
-  key :debate_id, BSON::ObjectId
-  key :url, String
-  key :column, String
-  key :text, String
-  key :html, String
-  key :sequence, Integer
   
   def self.by_member(member_name)
     where(:_type => "ContributionPara", :member => member_name)
@@ -31,25 +22,13 @@ class Timestamp < Paragraph
 end
 
 class ContributionPara < Paragraph
-  key :member, String
-  key :speaker_printed_name, String
-  key :contribution_id, String
 end
 
 class NonContributionPara < Paragraph
-  key :description, String
 end
 
 class ContributionTable < Paragraph
-  key :member, String
-  key :contribution_id, String
 end
 
 class Division < Paragraph
-  key :number, String
-  key :tellers_ayes, String
-  key :tellers_noes, String
-  key :ayes, Array
-  key :noes, Array
-  key :timestamp, String
 end

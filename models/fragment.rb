@@ -1,23 +1,12 @@
 #encoding: utf-8
 
-require 'mongo_mapper'
+require 'active_record'
 require 'htmlentities'
 
-class Fragment
-  include MongoMapper::Document
-  #include Tire::Model::Search
-  
+class Fragment < ActiveRecord::Base
   belongs_to :component
-  many :paragraphs, :in => :paragraph_ids, :order => :sequence
+  has_many :paragraphs
   
-  key :_type, String
-  key :component_id, BSON::ObjectId
-  key :title, String
-  key :url, String
-  key :paragraph_ids, Array
-  key :columns, Array
-  key :sequence, Integer
-    
   def contributions_by_member(member_name)
     contribs = []
     contrib = []
@@ -39,29 +28,18 @@ class Fragment
 end
 
 class Debate < Fragment
-  key :members, Array
-  key :chair, String
 end
 
 class Statement < Fragment
-  key :department, String
-  key :members, Array
 end
 
 class Question < Fragment
-  key :department, String
-  key :subject, String
-  key :members, Array
-  key :number, String
-  key :asked_by, String
-  key :question_type, String
 end
 
 class Intro < Fragment
 end
 
 class MemberIntroduction < Fragment
-  key :members, Array  # will probably only ever contain one name but, hey, consistency
 end
 
 class Tributes < Fragment

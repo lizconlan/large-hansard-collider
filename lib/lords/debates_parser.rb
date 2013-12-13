@@ -463,8 +463,8 @@ class LordsDebatesParser < LordsParser
     end
   end
   
-  def store_non_contribution_para(intro, fragment, idx, para_id)
-    para = NonContributionPara.find_or_create_by_id(para_id)
+  def store_non_contribution_para(intro, fragment, idx, para_ident)
+    para = NonContributionPara.find_or_create_by(ident: para_ident)
     para.fragment = intro
     para.text = fragment
     para.sequence = @para_seq
@@ -476,8 +476,8 @@ class LordsDebatesParser < LordsParser
   
   def store_intro
     @fragment_seq += 1
-    intro_id = "#{@hansard_component.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
-    intro = Intro.find_or_create_by_id(intro_id)
+    intro_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+    intro = Intro.find_or_create_by(ident: intro_ident)
     @para_seq = 0
     intro.title = @intro[:title]
     intro.component = @hansard_component
@@ -486,8 +486,8 @@ class LordsDebatesParser < LordsParser
     
     @intro[:fragments].each_with_index do |fragment, i|
       @para_seq += 1
-      para_id = "#{intro.id}_p#{@para_seq.to_s.rjust(6, "0")}"
-      para = store_non_contribution_para(intro, fragment, i, para_id)
+      para_ident = "#{intro.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      para = store_non_contribution_para(intro, fragment, i, para_ident)
       intro.paragraphs << para
     end
     cols = intro.paragraphs.map { |x| x.column }.uniq
@@ -501,8 +501,8 @@ class LordsDebatesParser < LordsParser
     @intro = {:fragments => [], :columns => [], :links => []}
   end
   
-  def create_question(q_id)
-    @debate = Question.find_or_create_by_id(q_id)
+  def create_question(q_ident)
+    @debate = Question.find_or_create_by(ident: q_ident)
     @debate.number = @questions.last
     @debate.department = @department
     @debate.asked_by = @asked_by
@@ -510,8 +510,8 @@ class LordsDebatesParser < LordsParser
     @asked_by = ""
   end
   
-  def store_division_fragment(fragment, para_id)
-    para = Division.find_or_create_by_id(para_id)
+  def store_division_fragment(fragment, para_ident)
+    para = Division.find_or_create_by(ident: para_ident)
     para.number = fragment.number
     para.ayes = fragment.ayes
     para.noes = fragment.noes
@@ -523,10 +523,10 @@ class LordsDebatesParser < LordsParser
     para
   end
   
-  def store_contribution_fragment(fragment, para_id)
-    para = ContributionPara.find_or_create_by_id(para_id)
+  def store_contribution_fragment(fragment, para_ident)
+    para = ContributionPara.find_or_create_by(ident: para_ident)
     para.member = fragment.speaker
-    para.contribution_id = "#{@debate.id}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
+    para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
     if fragment.text.strip =~ /^(T?\d+\.\s+(\[\d+\]\s+)?)?#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
       para.speaker_printed_name = fragment.printed_name
     end
@@ -537,26 +537,26 @@ class LordsDebatesParser < LordsParser
     @fragment.each do |fragment|
       unless fragment.text == @debate.title or fragment.text == ""
         @para_seq += 1
-        para_id = "#{@debate.id}_p#{@para_seq.to_s.rjust(6, "0")}"
+        para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
         
-        para = create_para_by_type(fragment, para_id)
-        associate_members_with_debate()
+        para = create_para_by_type(fragment, para_ident)
+        associate_members_with_debate() unless @debate.class == MemberIntroduction
         assign_para_to_debate(fragment, para)
       end
     end
   end
   
-  def create_para_by_type(fragment, para_id)
+  def create_para_by_type(fragment, para_ident)
     case fragment.desc
     when "timestamp"
-      para = Timestamp.find_or_create_by_id(para_id)
+      para = Timestamp.find_or_create_by(ident: para_ident)
     when "division"
-      para = store_division_fragment(fragment, para_id)
+      para = store_division_fragment(fragment, para_ident)
     else
       if fragment.speaker.nil?
-        para = NonContributionPara.find_or_create_by_id(para_id)
+        para = NonContributionPara.find_or_create_by(ident: para_ident)
       else
-        para = store_contribution_fragment(fragment, para_id)
+        para = store_contribution_fragment(fragment, para_ident)
       end
     end
     para
@@ -581,7 +581,7 @@ class LordsDebatesParser < LordsParser
   
   def store_segment(page)
     @fragment_seq += 1
-    segment_id = "#{@hansard_component.id}_#{@fragment_seq.to_s.rjust(6, "0")}"
+    segment_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
     
     column_text = ""
     if @start_column == @end_column or @end_column == ""
@@ -593,10 +593,10 @@ class LordsDebatesParser < LordsParser
     if @subcomponent == "Oral Answer"
       create_question(segment_id)
     elsif @subcomponent == "Member Introduction"
-      @debate = MemberIntroduction.find_or_create_by_id(segment_id)
+      @debate = MemberIntroduction.find_or_create_by(ident: segment_ident)
       @debate.members = [@subject.gsub("Introduction: ", "")]
     else
-      @debate = Debate.find_or_create_by_id(segment_id)
+      @debate = Debate.find_or_create_by(ident: segment_ident)
     end
     
     @para_seq = 0
@@ -614,7 +614,7 @@ class LordsDebatesParser < LordsParser
     @debate.sequence = @fragment_seq
     
     store_fragments()
-    segment_id
+    segment_ident
   end
   
   def store_debate(page)
@@ -629,11 +629,11 @@ class LordsDebatesParser < LordsParser
         
         #no point storing pointers that don't link back to the source
         if @segment_link
-          segment_id = store_segment(page)
+          segment_ident = store_segment(page)
         end
         
         set_columns_and_save()
-        print_debug(segment_id)
+        print_debug(segment_ident)
       end
     end
   end
@@ -644,10 +644,10 @@ class LordsDebatesParser < LordsParser
     @start_column = @end_column if @end_column != ""
   end
   
-  def print_debug(segment_id)
+  def print_debug(segment_ident)
     unless ENV["RACK_ENV"] == "test"
       p @subject
-      p segment_id
+      p segment_ident
       p @segment_link
       p ""
     end

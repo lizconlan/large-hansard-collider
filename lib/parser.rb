@@ -18,9 +18,9 @@ module Parser
   def initialize(date, house)
     @date = date
     @house = house
-    @doc_id = "#{date}_hansard_#{house[0..0].downcase()}"
+    @doc_ident = "#{date}_hansard_#{house[0..0].downcase()}"
     
-    @daily_part = DailyPart.find_or_create_by_id(@doc_id)
+    @daily_part = DailyPart.find_or_create_by(ident: @doc_ident)
     @daily_part.house = house
     @daily_part.date = date
     @hansard_component = nil
@@ -151,12 +151,12 @@ module Parser
   
   def create_first_component
     if component_prefix.empty?
-      component_id = @doc_id
+      component_ident = @doc_ident
     else
-      component_id = "#{@doc_id}_#{component_prefix}"
+      component_ident = "#{@doc_ident}_#{component_prefix}"
     end
     
-    @hansard_component = Component.find_or_create_by_id(component_id)
+    @hansard_component = Component.find_or_create_by(ident: component_ident)
     @hansard_component.url = @start_url
     @fragment_seq = 0
     @hansard_component.daily_part = @daily_part

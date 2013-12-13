@@ -4,7 +4,7 @@ require './lib/commons/parser'
 describe CommonsParser do
   before(:all) do
     daily_part = DailyPart.new
-    DailyPart.expects(:find_or_create_by_id).with("2099-01-01_hansard_c").returns(daily_part)
+    DailyPart.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c").returns(daily_part)
     
     @parser = CommonsParser.new("2099-01-01")
     @parser.init_vars()

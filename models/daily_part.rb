@@ -1,17 +1,9 @@
 #encoding: utf-8
 
-require 'mongo_mapper'
+require 'active_record'
 
-class DailyPart
-  include MongoMapper::Document
-  
-  many :component, :in => :component_ids, :order => :sequence
-  
-  key :date, String
-  key :volume, String
-  key :part, String
-  key :house, String
-  key :component_ids, Array
+class DailyPart < ActiveRecord::Base
+  has_many :components
   
   # def contributions_by_member(member_name)
   #   contribs = []
