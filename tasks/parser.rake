@@ -2,7 +2,7 @@ require 'time'
 
 #parser libraries
 require './lib/commons/debates_parser'
-# require './lib/commons/wh_debates_parser'
+require './lib/commons/wh_debates_parser'
 # require './lib/commons/wms_parser'
 # require './lib/commons/written_answers_parser'
 
@@ -39,8 +39,8 @@ task :scrape_hansard => :environment do
   parser = CommonsDebatesParser.new(date)
   parser.parse_pages
   
-  # parser = WHDebatesParser.new(date)
-  # parser.parse_pages
+  parser = WHDebatesParser.new(date)
+  parser.parse_pages
   # 
   # parser = WMSParser.new(date)
   # parser.parse_pages
