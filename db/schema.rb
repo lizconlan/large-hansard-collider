@@ -58,7 +58,7 @@ ActiveRecord::Schema.define(version: 20131214005634) do
     t.string  "ident"
     t.string  "url"
     t.string  "column"
-    t.string  "text"
+    t.text    "text"
     t.integer "sequence"
     t.string  "member"
     t.string  "speaker_printed_name"
