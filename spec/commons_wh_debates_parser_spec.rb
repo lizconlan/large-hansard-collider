@@ -3,7 +3,7 @@ require './lib/commons/wh_debates_parser'
 
 describe WHDebatesParser do
   before(:each) do
-    Intro.any_instance.stubs(:save)
+    Preamble.any_instance.stubs(:save)
     NonContributionPara.any_instance.stubs(:save)
     ContributionPara.any_instance.stubs(:save)
     Timestamp.any_instance.stubs(:save)
@@ -49,19 +49,19 @@ describe WHDebatesParser do
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
-    it "should create the Intro section" do
+    it "should create the Preamble section" do
       stub_page("spec/data/commons/wh_debates.html")
       
       component = Component.new(:ident => "2099-01-01_hansard_c_wh")
       Component.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh").returns(component)
       
-      intro = Intro.new(:ident => "2099-01-01_hansard_c_wh_000001")
-      Intro.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001").returns(intro)
-      intro.expects(:title=).with("Westminster Hall")
+      preamble = Preamble.new(:ident => "2099-01-01_hansard_c_wh_000001")
+      Preamble.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001").returns(preamble)
+      preamble.expects(:title=).with("Westminster Hall")
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001_p000001").returns(ncpara)
-      ncpara.expects(:fragment=).with(intro)
+      ncpara.expects(:fragment=).with(preamble)
       ncpara.expects(:text=).with("Tuesday 19 July 2011")
       ncpara.expects(:sequence=).with(1)
       ncpara.expects(:url=).with("#{@url}\#11071984000004")
@@ -69,13 +69,13 @@ describe WHDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001_p000002").returns(ncpara)
-      ncpara.expects(:fragment=).with(intro)
+      ncpara.expects(:fragment=).with(preamble)
       ncpara.expects(:text=).with("[Jim Dobbin in the Chair]")
       ncpara.expects(:sequence=).with(2)
       ncpara.expects(:url=).with("#{@url}\#11071984000005")
       ncpara.expects(:column=).with("183WH")
       
-      intro.expects(:paragraphs).at_least_once.returns([ncpara])
+      preamble.expects(:paragraphs).at_least_once.returns([ncpara])
       
       #ignore the rest of the file, not relevant
       timestamp = Timestamp.new
@@ -107,14 +107,14 @@ describe WHDebatesParser do
       component = Component.new(:ident => '2099-01-01_hansard_c_wh')
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh').returns(component)
       
-      intro = Intro.new(:ident => "intro")
-      Intro.any_instance.stubs(:paragraphs).returns([])
-      Intro.any_instance.stubs(:title=)
-      Intro.expects(:find_or_create_by).returns(intro)
+      preamble = Preamble.new(:ident => "preamble")
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      Preamble.any_instance.stubs(:title=)
+      Preamble.expects(:find_or_create_by).returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
       ncpara.stubs(:fragment=)
       ncpara.stubs(:text=)
       ncpara.stubs(:url=)

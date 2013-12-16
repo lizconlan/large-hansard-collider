@@ -65,31 +65,31 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def process_h2(text, title, page)
-    if fragment_has_text or @intro[:title]
+    if fragment_has_text or @preamble[:title]
       store_and_reset(page)
     end
     
     if text == "House of Commons"
-      setup_intro(text, page.url, title, "h1")
+      setup_preamble(text, page.url, title, "h1")
     end
     
     if text == "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_intro(text, page.url, title, "h3")
+      setup_preamble(text, page.url, title, "h3")
     end
   end
   
   def process_h3(text, page)
     if (@fragment_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
-      if text.downcase != "prayers" and (fragment_has_text or @intro[:title])
+      if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
         store_and_reset(page)
         
         @segment_link = "#{page.url}\##{@last_link}"
       else
         @subject = text
-        if @intro[:title]
-          build_intro(text, page.url)
+        if @preamble[:title]
+          build_preamble(text, page.url)
         else
           fragment = create_fragment(text)
           @fragment << fragment
@@ -97,7 +97,7 @@ class CommonsDebatesParser < CommonsParser
         end
       end
     elsif @fragment_type == "subject heading" and @subcomponent == "Oral Answer"
-      if (fragment_has_text and @subject != "") or @intro[:title]
+      if (fragment_has_text and @subject != "") or @preamble[:title]
         store_and_reset(page)
       end
       @subject = text
@@ -105,9 +105,9 @@ class CommonsDebatesParser < CommonsParser
     else
       @subcomponent = ""
       if text.downcase == "prayers"
-        build_intro(text, page.url)
+        build_preamble(text, page.url)
       else
-        if (@fragment.empty? == false) or @intro[:title]
+        if (@fragment.empty? == false) or @preamble[:title]
           store_and_reset(page)
         end
         setup_new_fragment(text, page)
@@ -117,15 +117,15 @@ class CommonsDebatesParser < CommonsParser
   
   def process_h4(text, page)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
-    if @intro[:title]
-      build_intro(text, page.url)
+    if @preamble[:title]
+      build_preamble(text, page.url)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
-        if fragment_has_text or @intro[:title]
+        if fragment_has_text or @preamble[:title]
           store_and_reset(page)
         end
-        @intro[:title] = text
+        @preamble[:title] = text
         @subcomponent = ""
       else              
         fragment = create_fragment(text)
@@ -426,8 +426,8 @@ class CommonsDebatesParser < CommonsParser
       #check if this is a new contrib
       check_debate_contributions(text, member_name, page)
       
-      if @intro[:title]
-        build_intro(text, page.url)
+      if @preamble[:title]
+        build_preamble(text, page.url)
       elsif @fragment_type != "division"
         fragment = create_fragment(text)
         
@@ -437,41 +437,41 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def store_non_contribution_para(intro, fragment, idx, para_ident)
+  def store_non_contribution_para(preamble, fragment, idx, para_ident)
     para = NonContributionPara.find_or_create_by(ident: para_ident)
-    para.fragment = intro
+    para.fragment = preamble
     para.text = fragment
     para.sequence = @para_seq
-    para.url = @intro[:links][idx]
-    para.column = @intro[:columns][idx]
+    para.url = @preamble[:links][idx]
+    para.column = @preamble[:columns][idx]
     
     para.save(:safe => true)
     para
   end
   
-  def store_intro
+  def store_preamble
     @fragment_seq += 1
-    intro_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
-    intro = Intro.find_or_create_by(ident: intro_ident)
+    preamble_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+    preamble = Preamble.find_or_create_by(ident: preamble_ident)
     @para_seq = 0
-    intro.title = @intro[:title]
-    intro.component = @hansard_component
-    intro.url = @intro[:link]
-    intro.sequence = @fragment_seq
+    preamble.title = @preamble[:title]
+    preamble.component = @hansard_component
+    preamble.url = @preamble[:link]
+    preamble.sequence = @fragment_seq
     
-    @intro[:fragments].each_with_index do |fragment, i|
+    @preamble[:fragments].each_with_index do |fragment, i|
       @para_seq += 1
-      para_ident = "#{intro.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      para = store_non_contribution_para(intro, fragment, i, para_ident)
-      intro.paragraphs << para
+      para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      para = store_non_contribution_para(preamble, fragment, i, para_ident)
+      preamble.paragraphs << para
     end
-    intro.columns = intro.paragraphs.map { |x| x.column }.uniq
+    preamble.columns = preamble.paragraphs.map { |x| x.column }.uniq
     
-    intro.save(:safe => true)
-    @hansard_component.fragments << intro
+    preamble.save(:safe => true)
+    @hansard_component.fragments << preamble
     @hansard_component.save(:safe => true)
     
-    @intro = {:fragments => [], :columns => [], :links => []}
+    @preamble = {:fragments => [], :columns => [], :links => []}
   end
   
   def create_question(q_ident)
@@ -591,8 +591,8 @@ class CommonsDebatesParser < CommonsParser
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
-    if @intro[:title]
-      store_intro()
+    if @preamble[:title]
+      store_preamble()
     else
       unless @fragment.empty?
         handle_contribution(@member, @member, page)

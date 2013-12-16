@@ -47,7 +47,7 @@ module Parser
     @last_link = ""
     @fragment = []
     @questions = []
-    @intro = {:fragments => [], :columns => [], :links => []}
+    @preamble = {:fragments => [], :columns => [], :links => []}
     @subject = ""
     @start_column = ""
     @end_column = ""
@@ -107,7 +107,7 @@ module Parser
       end
       
       #flush the buffer
-      if @fragment.empty? == false or @intro[:title]
+      if @fragment.empty? == false or @preamble[:title]
         store_debate(page)
         reset_vars()
       end
@@ -155,19 +155,19 @@ module Parser
     @hansard_component.save(:safe => true)
   end
   
-  def setup_intro(text, url, title, tag)
-    @intro[:title] = title
-    @intro[:link] = "#{url}\##{@last_link}"
+  def setup_preamble(text, url, title, tag)
+    @preamble[:title] = title
+    @preamble[:link] = "#{url}\##{@last_link}"
   end
   
-  def build_intro(text, url)
-    @intro[:fragments] << text
+  def build_preamble(text, url)
+    @preamble[:fragments] << text
     if @end_column.empty?
-      @intro[:columns] << @start_column
+      @preamble[:columns] << @start_column
     else
-      @intro[:columns] << @end_column
+      @preamble[:columns] << @end_column
     end
-    @intro[:links] << "#{url}\##{@last_link}"
+    @preamble[:links] << "#{url}\##{@last_link}"
   end
   
   def get_sequence(component)

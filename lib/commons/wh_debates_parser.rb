@@ -24,8 +24,8 @@ class WHDebatesParser < CommonsParser
   def parse_node(node, page)
     case node.name
       when "h2"
-        @intro[:title] = node.content
-        @intro[:link] = "#{page.url}\##{@last_link}"
+        @preamble[:title] = node.content
+        @preamble[:link] = "#{page.url}\##{@last_link}"
       when "a"
         process_links_and_columns(node)
       when "h3"
@@ -46,10 +46,10 @@ class WHDebatesParser < CommonsParser
         if text[text.length-13..text.length-2] == "in the Chair"
           @chair = text[1..text.length-15]
         end
-        if @intro[:title]
-          @intro[:fragments] << text
-          @intro[:columns] << @end_column
-          @intro[:links] << "#{page.url}\##{@last_link}"
+        if @preamble[:title]
+          @preamble[:fragments] << text
+          @preamble[:columns] << @end_column
+          @preamble[:links] << "#{page.url}\##{@last_link}"
         end
       when "h5"
         fragment = HansardFragment.new
@@ -153,36 +153,36 @@ class WHDebatesParser < CommonsParser
   end
   
   def store_debate(page)
-    if @intro[:title]
+    if @preamble[:title]
       @fragment_seq += 1
-      intro_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
-      intro = Intro.find_or_create_by(ident: intro_ident)
-      intro.title = @intro[:title]
-      intro.component = @hansard_component
-      intro.url = @intro[:link]
-      intro.sequence = @fragment_seq
+      preamble_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+      preamble = Preamble.find_or_create_by(ident: preamble_ident)
+      preamble.title = @preamble[:title]
+      preamble.component = @hansard_component
+      preamble.url = @preamble[:link]
+      preamble.sequence = @fragment_seq
       
-      @intro[:fragments].each_with_index do |fragment, i|
+      @preamble[:fragments].each_with_index do |fragment, i|
         @para_seq += 1
-        para_ident = "#{intro.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+        para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
         
         para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.fragment = intro
+        para.fragment = preamble
         para.text = fragment
         para.sequence = @para_seq
-        para.url = @intro[:links][i]
-        para.column = @intro[:columns][i]
+        para.url = @preamble[:links][i]
+        para.column = @preamble[:columns][i]
         
         para.save
-        intro.paragraphs << para
+        preamble.paragraphs << para
       end
-      intro.columns = intro.paragraphs.collect{ |x| x.column }.uniq
+      preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
       
-      intro.save
-      @hansard_component.fragments << intro
+      preamble.save
+      @hansard_component.fragments << preamble
       @hansard_component.save
       
-      @intro = {:fragments => [], :columns => [], :links => []}
+      @preamble = {:fragments => [], :columns => [], :links => []}
     else
       handle_contribution(@member, @member, page)
       

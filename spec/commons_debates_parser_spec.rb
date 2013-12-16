@@ -5,7 +5,7 @@ require './lib/commons/debates_parser'
 
 describe CommonsDebatesParser do
   before(:each) do
-    Intro.any_instance.stubs(:save)
+    Preamble.any_instance.stubs(:save)
     NonContributionPara.any_instance.stubs(:save)
     ContributionPara.any_instance.stubs(:save)
     Timestamp.any_instance.stubs(:save)
@@ -61,9 +61,9 @@ describe CommonsDebatesParser do
       stub_page("spec/data/commons/backbench_business_excerpt.html")
       @page.expects(:part).at_least_once.returns('190')
       
-      intro = Intro.new
-      intro.stubs(:paragraphs).returns([])
-      Intro.stubs(:find_or_create_by).returns(intro)
+      preamble = Preamble.new
+      preamble.stubs(:paragraphs).returns([])
+      Preamble.stubs(:find_or_create_by).returns(preamble)
       
       paragraph = Paragraph.new
       paragraph.stubs(:member=)
@@ -113,14 +113,14 @@ describe CommonsDebatesParser do
     it "should correctly recognise the Backbench Business component" do
       stub_page("spec/data/commons/backbench_business_header.html")
       
-      intro = Intro.new
-      Intro.expects(:find_or_create_by).returns(intro)
-      intro.expects(:title=).with("Backbench Business")
-      intro.stubs(:paragraphs).returns([])
+      preamble = Preamble.new
+      Preamble.expects(:find_or_create_by).returns(preamble)
+      preamble.expects(:title=).with("Backbench Business")
+      preamble.stubs(:paragraphs).returns([])
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).returns(ncpara)
-      ncpara.expects(:fragment=).with(intro)
+      ncpara.expects(:fragment=).with(preamble)
       ncpara.expects(:text=).with("[30th Allotted Day]")
       ncpara.expects(:sequence=).with(1)
       ncpara.expects(:url=).with("#{@url}\#11071988000020")
@@ -129,7 +129,7 @@ describe CommonsDebatesParser do
       @parser.parse_pages
     end
     
-    it "should handle the Intro properly and create Debate elements for each debate" do
+    it "should handle the Preamble properly and create Debate elements for each debate" do
       stub_page("spec/data/commons/backbench_business_excerpt.html")
       
       ncpara = NonContributionPara.new
@@ -142,15 +142,15 @@ describe CommonsDebatesParser do
       
       @component.stubs(:ident).returns("2099-01-01_hansard_c_d")
       
-      intro = Intro.new
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
-      intro.expects(:title=).with('Backbench Business')
-      intro.expects(:component=).with(@component)
-      intro.expects(:url=)
-      intro.expects(:sequence=).with(1)
-      intro.stubs(:columns=)
-      intro.expects(:paragraphs).at_least_once.returns([])
-      intro.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d_000001')
+      preamble = Preamble.new
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      preamble.expects(:title=).with('Backbench Business')
+      preamble.expects(:component=).with(@component)
+      preamble.expects(:url=)
+      preamble.expects(:sequence=).with(1)
+      preamble.stubs(:columns=)
+      preamble.expects(:paragraphs).at_least_once.returns([])
+      preamble.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d_000001')
       
       ncpara.expects(:text=).with("[30th Allotted Day]")
       
@@ -222,7 +222,7 @@ describe CommonsDebatesParser do
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
-    it "should find and deal with the main heading and both intros" do
+    it "should find and deal with the main heading and both preambles" do
       stub_page("spec/data/commons/debates_and_oral_answers_header.html")
       HansardPage.expects(:new).returns(@page)
       
@@ -230,14 +230,14 @@ describe CommonsDebatesParser do
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
       component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
       
-      intro = Intro.new(:ident => '2099-01-01_hansard_c_d_000001')
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
-      intro.expects(:title=).with('House of Commons')
-      intro.expects(:component=).with(component)
-      intro.expects(:url=).with("#{@url}\#11071988000007")
-      intro.expects(:sequence=).with(1)
-      intro.stubs(:columns=)
-      intro.expects(:paragraphs).at_least_once.returns([])
+      preamble = Preamble.new(:ident => '2099-01-01_hansard_c_d_000001')
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      preamble.expects(:title=).with('House of Commons')
+      preamble.expects(:component=).with(component)
+      preamble.expects(:url=).with("#{@url}\#11071988000007")
+      preamble.expects(:sequence=).with(1)
+      preamble.stubs(:columns=)
+      preamble.expects(:paragraphs).at_least_once.returns([])
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000001').returns(ncpara)
@@ -255,10 +255,10 @@ describe CommonsDebatesParser do
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000004').returns(ncpara)
       ncpara.expects(:text=).with("[Mr Speaker in the Chair]")
       
-      intro = Intro.new(:ident => '2099-01-01_hansard_c_d_000002')
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(intro)
-      intro.expects(:title=).with("Oral Answers to Questions")
-      intro.stubs(:paragraphs).returns([])
+      preamble = Preamble.new(:ident => '2099-01-01_hansard_c_d_000002')
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
+      preamble.expects(:title=).with("Oral Answers to Questions")
+      preamble.stubs(:paragraphs).returns([])
             
       @parser.parse_pages
     end
@@ -270,18 +270,18 @@ describe CommonsDebatesParser do
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
       component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
       
-      intro = Intro.new
-      Intro.any_instance.stubs(:paragraphs).returns([])
-      intro.stubs(:text=)
-      intro.stubs(:ident).returns("intro")
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(intro)
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:text=)
+      preamble.stubs(:ident).returns("preamble")
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000002').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000003').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000004').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000003').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000004').returns(ncpara)
       
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
@@ -384,18 +384,18 @@ describe CommonsDebatesParser do
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
       component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
       
-      intro = Intro.new
-      Intro.any_instance.stubs(:paragraphs).returns([])
-      intro.stubs(:text=)
-      intro.stubs(:ident).returns("intro")
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(intro)
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:text=)
+      preamble.stubs(:ident).returns("preamble")
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000002').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000003').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000004').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000003').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000004').returns(ncpara)
       
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
@@ -478,18 +478,18 @@ describe CommonsDebatesParser do
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
       component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
       
-      intro = Intro.new
-      Intro.any_instance.stubs(:paragraphs).returns([])
-      intro.stubs(:text=)
-      intro.stubs(:ident).returns("intro")
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(intro)
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:text=)
+      preamble.stubs(:ident).returns("preamble")
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000002').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000003').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000004').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000003').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000004').returns(ncpara)
       
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
@@ -549,17 +549,17 @@ describe CommonsDebatesParser do
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
       component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
       
-      intro = Intro.new
-      Intro.any_instance.stubs(:paragraphs).returns([])
-      intro.stubs(:text=)
-      intro.stubs(:ident).returns("intro")
-      Intro.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(intro)
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:text=)
+      preamble.stubs(:ident).returns("preamble")
+      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000002').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000003').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: 'intro_p000004').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000003').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000004').returns(ncpara)
       
       debate = Debate.new
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002").returns(debate)

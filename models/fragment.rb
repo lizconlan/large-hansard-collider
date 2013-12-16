@@ -36,7 +36,7 @@ end
 class Question < Fragment
 end
 
-class Intro < Fragment
+class Preamble < Fragment
 end
 
 class MemberIntroduction < Fragment
