@@ -3,7 +3,6 @@ Bundler.setup
 
 require 'active_record'
 require 'rspec/core/rake_task'
-require 'rake/hooks'
 
 Dir["tasks/*.rake"].sort.each { |ext| load ext }
 
@@ -22,9 +21,7 @@ namespace :spec do
   end
 end
 
-RSpec::Core::RakeTask.new(:spec)
-
-before :spec do
+RSpec::Core::RakeTask.new(:spec) do |t|
   Rake::Task["spec:prepare"].invoke
 end
 
