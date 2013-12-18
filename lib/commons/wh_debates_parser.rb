@@ -1,5 +1,4 @@
 require './lib/commons/parser'
-require './models/hansard_page'
 
 class WHDebatesParser < CommonsParser
   attr_reader :component, :component_prefix
