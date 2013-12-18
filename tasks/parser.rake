@@ -4,7 +4,7 @@ require 'time'
 require './lib/commons/debates_parser'
 require './lib/commons/wh_debates_parser'
 require './lib/commons/wms_parser'
-# require './lib/commons/written_answers_parser'
+require './lib/commons/written_answers_parser'
 
 
 #indexer
@@ -47,8 +47,8 @@ task :scrape_hansard => :environment do
   # 
   # # TODO: Petitions
   # 
-  # parser = WrittenAnswersParser.new(date)
-  # parser.parse_pages
+  parser = WrittenAnswersParser.new(date)
+  parser.parse_pages
   
   # TODO: Ministerial Corrections
 end
