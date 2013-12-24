@@ -65,7 +65,7 @@ class WrittenAnswersParser < CommonsParser
           @segment_link = "#{page.url}\##{@last_link}"
           
           fragment = HansardFragment.new
-          fragment.text = sanitize_text(text)
+          fragment.content = sanitize_text(text)
           fragment.column = @end_column
           @fragment << fragment
         end
@@ -75,7 +75,7 @@ class WrittenAnswersParser < CommonsParser
         end
         
         fragment = HansardFragment.new
-        fragment.text = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
+        fragment.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
         fragment.link = "#{page.url}\##{@last_link}"
         
         if @member
@@ -155,12 +155,12 @@ class WrittenAnswersParser < CommonsParser
           end
           
           fragment = HansardFragment.new
-          fragment.text = sanitize_text(text)
+          fragment.content = sanitize_text(text)
           fragment.link = "#{page.url}\##{@last_link}"
           if @member
-            if fragment.text =~ /^#{@member.post} \(#{@member.name}\)/
+            if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
               fragment.printed_name = "#{@member.post} (#{@member.name})"
-            elsif fragment.text =~ /^#{@member.search_name}/
+            elsif fragment.content =~ /^#{@member.search_name}/
               fragment.printed_name = @member.search_name
             else
               fragment.printed_name = @member.printed_name
@@ -191,7 +191,7 @@ class WrittenAnswersParser < CommonsParser
         
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.fragment = preamble
-        para.text = fragment
+        para.content = fragment
         para.sequence = @para_seq
         para.url = @preamble[:links][i]
         para.column = @preamble[:columns][i]
@@ -240,34 +240,33 @@ class WrittenAnswersParser < CommonsParser
         @question.sequence = @fragment_seq
         
         @fragment.each do |fragment|
-          unless fragment.text == @question.title or fragment.text == ""
+          unless fragment.content == @question.title or fragment.content == ""
             @para_seq += 1
             para_ident = "#{@question.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
             
             case fragment.desc
               when "timestamp"
                 para = Timestamp.find_or_create_by(ident: para_ident)
-                para.text = fragment.text
+                para.content = fragment.content
               else
                 if fragment.speaker.nil?
                   para = NonContributionPara.find_or_create_by(ident: para_ident)
-                  para.text = fragment.text
-                elsif fragment.text.strip[0..5] == "<table"
+                  para.content = fragment.content
+                elsif fragment.content.strip[0..5] == "<table"
                   para = ContributionTable.find_or_create_by(ident: para_ident)
                   para.member = fragment.speaker
                   para.contribution_ident = "#{@question.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-                  #para.html = fragment.text.strip
                   
-                  table = Nokogiri::HTML(fragment.text)
-                  para.text = table.content
+                  table = Nokogiri::HTML(fragment.content)
+                  para.content = table.content
                 else
                   para = ContributionPara.find_or_create_by(ident: para_ident)
                   para.member = fragment.speaker
                   para.contribution_ident = "#{@question.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-                  if fragment.text.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
+                  if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
                     para.speaker_printed_name = fragment.printed_name
                   end
-                  para.text = fragment.text
+                  para.content = fragment.content
                 end
             end
             

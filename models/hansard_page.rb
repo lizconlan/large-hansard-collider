@@ -43,5 +43,5 @@ class HansardPage
 end
 
 class HansardFragment
-  attr_accessor :text, :speaker, :column, :desc, :contribution_seq, :printed_name, :link, :overview, :summary, :ayes, :noes, :tellers_ayes, :tellers_noes, :number, :timestamp
+  attr_accessor :text, :speaker, :column, :desc, :contribution_seq, :printed_name, :link, :overview, :summary, :ayes, :noes, :tellers_ayes, :tellers_noes, :number, :timestamp, :content
 end

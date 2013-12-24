@@ -35,7 +35,7 @@ class WHDebatesParser < CommonsParser
         end
         text = node.text.gsub("\n", "").squeeze(" ").strip
         fragment = HansardFragment.new
-        fragment.text = sanitize_text(text)
+        fragment.content = sanitize_text(text)
         fragment.column = @end_column
         @fragment << fragment
         @subject = sanitize_text(text)
@@ -52,7 +52,7 @@ class WHDebatesParser < CommonsParser
         end
       when "h5"
         fragment = HansardFragment.new
-        fragment.text = node.text
+        fragment.content = node.text
         fragment.desc = "timestamp"
         fragment.column = @end_column
         fragment.link = "#{page.url}\##{@last_link}"
@@ -132,12 +132,12 @@ class WHDebatesParser < CommonsParser
           end
           
           fragment = HansardFragment.new
-          fragment.text = sanitize_text(text)
+          fragment.content = sanitize_text(text)
           fragment.link = "#{page.url}\##{@last_link}"
           if @member
-            if fragment.text =~ /^#{@member.post} \(#{@member.name}\)/
+            if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
               fragment.printed_name = "#{@member.post} (#{@member.name})"
-            elsif fragment.text =~ /^#{@member.search_name}/
+            elsif fragment.content =~ /^#{@member.search_name}/
               fragment.printed_name = @member.search_name
             else
               fragment.printed_name = @member.printed_name
@@ -167,7 +167,7 @@ class WHDebatesParser < CommonsParser
         
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.fragment = preamble
-        para.text = fragment
+        para.content = fragment
         para.sequence = @para_seq
         para.url = @preamble[:links][i]
         para.column = @preamble[:columns][i]
@@ -218,7 +218,7 @@ class WHDebatesParser < CommonsParser
         @debate.sequence = @fragment_seq
         
         @fragment.each do |fragment|
-          unless fragment.text == @debate.title or fragment.text == ""
+          unless fragment.content == @debate.title or fragment.content == ""
             @para_seq += 1
             para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
             
@@ -232,13 +232,13 @@ class WHDebatesParser < CommonsParser
                   para = ContributionPara.find_or_create_by(ident: para_ident)
                   para.member = fragment.speaker
                   para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-                  if fragment.text.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
+                  if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
                     para.speaker_printed_name = fragment.printed_name
                   end
                 end
             end
             
-            para.text = fragment.text
+            para.content = fragment.content
             para.url = fragment.link
             para.column = fragment.column
             para.sequence = @para_seq

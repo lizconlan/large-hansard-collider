@@ -194,7 +194,7 @@ class CommonsDebatesParser < CommonsParser
     when /^The House (having )?divided/
       @div_fragment = HansardFragment.new
       @div_fragment.desc = "division"
-      @div_fragment.text = "division"
+      @div_fragment.content = "division"
       @div_fragment.overview = text
       @div_fragment.ayes = []
       @div_fragment.noes = []
@@ -363,13 +363,13 @@ class CommonsDebatesParser < CommonsParser
     if @member
       fragment.speaker = @member.index_name
     end
-    fragment.text = sanitize_text(text)
+    fragment.content = sanitize_text(text)
     fragment.column = @end_column
     
     if @member
-      if fragment.text =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.post} \(#{@member.name}\)/
+      if fragment.content =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.post} \(#{@member.name}\)/
         fragment.printed_name = "#{@member.post} (#{@member.name})"
-      elsif fragment.text =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.search_name}/
+      elsif fragment.content =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.search_name}/
         fragment.printed_name = @member.search_name
       else
         fragment.printed_name = @member.printed_name
@@ -377,7 +377,7 @@ class CommonsDebatesParser < CommonsParser
       if @fragment_type == "question" and @asked_by.empty?
         @asked_by = @member.index_name
       end
-      fragment.text = sanitize_text(text)
+      fragment.content = sanitize_text(text)
     end
     fragment
   end
@@ -388,7 +388,7 @@ class CommonsDebatesParser < CommonsParser
     else
       pref_length = 0
     end
-    "<p>#{prefix}<b>#{@coder.encode(fragment.printed_name, :named)}</b>#{@coder.encode(fragment.text.strip[fragment.printed_name.length+pref_length..fragment.text.strip.length], :named)}</p>"
+    "<p>#{prefix}<b>#{@coder.encode(fragment.printed_name, :named)}</b>#{@coder.encode(fragment.content.strip[fragment.printed_name.length+pref_length..fragment.content.strip.length], :named)}</p>"
   end
   
   def process_para(node, page)
@@ -451,7 +451,7 @@ class CommonsDebatesParser < CommonsParser
   def store_non_contribution_para(preamble, fragment, idx, para_ident)
     para = NonContributionPara.find_or_create_by(ident: para_ident)
     para.fragment = preamble
-    para.text = fragment
+    para.content = fragment
     para.sequence = @para_seq
     para.url = @preamble[:links][idx]
     para.column = @preamble[:columns][idx]
@@ -503,7 +503,7 @@ class CommonsDebatesParser < CommonsParser
     para.tellers_noes = fragment.tellers_noes
     para.timestamp = fragment.timestamp
     
-    para.text = "#{fragment.overview} \n #{fragment.timestamp} - Division No. #{fragment.number} \n Ayes: #{fragment.ayes.join("; ")}, Tellers for the Ayes: #{fragment.tellers_ayes}, Noes: #{fragment.noes.join("; ")}, Tellers for the Noes: #{fragment.tellers_noes} \n #{fragment.summary}"
+    para.content = "#{fragment.overview} \n #{fragment.timestamp} - Division No. #{fragment.number} \n Ayes: #{fragment.ayes.join("; ")}, Tellers for the Ayes: #{fragment.tellers_ayes}, Noes: #{fragment.noes.join("; ")}, Tellers for the Noes: #{fragment.tellers_noes} \n #{fragment.summary}"
     para
   end
   
@@ -511,7 +511,7 @@ class CommonsDebatesParser < CommonsParser
     para = ContributionPara.find_or_create_by(ident: para_ident)
     para.member = fragment.speaker
     para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-    if fragment.text.strip =~ /^(T?\d+\.\s+(\[\d+\]\s+)?)?#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
+    if fragment.content.strip =~ /^(T?\d+\.\s+(\[\d+\]\s+)?)?#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
       para.speaker_printed_name = fragment.printed_name
     end
     para
@@ -519,7 +519,7 @@ class CommonsDebatesParser < CommonsParser
   
   def store_fragments
     @fragment.each do |fragment|
-      unless fragment.text == @debate.title or fragment.text == ""
+      unless fragment.content == @debate.title or fragment.content == ""
         @para_seq += 1
         para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
         
@@ -553,7 +553,7 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def assign_para_to_debate(fragment, para)
-    para.text = fragment.text
+    para.content = fragment.content
     para.url = fragment.link
     para.column = fragment.column
     para.sequence = @para_seq

@@ -62,7 +62,7 @@ describe WHDebatesParser do
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001_p000001").returns(ncpara)
       ncpara.expects(:fragment=).with(preamble)
-      ncpara.expects(:text=).with("Tuesday 19 July 2011")
+      ncpara.expects(:content=).with("Tuesday 19 July 2011")
       ncpara.expects(:sequence=).with(1)
       ncpara.expects(:url=).with("#{@url}\#11071984000004")
       ncpara.expects(:column=).with("183WH")
@@ -70,7 +70,7 @@ describe WHDebatesParser do
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000001_p000002").returns(ncpara)
       ncpara.expects(:fragment=).with(preamble)
-      ncpara.expects(:text=).with("[Jim Dobbin in the Chair]")
+      ncpara.expects(:content=).with("[Jim Dobbin in the Chair]")
       ncpara.expects(:sequence=).with(2)
       ncpara.expects(:url=).with("#{@url}\#11071984000005")
       ncpara.expects(:column=).with("183WH")
@@ -83,12 +83,12 @@ describe WHDebatesParser do
       debate = Debate.new(:ident => "debate")
       
       Timestamp.expects(:find_or_create_by).at_least_once.returns(timestamp)
-      timestamp.expects(:text=).at_least_once
+      timestamp.expects(:content=).at_least_once
       
       NonContributionPara.expects(:find_or_create_by).with(ident: "debate_p000001").at_least_once.returns(contribution)
       ContributionPara.expects(:find_or_create_by).at_least_once.returns(contribution)
       contribution.expects(:fragment=).at_least_once
-      contribution.expects(:text=).at_least_once
+      contribution.expects(:content=).at_least_once
       contribution.expects(:url=).at_least_once
       contribution.expects(:sequence=).at_least_once
       contribution.expects(:column=).at_least_once
@@ -116,7 +116,7 @@ describe WHDebatesParser do
       NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
       NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
       ncpara.stubs(:fragment=)
-      ncpara.stubs(:text=)
+      ncpara.stubs(:content=)
       ncpara.stubs(:url=)
       ncpara.stubs(:sequence=)
       ncpara.stubs(:column=)
@@ -128,7 +128,7 @@ describe WHDebatesParser do
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
       ncpara.expects(:fragment=).with(debate)
-      ncpara.expects(:text=).with("Motion made, and Question proposed, That the sitting be now adjourned. - (Miss Chloe Smith.)")
+      ncpara.expects(:content=).with("Motion made, and Question proposed, That the sitting be now adjourned. - (Miss Chloe Smith.)")
       ncpara.expects(:url=).with("#{@url}\#11071984000006")
       ncpara.expects(:sequence=).with(1)
       ncpara.expects(:column=).with("183WH")
@@ -136,12 +136,12 @@ describe WHDebatesParser do
       timestamp = Timestamp.new
       
       Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000002").returns(timestamp)
-      timestamp.expects(:text=).with("9.30 am")
+      timestamp.expects(:content=).with("9.30 am")
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000003").returns(contribution)
       contribution.expects(:fragment=).with(debate)
-      contribution.expects(:text=).with('Andrew Gwynne (Denton and Reddish) (Lab): Start of speech')
+      contribution.expects(:content=).with('Andrew Gwynne (Denton and Reddish) (Lab): Start of speech')
       contribution.expects(:url=)
       contribution.expects(:sequence=).with(3)
       contribution.expects(:column=)
@@ -151,7 +151,7 @@ describe WHDebatesParser do
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000004").returns(contribution)
       contribution.expects(:fragment=).with(debate)
-      contribution.expects(:text=).with("Continuation of speech")
+      contribution.expects(:content=).with("Continuation of speech")
       contribution.expects(:url=)
       contribution.expects(:sequence=).with(4)
       contribution.expects(:member=).with("Andrew Gwynne")
@@ -160,7 +160,7 @@ describe WHDebatesParser do
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000005").returns(contribution)
       contribution.expects(:fragment=).with(debate)
-      contribution.expects(:text=).with("Sarah Teather: I shall complete this point first. I have only four minutes left and I have barely answered any of the points raised in the debate.")
+      contribution.expects(:content=).with("Sarah Teather: I shall complete this point first. I have only four minutes left and I have barely answered any of the points raised in the debate.")
       contribution.expects(:url=)
       contribution.expects(:sequence=).with(5)
       contribution.expects(:member=).with("Sarah Teather")

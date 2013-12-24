@@ -58,7 +58,7 @@ describe WMSParser do
         ncpara = NonContributionPara.new
         NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000001_p000002").returns(ncpara)
         ncpara.expects(:fragment=).with(preamble)
-        ncpara.expects(:text=).with("Tuesday 19 July 2011")
+        ncpara.expects(:content=).with("Tuesday 19 July 2011")
         ncpara.expects(:sequence=).with(2)
         ncpara.expects(:url=).with("#{@url}\#11071985000016")
         ncpara.expects(:column=).with("89WS")
@@ -73,7 +73,7 @@ describe WMSParser do
         
         ContributionPara.expects(:find_or_create_by).at_least_once.returns(contribution)
         contribution.expects(:fragment=).at_least_once
-        contribution.expects(:text=).at_least_once
+        contribution.expects(:content=).at_least_once
         contribution.expects(:url=).at_least_once
         contribution.expects(:sequence=).at_least_once
         contribution.expects(:column=).at_least_once
@@ -97,7 +97,7 @@ describe WMSParser do
         
         ncpara = NonContributionPara.new
         NonContributionPara.any_instance.stubs(:paragraphs).returns([])
-        NonContributionPara.stubs(:text=)
+        NonContributionPara.stubs(:content=)
         NonContributionPara.expects(:find_or_create_by).returns(ncpara)
         ncpara.expects(:fragment=).with(preamble)
         
@@ -110,7 +110,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000002_p000001").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with('The Parliamentary Under-Secretary of State for Justice (Mr Crispin Blunt):Today is the launch of a consultation on the "Strategy for the Secure Estate for Children and Young People for England and Wales".')
+        contribution.expects(:content=).with('The Parliamentary Under-Secretary of State for Justice (Mr Crispin Blunt):Today is the launch of a consultation on the "Strategy for the Secure Estate for Children and Young People for England and Wales".')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(1)
         contribution.expects(:column=)
@@ -120,7 +120,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000002_p000002").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with('This is a joint publication between the Ministry of Justice and the Youth Justice Board. The consultation invites views on a proposed strategy for the under-18 secure estate for the years 2011-12 to 2014-15. Custody continues to play an important part in the youth justice system for the small number of young people for whom a community sentence is not appropriate. The recent reduction in the number of young people in custody means that the secure estate is now going through a period of change. This presents an opportunity to consider the most appropriate configuration of the estate and consider whether different regimes can deliver improved outcomes.')
+        contribution.expects(:content=).with('This is a joint publication between the Ministry of Justice and the Youth Justice Board. The consultation invites views on a proposed strategy for the under-18 secure estate for the years 2011-12 to 2014-15. Custody continues to play an important part in the youth justice system for the small number of young people for whom a community sentence is not appropriate. The recent reduction in the number of young people in custody means that the secure estate is now going through a period of change. This presents an opportunity to consider the most appropriate configuration of the estate and consider whether different regimes can deliver improved outcomes.')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(2)
         contribution.expects(:column=)
@@ -129,7 +129,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000002_p000003").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with('The consultation, which will run for 12 weeks, and details on how to respond can be found on the Ministry of Justice website at www.justice.gov.uk.')
+        contribution.expects(:content=).with('The consultation, which will run for 12 weeks, and details on how to respond can be found on the Ministry of Justice website at www.justice.gov.uk.')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(3)
         contribution.expects(:column=)
@@ -144,7 +144,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000003_p000001").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with("The Parliamentary Under-Secretary of State for Justice (Mr Jonathan Djanogly):My hon. friend the Minister for the Armed Forces and I wish to make the latest of our quarterly statements to the House with details of the inquests of service personnel who have died overseas. As always, we wish to express the Government's deep")
+        contribution.expects(:content=).with("The Parliamentary Under-Secretary of State for Justice (Mr Jonathan Djanogly):My hon. friend the Minister for the Armed Forces and I wish to make the latest of our quarterly statements to the House with details of the inquests of service personnel who have died overseas. As always, we wish to express the Government's deep")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(1)
         contribution.expects(:member=).with("Jonathan Djanogly")
@@ -154,7 +154,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000003_p000002").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with("and abiding gratitude to all of our service personnel who have served, or are now serving, in Iraq and Afghanistan.")
+        contribution.expects(:content=).with("and abiding gratitude to all of our service personnel who have served, or are now serving, in Iraq and Afghanistan.")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(2)
         contribution.expects(:member=).with("Jonathan Djanogly")
@@ -163,7 +163,7 @@ describe WMSParser do
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000003_p000003").returns(contribution)
         contribution.expects(:fragment=).with(statement)
-        contribution.expects(:text=).with("Once again we also extend our sincere condolences to the families of those service personnel who have made the ultimate sacrifice for their country in connection with the operations in Iraq and Afghanistan, and in particular the 11 service personnel who have died since our last statement. Our thoughts remain with all of the families.")
+        contribution.expects(:content=).with("Once again we also extend our sincere condolences to the families of those service personnel who have made the ultimate sacrifice for their country in connection with the operations in Iraq and Afghanistan, and in particular the 11 service personnel who have died since our last statement. Our thoughts remain with all of the families.")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(3)
         contribution.expects(:member=).with("Jonathan Djanogly")
