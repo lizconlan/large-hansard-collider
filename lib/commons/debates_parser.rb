@@ -16,6 +16,8 @@ class CommonsDebatesParser < CommonsParser
   def init_vars
     super()
     
+    @bill = {}
+    
     @questions = []
     @question_no = ""
     @petitions = []
@@ -88,6 +90,7 @@ class CommonsDebatesParser < CommonsParser
         @segment_link = "#{page.url}\##{@last_link}"
       else
         @subject = text
+        
         if @preamble[:title]
           build_preamble(text, page.url)
         else
@@ -103,6 +106,10 @@ class CommonsDebatesParser < CommonsParser
       @subject = text
       @segment_link = "#{page.url}\##{@last_link}"
     else
+      if text =~ /.? Bill(?: |$)/
+        @bill[:title] = text.gsub(" [Lords]", "")
+      end
+      
       @subcomponent = ""
       if text.downcase == "prayers"
         build_preamble(text, page.url)
@@ -249,6 +256,10 @@ class CommonsDebatesParser < CommonsParser
     when /^Ordered/, /^Question put/
       @subcomponent = ""
       @member = nil
+    when /Reading$/
+      if @bill[:title]
+        @bill[:stage] = node.xpath("i").first.text.strip
+      end
     end
   end
   
@@ -591,6 +602,7 @@ class CommonsDebatesParser < CommonsParser
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
+    
     if @preamble[:title]
       store_preamble()
     else
@@ -610,6 +622,11 @@ class CommonsDebatesParser < CommonsParser
   
   def set_columns_and_save
     @debate.columns = @debate.paragraphs.map {|x| x.column}.uniq
+    if @bill[:title]
+      @debate.bill_title = @bill[:title]
+      @debate.bill_stage = @bill[:stage]
+      @bill = {}
+    end
     @debate.save(:safe => true)
     @start_column = @end_column if @end_column != ""
   end

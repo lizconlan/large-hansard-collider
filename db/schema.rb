@@ -1,4 +1,4 @@
-# This file is auto-generated from the current state of the database. Instead
+  # This file is auto-generated from the current state of the database. Instead
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131214005634) do
+ActiveRecord::Schema.define(version: 20131218110848) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -49,6 +49,8 @@ ActiveRecord::Schema.define(version: 20131214005634) do
     t.string  "number"
     t.string  "asked_by"
     t.string  "question_type"
+    t.string  "bill_title"
+    t.string  "bill_stage"
   end
 
   add_index "fragments", ["ident"], name: "index_fragments_on_ident", using: :btree

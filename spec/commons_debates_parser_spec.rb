@@ -567,6 +567,8 @@ describe CommonsDebatesParser do
       debate.stubs(:paragraphs).returns([])
       debate.expects(:title=).with("Public Bodies Bill [Lords]")
       debate.expects(:url=).with("#{@url}\#11071272000001")
+      debate.expects(:bill_title=).with("Public Bodies Bill")
+      debate.expects(:bill_stage=).with("Second Reading")
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002_p000001').returns(ncpara)
