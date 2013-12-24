@@ -1,3 +1,5 @@
+# encoding: UTF-8
+
 require './spec/rspec_helper.rb'
 require './lib/commons/wms_parser'
 
