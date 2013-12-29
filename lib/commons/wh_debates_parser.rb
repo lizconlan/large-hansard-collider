@@ -111,42 +111,7 @@ class WHDebatesParser < CommonsParser
     #ignore column heading text
     unless text =~ COLUMN_HEADER
       #check if this is a new contrib
-      case member_name
-      when /^(([^\(]*) \(in the Chair\):)/
-        #the Chair
-        name = $2
-        post = "Debate Chair"
-        member = HansardMember.new(name, name, "", "", post)
-        handle_contribution(@member, member, page)
-        @contribution_seq += 1
-      when /^(([^\(]*) \(([^\(]*)\):)/
-        #we has a minister
-        post = $2
-        name = $3
-        member = HansardMember.new(name, "", "", "", post)
-        handle_contribution(@member, member, page)
-        @contribution_seq += 1                
-      when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
-        #an MP speaking for the first time in the debate
-        name = $2
-        constituency = $3
-        party = $4
-        member = HansardMember.new(name, "", constituency, party)
-        handle_contribution(@member, member, page)
-        @contribution_seq += 1
-      when /^(([^\(]*):)/
-        #an MP who's spoken before
-        name = $2
-        member = HansardMember.new(name, name)
-        handle_contribution(@member, member, page)                
-        @contribution_seq += 1
-      else
-        if text == "#{member_name} #{italic_text}".squeeze(" ")
-          member = HansardMember.new(member_name, member_name)
-          handle_contribution(@member, member, page)
-          @contribution_seq += 1
-        end
-      end
+      process_member_contribution(member_name, text, page, true, italic_text)
       
       fragment = HansardFragment.new
       fragment.content = sanitize_text(text)

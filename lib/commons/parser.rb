@@ -48,6 +48,7 @@ class CommonsParser
     "http://www.publications.parliament.uk#{relative_path[0..relative_path.rindex("#")-1]}"
   end
   
+  
   private
   
   def process_links_and_columns(node)
@@ -62,6 +63,70 @@ class CommonsParser
     elsif column
       #need to set the end column
       @end_column = set_column(node)
+    end
+  end
+  
+  def process_member_contribution(member_name, text, page, seq=nil, italic_text=nil)
+    case member_name
+    when /^(([^\(]*) \(in the Chair\):)/
+      #the Chair
+      name = $2
+      post = "Debate Chair"
+      member = HansardMember.new(name, name, "", "", post)
+      handle_contribution(@member, member, page)
+      if seq
+        @contribution_seq += 1
+      else
+        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      end
+    when /^(([^\(]*) \(([^\(]*)\):)/
+      #we has a minister
+      post = $2
+      name = $3
+      member = HansardMember.new(name, "", "", "", post)
+      handle_contribution(@member, member, page)
+      if seq
+        @contribution_seq += 1
+      else
+        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      end
+    when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
+      #an MP speaking for the first time in the debate
+      name = $2
+      constituency = $3
+      party = $4
+      member = HansardMember.new(name, "", constituency, party)
+      handle_contribution(@member, member, page)
+      if seq
+        @contribution_seq += 1
+      else
+        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      end
+    when /^(([^\(]*):)/
+      #an MP who's spoken before
+      name = $2
+      member = HansardMember.new(name, name)
+      handle_contribution(@member, member, page)
+      if seq
+        @contribution_seq += 1
+      else
+        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      end
+    else
+      if italic_text
+        if text == "#{member_name} #{italic_text}".squeeze(" ")
+          member = HansardMember.new(member_name, member_name)
+          handle_contribution(@member, member, page)
+          @contribution_seq += 1
+        end
+      else
+        if @member
+          unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
+              text == "#{@member.search_name} rose\342\200\224"
+            @contribution.segments << sanitize_text(text)
+          end
+        end
+      end
     end
   end
   

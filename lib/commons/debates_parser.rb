@@ -317,46 +317,6 @@ class CommonsDebatesParser < CommonsParser
     @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
   end
   
-  def check_debate_contributions(text, member_name, page)
-    case member_name
-    when /^(([^\(]*) \(in the Chair\):)/
-      #the Chair
-      name = $2
-      post = "Debate Chair"
-      member = HansardMember.new(name, name, "", "", post)
-      handle_contribution(@member, member, page)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
-    when /^(([^\(]*) \(([^\(]*)\):)/
-      #we has a minister
-      post = $2
-      name = $3
-      member = HansardMember.new(name, "", "", "", post)
-      handle_contribution(@member, member, page)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
-    when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\))/
-      #an MP speaking for the first time in the debate
-      name = $2
-      constituency = $3
-      party = $4
-      member = HansardMember.new(name, "", constituency, party)
-      handle_contribution(@member, member, page)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
-    when /^(([^\(]*):)/
-      #an MP who's spoken before
-      name = $2
-      member = HansardMember.new(name, name)
-      handle_contribution(@member, member, page)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
-    else
-      if @member
-        unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
-            text == "#{@member.search_name} rose\342\200\224"
-          @contribution.segments << sanitize_text(text)
-        end
-      end
-    end
-  end
-  
   def create_fragment(text)
     fragment = HansardFragment.new
     if @member
@@ -434,7 +394,7 @@ class CommonsDebatesParser < CommonsParser
     #ignore column heading text
     unless (text =~ COLUMN_HEADER) or text == ""
       #check if this is a new contrib
-      check_debate_contributions(text, member_name, page)
+      process_member_contribution(member_name, text, page)
       
       if @preamble[:title]
         build_preamble(text, page.url)

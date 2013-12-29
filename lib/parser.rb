@@ -200,7 +200,7 @@ module Parser
     end 
   end
   
-  def handle_contribution(member, new_member, page)
+  def handle_contribution(member, new_member, page, seq=nil)
     if @contribution and member
       @contribution.end_column = @end_column
       link_member_to_contribution(member)
