@@ -265,4 +265,8 @@ module Parser
     end
     text
   end
+  
+  def fragment_has_text
+    (@fragment.empty? == false and @fragment.map {|x| x.content}.join("").length > 0)
+  end
 end

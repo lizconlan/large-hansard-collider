@@ -35,10 +35,6 @@ class LordsDebatesParser < LordsParser
   
   private
   
-  def fragment_has_text
-    (@fragment.empty? == false and @fragment.map {|x| x.content}.join("").length > 0)
-  end
-  
   def parse_node(node, page)
     # p "processing node: #{node.name}"
     case node.name
