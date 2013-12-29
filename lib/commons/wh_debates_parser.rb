@@ -27,9 +27,9 @@ class WHDebatesParser < CommonsParser
     when "a"
       process_links_and_columns(node)
     when "h3"
-      create_new_fragment(node.text, page)
+      create_new_fragment(minify_whitespace(node.text), page)
     when "h4"
-      process_subheading(node.text, page)
+      process_subheading(minify_whitespace(node.text), page)
     when "h5"
       process_timestamp(node.text, page)
     when "p" 
@@ -37,13 +37,12 @@ class WHDebatesParser < CommonsParser
     end
   end
   
-  def create_new_fragment(raw_text, page)
+  def create_new_fragment(text, page)
     unless @fragment.empty?
       store_debate(page)
       @fragment = []
       @segment_link = ""
     end
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
     fragment = HansardFragment.new
     fragment.content = sanitize_text(text)
     fragment.column = @end_column
@@ -52,8 +51,7 @@ class WHDebatesParser < CommonsParser
     @segment_link = "#{page.url}\##{@last_link}"
   end
   
-  def process_subheading(raw_text, page)
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
+  def process_subheading(text, page)
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end

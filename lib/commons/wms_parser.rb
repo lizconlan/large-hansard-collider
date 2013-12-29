@@ -29,9 +29,9 @@ class WMSParser < CommonsParser
     when "a"
       process_links_and_columns(node)   
     when "h3"
-      process_department_heading(node.text, page)
+      process_department_heading(minify_whitespace(node.text), page)
     when "h4"
-      process_statement_heading(node.text, page)
+      process_statement_heading(minify_whitespace(node.text), page)
     when "table"
       process_table(node, page)
     when "p"
@@ -39,20 +39,18 @@ class WMSParser < CommonsParser
     end
   end
   
-  def process_department_heading(raw_text, page)
+  def process_department_heading(text, page)
     unless @fragment.empty? or @fragment.join("").length == 0
       store_debate(page)
       @fragment = []
       @segment_link = ""
     end
     
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
     @department = sanitize_text(text)          
     @segment_link = "#{page.url}\##{@last_link}"
   end
   
-  def process_statement_heading(raw_text, page)
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
+  def process_statement_heading(text, page)
     if @preamble[:title]
       @preamble[:fragments] << text
       @preamble[:columns] << @end_column

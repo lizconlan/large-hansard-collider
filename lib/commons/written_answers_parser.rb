@@ -30,9 +30,9 @@ class WrittenAnswersParser < CommonsParser
     when "h2"
       setup_preamble(node.content, page.url)
     when "h3"
-      process_heading(node.text, page)
+      process_heading(minify_whitespace(node.text), page)
     when "h4"
-      process_subheading(node.text, page)
+      process_subheading(minify_whitespace(node.text), page)
     when "table"
       process_table(node, page)
     when "p"
@@ -40,7 +40,7 @@ class WrittenAnswersParser < CommonsParser
     end
   end
   
-  def process_heading(raw_text, page)
+  def process_heading(text, page)
     unless @fragment.empty? or @fragment.join("").length == 0
       store_debate(page)
       @fragment = []
@@ -48,7 +48,6 @@ class WrittenAnswersParser < CommonsParser
       @questions = []
       @members = {}
     end
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
     if @fragment_type == "department heading"
       @department = sanitize_text(text)
     else
@@ -57,9 +56,7 @@ class WrittenAnswersParser < CommonsParser
     @segment_link = "#{page.url}\##{@last_link}"
   end
   
-  def process_subheading(raw_text, page)
-    text = raw_text.gsub("\n", "").squeeze(" ").strip
-    
+  def process_subheading(text, page)
     if @preamble[:title]
       @preamble[:fragments] << text
       @preamble[:columns] << @end_column
