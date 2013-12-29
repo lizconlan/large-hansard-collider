@@ -155,7 +155,7 @@ module Parser
     @hansard_component.save(:safe => true)
   end
   
-  def setup_preamble(text, url, title, tag)
+  def setup_preamble(title, url)
     @preamble[:title] = title
     @preamble[:link] = "#{url}\##{@last_link}"
   end

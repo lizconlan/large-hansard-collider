@@ -43,13 +43,13 @@ class CommonsDebatesParser < CommonsParser
       process_links_and_columns(node)
       determine_fragment_type(node)
     when "h2"
-      process_h2(minify_whitespace(node.text), node.content, page)
+      process_top_level_heading(minify_whitespace(node.text), node.content, page)
     when "h3"
-      process_h3(minify_whitespace(node.text), page)
+      process_heading(minify_whitespace(node.text), page)
     when "h4"
-      process_h4(sanitize_text(minify_whitespace(node.text)), page)
+      process_subheading(sanitize_text(minify_whitespace(node.text)), page)
     when "h5"
-      process_h5(minify_whitespace(node.text), page)
+      process_timestamp(minify_whitespace(node.text), page)
     when "p", "center"
       process_para(node, page)
     when "div", "hr"
@@ -66,22 +66,21 @@ class CommonsDebatesParser < CommonsParser
     @component_members = {}
   end
   
-  def process_h2(text, title, page)
+  def process_top_level_heading(text, title, page)
     if fragment_has_text or @preamble[:title]
       store_and_reset(page)
     end
     
-    if text == "House of Commons"
-      setup_preamble(text, page.url, title, "h1")
-    end
-    
-    if text == "Oral Answers to Questions"
+    case text
+    when "House of Commons"
+      setup_preamble(title, page.url)
+    when "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_preamble(text, page.url, title, "h3")
+      setup_preamble(title, page.url)
     end
   end
   
-  def process_h3(text, page)
+  def process_heading(text, page)
     if (@fragment_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
@@ -122,13 +121,13 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def process_h4(text, page)
+  def process_subheading(text, page)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @preamble[:title]
       build_preamble(text, page.url)
     else
       if text.downcase =~ /^back\s?bench business$/
-        #treat as honourary h3
+        #treat as honorary h3 / main heading
         if fragment_has_text or @preamble[:title]
           store_and_reset(page)
         end
@@ -145,7 +144,7 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def process_h5(text, page)
+  def process_timestamp(text, page)
     fragment = create_fragment(text)
     fragment.desc = "timestamp"
     fragment.link = "#{page.url}\##{@last_link}"

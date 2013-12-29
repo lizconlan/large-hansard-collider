@@ -83,7 +83,7 @@ class LordsDebatesParser < LordsParser
     end
     
     if text == "House of Lords"
-      setup_preamble(text, page.url, text, "h1")
+      setup_preamble(text, page.url)
     end
     
     if text.strip =~ /^Introduction:/
@@ -92,7 +92,7 @@ class LordsDebatesParser < LordsParser
     
     if text == "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_preamble(text, page.url, title, "h3")
+      setup_preamble(title, page.url)
     end
   end
   
