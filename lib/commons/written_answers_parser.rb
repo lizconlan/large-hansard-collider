@@ -108,7 +108,7 @@ class WrittenAnswersParser < CommonsParser
     end          
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
-        if bold.text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/  #older page format
+        if bold.text =~ COLUMN_HEADER  #older page format
           if @start_column == ""
             @start_column = $1
           else
@@ -125,7 +125,7 @@ class WrittenAnswersParser < CommonsParser
     
     text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     #ignore column heading text
-    unless text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/
+    unless text =~ COLUMN_HEADER
       if text[text.length-1..text.length] == "]" and text.length > 3
         question = text[text.rindex("[")+1..text.length-2]
         @questions << sanitize_text(question)

@@ -94,7 +94,7 @@ class WMSParser < CommonsParser
     end
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
-        if bold.text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/  #older page format
+        if bold.text =~ COLUMN_HEADER  #older page format
           if @start_column == ""
             @start_column = $1
           else
@@ -111,7 +111,7 @@ class WMSParser < CommonsParser
     
     text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     #ignore column heading text
-    unless text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/
+    unless text =~ COLUMN_HEADER
       #check if this is a new contrib
       process_member_contribution(member_name, text, page)
       
