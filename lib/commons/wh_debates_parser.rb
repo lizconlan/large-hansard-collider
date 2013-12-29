@@ -22,132 +22,148 @@ class WHDebatesParser < CommonsParser
   
   def parse_node(node, page)
     case node.name
-      when "h2"
-        @preamble[:title] = node.content
-        @preamble[:link] = "#{page.url}\##{@last_link}"
-      when "a"
-        process_links_and_columns(node)
-      when "h3"
-        unless @fragment.empty?
-          store_debate(page)
-          @fragment = []
-          @segment_link = ""
-        end
-        text = node.text.gsub("\n", "").squeeze(" ").strip
-        fragment = HansardFragment.new
-        fragment.content = sanitize_text(text)
-        fragment.column = @end_column
-        @fragment << fragment
-        @subject = sanitize_text(text)
-        @segment_link = "#{page.url}\##{@last_link}"
-      when "h4"
-        text = node.text.gsub("\n", "").squeeze(" ").strip
-        if text[text.length-13..text.length-2] == "in the Chair"
-          @chair = text[1..text.length-15]
-        end
-        if @preamble[:title]
-          @preamble[:fragments] << text
-          @preamble[:columns] << @end_column
-          @preamble[:links] << "#{page.url}\##{@last_link}"
-        end
-      when "h5"
-        fragment = HansardFragment.new
-        fragment.content = node.text
-        fragment.desc = "timestamp"
-        fragment.column = @end_column
-        fragment.link = "#{page.url}\##{@last_link}"
-        @fragment << fragment
-      when "p" 
-        column_desc = ""
-        member_name = ""
-        if node.xpath("a") and node.xpath("a").length > 0
-          @last_link = node.xpath("a").last.attr("name")
-        end
-        unless node.xpath("b").empty?
-          node.xpath("b").each do |bold|
-            if bold.text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/  #older page format
-              if @start_column == ""
-                @start_column = $1
-              else
-                @end_column = $1
-              end
-              column_desc = bold.text
-            else 
-              member_name = bold.text.strip
-            end
+    when "h2"
+      setup_preamble(node.content, page.url)
+    when "a"
+      process_links_and_columns(node)
+    when "h3"
+      create_new_fragment(node.text, page)
+    when "h4"
+      process_subheading(node.text, page)
+    when "h5"
+      process_timestamp(node.text, page)
+    when "p" 
+      process_para(node, page)
+    end
+  end
+  
+  def create_new_fragment(raw_text, page)
+    unless @fragment.empty?
+      store_debate(page)
+      @fragment = []
+      @segment_link = ""
+    end
+    text = raw_text.gsub("\n", "").squeeze(" ").strip
+    fragment = HansardFragment.new
+    fragment.content = sanitize_text(text)
+    fragment.column = @end_column
+    @fragment << fragment
+    @subject = sanitize_text(text)
+    @segment_link = "#{page.url}\##{@last_link}"
+  end
+  
+  def process_subheading(raw_text, page)
+    text = raw_text.gsub("\n", "").squeeze(" ").strip
+    if text[text.length-13..text.length-2] == "in the Chair"
+      @chair = text[1..text.length-15]
+    end
+    if @preamble[:title]
+      @preamble[:fragments] << text
+      @preamble[:columns] << @end_column
+      @preamble[:links] << "#{page.url}\##{@last_link}"
+    end
+  end
+  
+  def process_timestamp(text, page)
+    fragment = HansardFragment.new
+    fragment.content = text
+    fragment.desc = "timestamp"
+    fragment.column = @end_column
+    fragment.link = "#{page.url}\##{@last_link}"
+    @fragment << fragment
+  end
+  
+  def process_para(node, page)
+    column_desc = ""
+    member_name = ""
+    
+    if node.xpath("a") and node.xpath("a").length > 0
+      @last_link = node.xpath("a").last.attr("name")
+    end
+    unless node.xpath("b").empty?
+      node.xpath("b").each do |bold|
+        if bold.text =~ COLUMN_HEADER #older page format
+          if @start_column == ""
+            @start_column = $1
+          else
+            @end_column = $1
           end
+          column_desc = bold.text
+        else 
+          member_name = bold.text.strip
+        end
+      end
+    else
+      member_name = ""
+    end
+    
+    text = node.content.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    if node.xpath("i").first
+      italic_text = node.xpath("i").first.content
+    else
+      italic_text = ""
+    end
+    
+    if text[text.length-13..text.length-2] == "in the Chair"
+      @chair = text[1..text.length-15]
+    end
+    
+    #ignore column heading text
+    unless text =~ COLUMN_HEADER
+      #check if this is a new contrib
+      case member_name
+      when /^(([^\(]*) \(in the Chair\):)/
+        #the Chair
+        name = $2
+        post = "Debate Chair"
+        member = HansardMember.new(name, name, "", "", post)
+        handle_contribution(@member, member, page)
+        @contribution_seq += 1
+      when /^(([^\(]*) \(([^\(]*)\):)/
+        #we has a minister
+        post = $2
+        name = $3
+        member = HansardMember.new(name, "", "", "", post)
+        handle_contribution(@member, member, page)
+        @contribution_seq += 1                
+      when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
+        #an MP speaking for the first time in the debate
+        name = $2
+        constituency = $3
+        party = $4
+        member = HansardMember.new(name, "", constituency, party)
+        handle_contribution(@member, member, page)
+        @contribution_seq += 1
+      when /^(([^\(]*):)/
+        #an MP who's spoken before
+        name = $2
+        member = HansardMember.new(name, name)
+        handle_contribution(@member, member, page)                
+        @contribution_seq += 1
+      else
+        if text == "#{member_name} #{italic_text}".squeeze(" ")
+          member = HansardMember.new(member_name, member_name)
+          handle_contribution(@member, member, page)
+          @contribution_seq += 1
+        end
+      end
+      
+      fragment = HansardFragment.new
+      fragment.content = sanitize_text(text)
+      fragment.link = "#{page.url}\##{@last_link}"
+      if @member
+        if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
+          fragment.printed_name = "#{@member.post} (#{@member.name})"
+        elsif fragment.content =~ /^#{@member.search_name}/
+          fragment.printed_name = @member.search_name
         else
-          member_name = ""
+          fragment.printed_name = @member.printed_name
         end
-        
-        text = node.content.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
-        if node.xpath("i").first
-          italic_text = node.xpath("i").first.content
-        else
-          italic_text = ""
-        end
-        
-        if text[text.length-13..text.length-2] == "in the Chair"
-          @chair = text[1..text.length-15]
-        end
-        
-        #ignore column heading text
-        unless text =~ /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/
-          #check if this is a new contrib
-          case member_name
-            when /^(([^\(]*) \(in the Chair\):)/
-              #the Chair
-              name = $2
-              post = "Debate Chair"
-              member = HansardMember.new(name, name, "", "", post)
-              handle_contribution(@member, member, page)
-              @contribution_seq += 1
-            when /^(([^\(]*) \(([^\(]*)\):)/
-              #we has a minister
-              post = $2
-              name = $3
-              member = HansardMember.new(name, "", "", "", post)
-              handle_contribution(@member, member, page)
-              @contribution_seq += 1                
-            when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
-              #an MP speaking for the first time in the debate
-              name = $2
-              constituency = $3
-              party = $4
-              member = HansardMember.new(name, "", constituency, party)
-              handle_contribution(@member, member, page)
-              @contribution_seq += 1
-            when /^(([^\(]*):)/
-              #an MP who's spoken before
-              name = $2
-              member = HansardMember.new(name, name)
-              handle_contribution(@member, member, page)                
-              @contribution_seq += 1
-            else
-              if text == "#{member_name} #{italic_text}".squeeze(" ")
-                member = HansardMember.new(member_name, member_name)
-                handle_contribution(@member, member, page)
-                @contribution_seq += 1
-              end
-          end
-          
-          fragment = HansardFragment.new
-          fragment.content = sanitize_text(text)
-          fragment.link = "#{page.url}\##{@last_link}"
-          if @member
-            if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
-              fragment.printed_name = "#{@member.post} (#{@member.name})"
-            elsif fragment.content =~ /^#{@member.search_name}/
-              fragment.printed_name = @member.search_name
-            else
-              fragment.printed_name = @member.printed_name
-            end
-            fragment.speaker = @member.index_name
-          end
-          fragment.column = @end_column
-          fragment.contribution_seq = @contribution_seq
-          @fragment << fragment
-        end
+        fragment.speaker = @member.index_name
+      end
+      fragment.column = @end_column
+      fragment.contribution_seq = @contribution_seq
+      @fragment << fragment
     end
   end
   
@@ -223,19 +239,19 @@ class WHDebatesParser < CommonsParser
             para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
             
             case fragment.desc
-              when "timestamp"
-                para = Timestamp.find_or_create_by(ident: para_ident)
+            when "timestamp"
+              para = Timestamp.find_or_create_by(ident: para_ident)
+            else
+              if fragment.speaker.nil?
+                para = NonContributionPara.find_or_create_by(ident: para_ident)
               else
-                if fragment.speaker.nil?
-                  para = NonContributionPara.find_or_create_by(ident: para_ident)
-                else
-                  para = ContributionPara.find_or_create_by(ident: para_ident)
-                  para.member = fragment.speaker
-                  para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-                  if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
-                    para.speaker_printed_name = fragment.printed_name
-                  end
+                para = ContributionPara.find_or_create_by(ident: para_ident)
+                para.member = fragment.speaker
+                para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
+                if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
+                  para.speaker_printed_name = fragment.printed_name
                 end
+              end
             end
             
             para.content = fragment.content
