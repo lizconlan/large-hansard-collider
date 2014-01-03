@@ -28,10 +28,10 @@ class LordsParser
   end
   
   def link_to_first_page
-    unless self.respond_to?(:component)
-      component = 0
+    unless self.respond_to?(:component_name)
+      component_name = 0
     end
-    html = get_component_index(component)
+    html = get_component_index(component_name)
     
     return nil unless html
     doc = Nokogiri::HTML(html)
@@ -69,9 +69,9 @@ class LordsParser
     false
   end
   
-  def get_sequence(component)
+  def get_sequence(component_name)
     sequence = nil
-    case component
+    case component_name
       when "Debates and Oral Answers"
         sequence = 1
       when "Grand Committee"
@@ -81,8 +81,8 @@ class LordsParser
       when "Written Answers"
         sequence = 4
       else
-        raise "unrecognised component: #{component}"
+        raise "unrecognised component: #{component_name}"
     end
-    component
+    sequence
   end
 end

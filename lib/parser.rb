@@ -58,8 +58,8 @@ module Parser
   def reset_vars
   end
   
-  def get_component_index(component)
-    url = get_component_links[component]
+  def get_component_index(component_name)
+    url = get_component_links[component_name]
     if url
       @start_url = url
       return get_page(url)
@@ -146,12 +146,12 @@ module Parser
     @page_fragments_seq = 0
     @hansard_component.daily_part = @daily_part
     
-    @hansard_component.sequence = get_sequence(@component)
+    @hansard_component.sequence = get_sequence(@component_name)
     
     @daily_part.components << @hansard_component
     @daily_part.save(:safe => true)
     
-    @hansard_component.name = @component
+    @hansard_component.name = @component_name
     @hansard_component.save(:safe => true)
   end
   
@@ -170,7 +170,7 @@ module Parser
     @preamble[:links] << "#{url}\##{@last_link}"
   end
   
-  def get_sequence(component)
+  def get_sequence(component_name)
   end
   
   def determine_fragment_type(node)

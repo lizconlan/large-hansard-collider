@@ -1,16 +1,16 @@
 require './lib/commons/parser'
 
 class CommonsDebatesParser < CommonsParser
-  attr_reader :component, :component_prefix
+  attr_reader :component_name, :component_prefix
   
-  def initialize(date, component="Debates and Oral Answers")
+  def initialize(date, component_name="Debates and Oral Answers")
     super(date)
-    @component = component
+    @component_name = component_name
     @component_prefix = "d"
   end
   
   def get_component_index
-    super(component)
+    super(component_name)
   end
   
   def init_vars

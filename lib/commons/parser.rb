@@ -30,8 +30,8 @@ class CommonsParser
   end
   
   def link_to_first_page
-    unless self.respond_to?(:component)
-      component = 0
+    unless self.respond_to?(:component_name)
+      component_name = 0
     end
     html = get_component_index
     return nil unless html
@@ -163,9 +163,9 @@ class CommonsParser
     @preamble = {:fragments => [], :columns => [], :links => []}
   end
   
-  def get_sequence(component)
+  def get_sequence(component_name)
     sequence = nil
-    case component
+    case component_name
       when "Debates and Oral Answers"
         sequence = 1
       when "Westminster Hall"
@@ -179,8 +179,8 @@ class CommonsParser
       when "Ministerial Corrections"
         sequence = 6
       else
-        raise "unrecognised component: #{component}"
+        raise "unrecognised component: #{component_name}"
     end
-    component
+    sequence
   end
 end

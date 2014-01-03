@@ -1,11 +1,11 @@
 require './lib/commons/parser'
 
 class WMSParser < CommonsParser
-  attr_reader :component, :component_prefix
+  attr_reader :component_name, :component_prefix
   
-  def initialize(date, house="Commons", component="Written Ministerial Statements")
+  def initialize(date, house="Commons", component_name="Written Ministerial Statements")
     super(date)
-    @component = component
+    @component_name = component_name
     @component_prefix = "wms"
   end
   

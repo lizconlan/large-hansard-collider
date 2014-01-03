@@ -1,16 +1,16 @@
 require './lib/commons/parser'
 
 class WHDebatesParser < CommonsParser
-  attr_reader :component, :component_prefix
+  attr_reader :component_name, :component_prefix
   
-  def initialize(date, house="Commons", component="Westminster Hall")
+  def initialize(date, house="Commons", component_name="Westminster Hall")
     super(date)
-    @component = component
+    @component_name = component_name
     @component_prefix = "wh"
   end
   
   def get_component_index
-    super(component)
+    super(component_name)
   end
   
   def reset_vars
