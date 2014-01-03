@@ -24,7 +24,7 @@ module Parser
     @daily_part.house = house
     @daily_part.date = date
     @hansard_component = nil
-    @fragment = nil
+    @page_fragments = nil
     @element = nil
     @current_speaker = ""
     @start_url = ""
@@ -35,7 +35,7 @@ module Parser
   def init_vars
     @page = 0
     @component_seq = 0
-    @fragment_seq = 0
+    @page_fragments_seq = 0
     @para_seq = 0
     @contribution_seq = 0
 
@@ -45,7 +45,7 @@ module Parser
     @contribution = nil
     
     @last_link = ""
-    @fragment = []
+    @page_fragments = []
     @questions = []
     @preamble = {:fragments => [], :columns => [], :links => []}
     @subject = ""
@@ -107,7 +107,7 @@ module Parser
       end
       
       #flush the buffer
-      if @fragment.empty? == false or @preamble[:title]
+      if @page_fragments.empty? == false or @preamble[:title]
         store_debate(page)
         reset_vars()
       end
@@ -143,7 +143,7 @@ module Parser
     
     @hansard_component = Component.find_or_create_by(ident: component_ident)
     @hansard_component.url = @start_url
-    @fragment_seq = 0
+    @page_fragments_seq = 0
     @hansard_component.daily_part = @daily_part
     
     @hansard_component.sequence = get_sequence(@component)
@@ -177,25 +177,25 @@ module Parser
     case node.attr("name")
     when /^hd_/
       #heading e.g. the date, The House met at..., The Deputy PM was asked
-      @fragment_type = "heading"
+      @page_fragments_type = "heading"
       @link = node.attr("name")
     when /^place_/
-      @fragment_type = "location heading"
+      @page_fragments_type = "location heading"
       @link = node.attr("name")
     when /^dpthd_/
-      @fragment_type = "department heading"
+      @page_fragments_type = "department heading"
       @link = node.attr("name")
     when /^subhd_/
-      @fragment_type = "subject heading"
+      @page_fragments_type = "subject heading"
       @link = node.attr("name")
     when /^qn_/
-      @fragment_type = "question"
+      @page_fragments_type = "question"
       @link = node.attr("name")
     when /^st_/
-      @fragment_type = "contribution"
+      @page_fragments_type = "contribution"
       @link = node.attr("name")
     when /^divlst_/
-      @fragment_type = "division"
+      @page_fragments_type = "division"
       @link = node.attr("name")
     end 
   end
@@ -267,6 +267,6 @@ module Parser
   end
   
   def fragment_has_text
-    (@fragment.empty? == false and @fragment.map {|x| x.content}.join("").length > 0)
+    (@page_fragments.empty? == false and @page_fragments.map {|x| x.content}.join("").length > 0)
   end
 end

@@ -130,6 +130,39 @@ class CommonsParser
     end
   end
   
+  def store_preamble(page)
+    @page_fragments_seq += 1
+    preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    preamble = Preamble.find_or_create_by(ident: preamble_ident)
+    @para_seq += 1
+    preamble.title = @preamble[:title]
+    preamble.component = @hansard_component
+    preamble.url = @preamble[:link]
+    preamble.sequence = @page_fragments_seq
+    
+    @preamble[:fragments].each_with_index do |fragment, i|
+      @para_seq += 1
+      para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      
+      para = NonContributionPara.find_or_create_by(ident: para_ident)
+      para.fragment = preamble
+      para.content = fragment
+      para.sequence = @para_seq
+      para.url = @preamble[:links][i]
+      para.column = @preamble[:columns][i]
+      
+      para.save
+      preamble.paragraphs << para
+    end
+    preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
+    
+    preamble.save
+    @hansard_component.fragments << preamble
+    @hansard_component.save
+    
+    @preamble = {:fragments => [], :columns => [], :links => []}
+  end
+  
   def get_sequence(component)
     sequence = nil
     case component

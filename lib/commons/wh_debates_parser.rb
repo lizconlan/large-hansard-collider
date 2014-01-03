@@ -14,7 +14,7 @@ class WHDebatesParser < CommonsParser
   end
   
   def reset_vars
-    @fragment = []
+    @page_fragments = []
   end
   
   
@@ -38,15 +38,15 @@ class WHDebatesParser < CommonsParser
   end
   
   def create_new_fragment(text, page)
-    unless @fragment.empty?
+    unless @page_fragments.empty?
       store_debate(page)
-      @fragment = []
+      @page_fragments = []
       @segment_link = ""
     end
-    fragment = HansardFragment.new
+    fragment = PageFragment.new
     fragment.content = sanitize_text(text)
     fragment.column = @end_column
-    @fragment << fragment
+    @page_fragments << fragment
     @subject = sanitize_text(text)
     @segment_link = "#{page.url}\##{@last_link}"
   end
@@ -63,18 +63,17 @@ class WHDebatesParser < CommonsParser
   end
   
   def process_timestamp(text, page)
-    fragment = HansardFragment.new
+    fragment = PageFragment.new
     fragment.content = text
     fragment.desc = "timestamp"
     fragment.column = @end_column
     fragment.link = "#{page.url}\##{@last_link}"
-    @fragment << fragment
+    @page_fragments << fragment
   end
   
   def process_para(node, page)
     column_desc = ""
     member_name = ""
-    
     if node.xpath("a") and node.xpath("a").length > 0
       @last_link = node.xpath("a").last.attr("name")
     end
@@ -111,7 +110,7 @@ class WHDebatesParser < CommonsParser
       #check if this is a new contrib
       process_member_contribution(member_name, text, page, true, italic_text)
       
-      fragment = HansardFragment.new
+      fragment = PageFragment.new
       fragment.content = sanitize_text(text)
       fragment.link = "#{page.url}\##{@last_link}"
       if @member
@@ -126,19 +125,19 @@ class WHDebatesParser < CommonsParser
       end
       fragment.column = @end_column
       fragment.contribution_seq = @contribution_seq
-      @fragment << fragment
+      @page_fragments << fragment
     end
   end
   
   def store_debate(page)
     if @preamble[:title]
-      @fragment_seq += 1
-      preamble_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+      @page_fragments_seq += 1
+      preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
       preamble = Preamble.find_or_create_by(ident: preamble_ident)
       preamble.title = @preamble[:title]
       preamble.component = @hansard_component
       preamble.url = @preamble[:link]
-      preamble.sequence = @fragment_seq
+      preamble.sequence = @page_fragments_seq
       
       @preamble[:fragments].each_with_index do |fragment, i|
         @para_seq += 1
@@ -165,8 +164,8 @@ class WHDebatesParser < CommonsParser
       handle_contribution(@member, @member, page)
       
       if @segment_link #no point storing pointers that don't link back to the source
-        @fragment_seq += 1
-        segment_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+        @page_fragments_seq += 1
+        segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
         
         names = []
         @members.each { |x, y| names << y.index_name unless names.include?(y.index_name) }
@@ -194,9 +193,9 @@ class WHDebatesParser < CommonsParser
         @debate.chair = @chair
         @debate.url = @segment_link
         
-        @debate.sequence = @fragment_seq
+        @debate.sequence = @page_fragments_seq
         
-        @fragment.each do |fragment|
+        @page_fragments.each do |fragment|
           unless fragment.content == @debate.title or fragment.content == ""
             @para_seq += 1
             para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"

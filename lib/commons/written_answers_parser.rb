@@ -14,7 +14,7 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def reset_vars
-    @fragment = []
+    @page_fragments = []
     @questions = []
     @members = {}
   end
@@ -41,14 +41,14 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def process_heading(text, page)
-    unless @fragment.empty? or @fragment.join("").length == 0
+    unless @page_fragments.empty? or @page_fragments.join("").length == 0
       store_debate(page)
-      @fragment = []
+      @page_fragments = []
       @segment_link = ""
       @questions = []
       @members = {}
     end
-    if @fragment_type == "department heading"
+    if @page_fragments_type == "department heading"
       @department = sanitize_text(text)
     else
       @subject = sanitize_text(text)
@@ -62,9 +62,9 @@ class WrittenAnswersParser < CommonsParser
       @preamble[:columns] << @end_column
       @preamble[:links] << "#{page.url}\##{@last_link}"
     else          
-      unless @fragment.empty? or @fragment.join("").length == 0
+      unless @page_fragments.empty? or @page_fragments.join("").length == 0
         store_debate(page)
-        @fragment = []
+        @page_fragments = []
         @questions = []
         @segment_link = ""
         @members = {}
@@ -73,10 +73,10 @@ class WrittenAnswersParser < CommonsParser
       @subject = sanitize_text(text)
       @segment_link = "#{page.url}\##{@last_link}"
       
-      fragment = HansardFragment.new
+      fragment = PageFragment.new
       fragment.content = sanitize_text(text)
       fragment.column = @end_column
-      @fragment << fragment
+      @page_fragments << fragment
     end
   end
   
@@ -85,7 +85,7 @@ class WrittenAnswersParser < CommonsParser
       @last_link = node.xpath("a").last.attr("name")
     end
     
-    fragment = HansardFragment.new
+    fragment = PageFragment.new
     fragment.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
     fragment.link = "#{page.url}\##{@last_link}"
     
@@ -94,7 +94,7 @@ class WrittenAnswersParser < CommonsParser
     end
     fragment.column = @end_column
     fragment.contribution_seq = @contribution_seq
-    @fragment << fragment
+    @page_fragments << fragment
   end
   
   def process_para(node, page)
@@ -102,10 +102,10 @@ class WrittenAnswersParser < CommonsParser
     member_name = ""
     if node.xpath("a") and node.xpath("a").length > 0
       @last_link = node.xpath("a").last.attr("name")
-    end          
+    end
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
-        if bold.text =~ COLUMN_HEADER  #older page format
+        if bold.text =~ COLUMN_HEADER #older page format
           if @start_column == ""
             @start_column = $1
           else
@@ -131,7 +131,7 @@ class WrittenAnswersParser < CommonsParser
       #check if this is a new contrib
       process_member_contribution(member_name, text, page)
       
-      fragment = HansardFragment.new
+      fragment = PageFragment.new
       fragment.content = sanitize_text(text)
       fragment.link = "#{page.url}\##{@last_link}"
       if @member
@@ -146,48 +146,19 @@ class WrittenAnswersParser < CommonsParser
       end
       fragment.column = @end_column
       fragment.contribution_seq = @contribution_seq
-      @fragment << fragment
+      @page_fragments << fragment
     end
   end
   
   def store_debate(page)
     if @preamble[:title]
-      @fragment_seq += 1
-      preamble_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
-      preamble = Preamble.find_or_create_by(ident: preamble_ident)
-      @para_seq += 1
-      preamble.title = @preamble[:title]
-      preamble.component = @hansard_component
-      preamble.url = @preamble[:link]
-      preamble.sequence = @fragment_seq
-      
-      @preamble[:fragments].each_with_index do |fragment, i|
-        @para_seq += 1
-        para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-        
-        para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.fragment = preamble
-        para.content = fragment
-        para.sequence = @para_seq
-        para.url = @preamble[:links][i]
-        para.column = @preamble[:columns][i]
-        
-        para.save
-        preamble.paragraphs << para
-      end
-      preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
-      
-      preamble.save
-      @hansard_component.fragments << preamble
-      @hansard_component.save
-      
-      @preamble = {:fragments => [], :columns => [], :links => []}
+      store_preamble(page)
     else
       handle_contribution(@member, @member, page)
       
       if @segment_link #no point storing pointers that don't link back to the source
-        @fragment_seq += 1
-        segment_ident = "#{@hansard_component.ident}_#{@fragment_seq.to_s.rjust(6, "0")}"
+        @page_fragments_seq += 1
+        segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
         
         column_text = ""
         if @start_column == @end_column or @end_column == ""
@@ -213,9 +184,9 @@ class WrittenAnswersParser < CommonsParser
         @question.url = @segment_link
         @question.number = @questions.last
         
-        @question.sequence = @fragment_seq
+        @question.sequence = @page_fragments_seq
         
-        @fragment.each do |fragment|
+        @page_fragments.each do |fragment|
           unless fragment.content == @question.title or fragment.content == ""
             @para_seq += 1
             para_ident = "#{@question.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
