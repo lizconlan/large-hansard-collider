@@ -1,7 +1,6 @@
 #encoding: utf-8
 
 require 'active_record'
-require 'htmlentities'
 
 class Fragment < ActiveRecord::Base
   belongs_to :component

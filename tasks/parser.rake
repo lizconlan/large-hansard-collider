@@ -37,18 +37,18 @@ task :scrape_hansard => :environment do
 
   #great, go
   parser = CommonsDebatesParser.new(date)
-  parser.parse_pages
+  parser.parse
   
   parser = WHDebatesParser.new(date)
-  parser.parse_pages
+  parser.parse
   
   parser = WMSParser.new(date)
-  parser.parse_pages
+  parser.parse
   # 
   # # TODO: Petitions
   # 
   parser = WrittenAnswersParser.new(date)
-  parser.parse_pages
+  parser.parse
   
   # TODO: Ministerial Corrections
 end

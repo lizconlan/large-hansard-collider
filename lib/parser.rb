@@ -1,6 +1,5 @@
 #encoding: utf-8
 
-require 'htmlentities'
 require 'rest-client'
 require 'nokogiri'
 
@@ -49,16 +48,12 @@ class Parser
     @hansard_component = nil
     @page_fragments = nil
     @page = nil
-    @element = nil
     @current_speaker = ""
     @start_url = ""
-    
-    @coder = HTMLEntities.new
     super()
   end
   
   def init_vars
-    @page_number = 0
     @component_seq = 0
     @page_fragments_seq = 0
     @para_seq = 0
@@ -91,31 +86,7 @@ class Parser
     end
   end
   
-  def get_page(url)
-    begin
-      result = RestClient.get(url)
-    rescue
-      return nil
-    end
-    result.body
-  end
-  
-  def parse_page(page = @page)
-    @page_number += 1
-    content = page.doc.xpath("//div[@id='content-small']")
-    if content.empty?
-      content = page.doc.xpath("//div[@id='maincontent1']")
-    elsif content.children.size < 10
-      content = page.doc.xpath("//div[@id='content-small']/table/tr/td[1]")
-    end
-    content.children.each do |child|
-      if child.class == Nokogiri::XML::Element
-        parse_node(child)
-      end
-    end
-  end
-  
-  def parse_pages
+  def parse
     start()
     init_vars()
     first_page = link_to_first_page
@@ -136,8 +107,31 @@ class Parser
     end
   end
   
+  def parse_page(page = @page)
+    content = page.doc.xpath("//div[@id='content-small']")
+    if content.empty?
+      content = page.doc.xpath("//div[@id='maincontent1']")
+    elsif content.children.size < 10
+      content = page.doc.xpath("//div[@id='content-small']/table/tr/td[1]")
+    end
+    content.children.each do |child|
+      if child.class == Nokogiri::XML::Element
+        parse_node(child)
+      end
+    end
+  end
+  
   
   private
+  
+  def get_page(url)
+    begin
+      result = RestClient.get(url)
+    rescue
+      return nil
+    end
+    result.body
+  end
   
   def minify_whitespace(text)
     text.gsub("\n", "").squeeze(" ").strip

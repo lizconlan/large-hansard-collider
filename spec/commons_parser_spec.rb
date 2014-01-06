@@ -88,7 +88,7 @@ describe CommonsParser do
           $stderr.expects(:write).with("No data available for this date")
           $stderr.expects(:write).with("\n")
           
-          @parser.parse_pages
+          @parser.parse
         end
       end
     end

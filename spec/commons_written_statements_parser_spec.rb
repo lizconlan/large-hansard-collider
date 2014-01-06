@@ -81,7 +81,7 @@ describe WrittenAnswersParser do
         Question.expects(:find_or_create_by).at_least_once.returns(question)
         question.expects(:paragraphs).at_least_once.returns([])
         
-        @parser.parse_pages
+        @parser.parse
       end
       
       it "should create the Question sections" do
@@ -170,7 +170,7 @@ describe WrittenAnswersParser do
         contribution.expects(:member=).with("Lynne Featherstone")
         contribution.expects(:column=)
         
-        @parser.parse_pages
+        @parser.parse
       end
     end
     
@@ -238,7 +238,7 @@ describe WrittenAnswersParser do
       contrib_table = ContributionTable.new
       ContributionTable.expects(:find_or_create_by).with(ident: "question_p000002").returns(contrib_table)
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
 end

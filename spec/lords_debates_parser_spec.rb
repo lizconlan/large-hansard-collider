@@ -132,7 +132,7 @@ describe LordsDebatesParser do
       ncpara.expects(:content=).with("Judith Anne Jolly, having been created Baroness Jolly, of Congdon's Shop in the County of Cornwall, was introduced and took the oath, supported by Lord Tyler and Lord Teverson, and signed an undertaking to abide by the Code of Conduct.")
       member_intro.expects(:paragraphs).at_least_once.returns([ncpara])
       
-      @parser.parse_pages
+      @parser.parse
     end
     
     # it "should handle the Preamble properly and create Debate elements for each debate" do
@@ -214,7 +214,7 @@ describe LordsDebatesParser do
     #   contribution.expects(:column=).with("832")
     #   contribution.expects(:member=).with("Iain McKenzie")
     #   
-    #   @parser.parse_pages
+    #   @parser.parse
     # end
   end
   
@@ -268,7 +268,7 @@ describe LordsDebatesParser do
   #     preamble.expects(:title=).with("Oral Answers to Questions")
   #     preamble.stubs(:paragraphs).returns([])
   #           
-  #     @parser.parse_pages
+  #     @parser.parse
   #   end
   #   
   #   it "should create a Question for each question found" do
@@ -378,7 +378,7 @@ describe LordsDebatesParser do
   #     contribution.expects(:member=).with("Alistair Burt")
   #     contribution.expects(:speaker_printed_name=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)")
   #     
-  #     @parser.parse_pages
+  #     @parser.parse
   #   end
   #   
   #   it "should deal with the Topical Questions component" do
@@ -466,7 +466,7 @@ describe LordsDebatesParser do
   #     contribution.expects(:member=).with("William Hague")
   #     contribution.expects(:speaker_printed_name=).with("Mr Hague")
   #     
-  #     @parser.parse_pages
+  #     @parser.parse
   #   end
   #   
   #   it "should not treat the first Debate as another Question" do
@@ -524,7 +524,7 @@ describe LordsDebatesParser do
   #     contribution.expects(:member=).with("Hilary Benn")
   #     contribution.expects(:speaker_printed_name=).with("Hilary Benn")
   #     
-  #     @parser.parse_pages
+  #     @parser.parse
   #   end
   # end
   # 
@@ -601,7 +601,7 @@ describe LordsDebatesParser do
   #     NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002_p000009').returns(ncpara)
   #     ncpara.expects(:content=).with("Bill accordingly read a Second time.")
   #     
-  #     @parser.parse_pages
+  #     @parser.parse
   #   end
   # end
 end

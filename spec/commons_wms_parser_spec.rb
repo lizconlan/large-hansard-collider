@@ -80,7 +80,7 @@ describe WMSParser do
         contribution.expects(:member=).at_least_once
         contribution.expects(:speaker_printed_name=).at_least_once
         
-        @parser.parse_pages
+        @parser.parse
       end
       
       it "should create the Statement sections" do
@@ -169,7 +169,7 @@ describe WMSParser do
         contribution.expects(:member=).with("Jonathan Djanogly")
         contribution.expects(:column=).with("109WS")
         
-        @parser.parse_pages
+        @parser.parse
       end
     end
     
@@ -236,7 +236,7 @@ describe WMSParser do
       contrib_table = ContributionTable.new
       ContributionTable.expects(:find_or_create_by).with(ident: "statement_p000002").returns(contrib_table)
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
 

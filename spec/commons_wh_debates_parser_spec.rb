@@ -98,7 +98,7 @@ describe WHDebatesParser do
       Debate.expects(:find_or_create_by).at_least_once.returns(debate)
       debate.expects(:paragraphs).at_least_once.returns([])
       
-      @parser.parse_pages
+      @parser.parse
     end
     
     it "should create the Debate section" do
@@ -167,7 +167,7 @@ describe WHDebatesParser do
       contribution.expects(:speaker_printed_name=).with("Sarah Teather")
       contribution.expects(:column=).with("184WH")
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
 end

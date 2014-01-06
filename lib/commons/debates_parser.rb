@@ -341,15 +341,6 @@ class CommonsDebatesParser < CommonsParser
     fragment
   end
   
-  def format_fragment_html(prefix, fragment)
-    if prefix
-      pref_length = prefix.length
-    else
-      pref_length = 0
-    end
-    "<p>#{prefix}<b>#{@coder.encode(fragment.printed_name, :named)}</b>#{@coder.encode(fragment.content.strip[fragment.printed_name.length+pref_length..fragment.content.strip.length], :named)}</p>"
-  end
-  
   def process_para(node)
     column_desc = ""
     member_name = ""

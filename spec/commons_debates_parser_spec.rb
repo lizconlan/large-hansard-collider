@@ -92,7 +92,7 @@ describe CommonsDebatesParser do
       ts.expects(:content=).with("2.44 pm")
       ts.expects(:content=).with("2.45 pm")
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
     
@@ -126,7 +126,7 @@ describe CommonsDebatesParser do
       ncpara.expects(:url=).with("#{@url}\#11071988000020")
       ncpara.expects(:column=).with("831")
       
-      @parser.parse_pages
+      @parser.parse
     end
     
     it "should handle the Preamble properly and create Debate elements for each debate" do
@@ -208,7 +208,7 @@ describe CommonsDebatesParser do
       contribution.expects(:column=).with("832")
       contribution.expects(:member=).with("Iain McKenzie")
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
   
@@ -260,7 +260,7 @@ describe CommonsDebatesParser do
       preamble.expects(:title=).with("Oral Answers to Questions")
       preamble.stubs(:paragraphs).returns([])
             
-      @parser.parse_pages
+      @parser.parse
     end
     
     it "should create a Question for each question found" do
@@ -374,7 +374,7 @@ describe CommonsDebatesParser do
       contribution.expects(:member=).with("Alistair Burt")
       contribution.expects(:speaker_printed_name=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)")
       
-      @parser.parse_pages
+      @parser.parse
     end
     
     it "should deal with the Topical Questions component" do
@@ -468,7 +468,7 @@ describe CommonsDebatesParser do
       contribution.expects(:member=).with("William Hague")
       contribution.expects(:speaker_printed_name=).with("Mr Hague")
       
-      @parser.parse_pages
+      @parser.parse
     end
     
     it "should not treat the first Debate as another Question" do
@@ -528,7 +528,7 @@ describe CommonsDebatesParser do
       contribution.expects(:member=).with("Hilary Benn")
       contribution.expects(:speaker_printed_name=).with("Hilary Benn")
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
   
@@ -607,7 +607,7 @@ describe CommonsDebatesParser do
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002_p000009').returns(ncpara)
       ncpara.expects(:content=).with("Bill accordingly read a Second time.")
       
-      @parser.parse_pages
+      @parser.parse
     end
   end
 end
