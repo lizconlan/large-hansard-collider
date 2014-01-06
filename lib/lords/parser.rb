@@ -2,8 +2,7 @@
 
 require "./lib/parser.rb"
 
-class LordsParser
-  include Parser
+class LordsParser < Parser
   attr_reader :date, :doc_id, :house
   
   COLUMN_HEADER = /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:GC)?(?:WS)?(?:P)?(?:WA)?)(?:-continued)?$/
@@ -63,7 +62,7 @@ class LordsParser
   def set_column(node)
     if node.attr("class") == "anchor-column"
       return node.attr("name").gsub("column_", "")
-    elsif node.attr("name") =~ /column_(.*)/  #older page format
+    elsif node.attr("name") =~ /column_(.*)/ #older page format
       return node.attr("name").gsub("column_", "")
     end
     false

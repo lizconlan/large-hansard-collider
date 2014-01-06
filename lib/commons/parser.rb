@@ -2,9 +2,7 @@
 
 require "./lib/parser.rb"
 
-class CommonsParser
-  include Parser
-  
+class CommonsParser < Parser
   attr_reader :date, :doc_id, :house
   
   COLUMN_HEADER = /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/
@@ -66,14 +64,14 @@ class CommonsParser
     end
   end
   
-  def process_member_contribution(member_name, text, page, seq=nil, italic_text=nil)
+  def process_member_contribution(member_name, text, seq=nil, italic_text=nil)
     case member_name
     when /^(([^\(]*) \(in the Chair\):)/
       #the Chair
       name = $2
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       if seq
         @contribution_seq += 1
       else
@@ -84,7 +82,7 @@ class CommonsParser
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       if seq
         @contribution_seq += 1
       else
@@ -96,7 +94,7 @@ class CommonsParser
       constituency = $3
       party = $4
       member = HansardMember.new(name, "", constituency, party)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       if seq
         @contribution_seq += 1
       else
@@ -106,7 +104,7 @@ class CommonsParser
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       if seq
         @contribution_seq += 1
       else
@@ -116,7 +114,7 @@ class CommonsParser
       if italic_text
         if text == "#{member_name} #{italic_text}".squeeze(" ")
           member = HansardMember.new(member_name, member_name)
-          handle_contribution(@member, member, page)
+          handle_contribution(@member, member)
           @contribution_seq += 1
         end
       else
@@ -130,7 +128,7 @@ class CommonsParser
     end
   end
   
-  def store_preamble(page)
+  def store_preamble
     @page_fragments_seq += 1
     preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
     preamble = Preamble.find_or_create_by(ident: preamble_ident)

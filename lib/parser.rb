@@ -12,8 +12,31 @@ require './models/component'
 require './models/fragment'
 require './models/paragraph'
 
-module Parser
-  attr_reader :date, :doc_id, :house
+require 'state_machine'
+
+class Parser
+  attr_reader :date, :doc_id, :house, :state
+  
+  state_machine :state, :initial => :idle do
+    before_transition :parsing_fragment => :parse_new_fragment, :do => :save_fragment
+    before_transition all - :idle => :finished, :do => :save_fragment
+    
+    event :start do
+      transition :idle => :starting
+    end
+    
+    event :parse_new_fragment do
+      transition all - [:idle, :finished] => :parsing_fragment
+    end
+    
+    event :finish do
+      transition all => :finished
+    end
+    
+    state :starting
+    state :parsing_fragment
+    state :finished
+  end
   
   def initialize(date, house)
     @date = date
@@ -25,20 +48,22 @@ module Parser
     @daily_part.date = date
     @hansard_component = nil
     @page_fragments = nil
+    @page = nil
     @element = nil
     @current_speaker = ""
     @start_url = ""
     
     @coder = HTMLEntities.new
+    super()
   end
   
   def init_vars
-    @page = 0
+    @page_number = 0
     @component_seq = 0
     @page_fragments_seq = 0
     @para_seq = 0
     @contribution_seq = 0
-
+    
     @members = {}
     @component_members = {}
     @member = nil
@@ -75,8 +100,8 @@ module Parser
     result.body
   end
   
-  def parse_page(page)
-    @page += 1
+  def parse_page(page = @page)
+    @page_number += 1
     content = page.doc.xpath("//div[@id='content-small']")
     if content.empty?
       content = page.doc.xpath("//div[@id='maincontent1']")
@@ -85,32 +110,29 @@ module Parser
     end
     content.children.each do |child|
       if child.class == Nokogiri::XML::Element
-        parse_node(child, page)
+        parse_node(child)
       end
     end
   end
   
   def parse_pages
+    start()
     init_vars()
     first_page = link_to_first_page
     
     unless first_page
       warn "No #{@component} data available for this date".squeeze(' ')
     else
-      create_first_component()
+      create_component()
       
-      page = HansardPage.new(first_page)
-      parse_page(page)
-      while page.next_url
-        page = HansardPage.new(page.next_url)
-        parse_page(page)
+      @page = HansardPage.new(first_page)
+      parse_page
+      while @page.next_url
+        @page = HansardPage.new(@page.next_url)
+        parse_page
       end
       
-      #flush the buffer
-      if @page_fragments.empty? == false or @preamble[:title]
-        store_debate(page)
-        reset_vars()
-      end
+      finish
     end
   end
   
@@ -134,7 +156,7 @@ module Parser
     false
   end
   
-  def create_first_component
+  def create_component
     if component_prefix.empty?
       component_ident = @doc_ident
     else
@@ -149,10 +171,10 @@ module Parser
     @hansard_component.sequence = get_sequence(@component_name)
     
     @daily_part.components << @hansard_component
-    @daily_part.save(:safe => true)
+    @daily_part.save
     
     @hansard_component.name = @component_name
-    @hansard_component.save(:safe => true)
+    @hansard_component.save
   end
   
   def setup_preamble(title, url)
@@ -200,15 +222,15 @@ module Parser
     end 
   end
   
-  def handle_contribution(member, new_member, page, seq=nil)
+  def handle_contribution(member, new_member, seq=nil)
     if @contribution and member
       @contribution.end_column = @end_column
       link_member_to_contribution(member)
     end
     if @end_column.empty?
-      @contribution = HansardContribution.new("#{page.url}\##{@last_link}", @start_column)
+      @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @start_column)
     else
-      @contribution = HansardContribution.new("#{page.url}\##{@last_link}", @end_column)
+      @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @end_column)
     end
     
     if new_member

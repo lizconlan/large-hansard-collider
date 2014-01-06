@@ -35,36 +35,36 @@ class LordsDebatesParser < LordsParser
   
   private
   
-  def parse_node(node, page)
+  def parse_node(node)
     # p "processing node: #{node.name}"
     case node.name
     when "columnnum"
       node.children.each do |child|
-        parse_node(child, page)
+        parse_node(child)
       end
     when "a"
       process_links_and_columns(node)
       determine_fragment_type(node)
     when "h1", "h2"
       node.xpath("a").each do |child|
-        parse_node(child, page)
+        parse_node(child)
       end
-      process_h2(minify_whitespace(node.text), node.content, page)
+      process_h2(minify_whitespace(node.text), node.content)
     when "h3"
-      process_h3(minify_whitespace(node.text), page)
+      process_h3(minify_whitespace(node.text))
     when "h4"
-      process_h4(sanitize_text(minify_whitespace(node.text)), page)
+      process_h4(sanitize_text(minify_whitespace(node.text)))
     when "h5"
-      process_h5(minify_whitespace(node.text), page)
+      process_h5(minify_whitespace(node.text))
     when "p", "center"
-      process_para(node, page)
+      process_para(node)
     when "div", "hr"
       #ignore
     end
   end
   
-  def store_and_reset(page)
-    store_debate(page)
+  def store_and_reset
+    save_fragment
     @page_fragments = []
     @segment_link = ""
     @questions = []
@@ -72,74 +72,74 @@ class LordsDebatesParser < LordsParser
     @component_members = {}
   end
   
-  def process_h2(text, title, page)
+  def process_h2(text, title)
     if fragment_has_text or @preamble[:title]
       if @preamble[:title] == "House of Lords" and
          text.strip =~ /^[A-Z][a-z]+day, \d+ [A-Z][a-z]+ \d{4}/
-        build_preamble(text, page.url)
+        build_preamble(text, @page.url)
       else
-        store_and_reset(page)
+        store_and_reset
       end
     end
     
     if text == "House of Lords"
-      setup_preamble(text, page.url)
+      setup_preamble(text, @page.url)
     end
     
     if text.strip =~ /^Introduction:/
-      setup_new_fragment(text, page)
+      setup_new_fragment(text)
     end
     
     if text == "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_preamble(title, page.url)
+      setup_preamble(title, @page.url)
     end
   end
   
-  def process_h3(text, page)
+  def process_h3(text)
     if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
-        store_and_reset(page)
-        @segment_link = "#{page.url}\##{@last_link}"
+        store_and_reset
+        @segment_link = "#{@page.url}\##{@last_link}"
       else
         @subject = text
         if @preamble[:title]
-          build_preamble(text, page.url)
+          build_preamble(text, @page.url)
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
-          @segment_link = "#{page.url}\##{@last_link}"
+          @segment_link = "#{@page.url}\##{@last_link}"
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
       if (fragment_has_text and @subject != "") or @preamble[:title]
-        store_and_reset(page)
+        store_and_reset
       end
       @subject = text
-      @segment_link = "#{page.url}\##{@last_link}"
+      @segment_link = "#{@page.url}\##{@last_link}"
     else
       @subcomponent = ""
       if text.downcase == "prayers"
-        build_preamble(text, page.url)
+        build_preamble(text, @page.url)
       else
         if (@page_fragments.empty? == false) or @preamble[:title]
-          store_and_reset(page)
+          store_and_reset
         end
-        setup_new_fragment(text, page)
+        setup_new_fragment(text)
       end
     end
   end
   
-  def process_h4(text, page)
+  def process_h4(text)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @preamble[:title]
-      build_preamble(text, page.url)
+      build_preamble(text, @page.url)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
         if fragment_has_text or @preamble[:title]
-          store_and_reset(page)
+          store_and_reset
         end
         @preamble[:title] = text
         @subcomponent = ""
@@ -149,19 +149,19 @@ class LordsDebatesParser < LordsParser
         unless @subcomponent == "Oral Answer"
           @subject = sanitize_text(text)
         end
-        @segment_link = "#{page.url}\##{@last_link}"
+        @segment_link = "#{@page.url}\##{@last_link}"
       end
     end
   end
   
-  def process_h5(text, page)
+  def process_h5(text)
     fragment = create_fragment(text)
     fragment.desc = "timestamp"
-    fragment.link = "#{page.url}\##{@last_link}"
+    fragment.link = "#{@page.url}\##{@last_link}"
     @page_fragments << fragment
   end
   
-  def setup_new_fragment(text, page)
+  def setup_new_fragment(text)
     case text.downcase
     when "business without debate"
       @subcomponent = ""
@@ -186,7 +186,7 @@ class LordsDebatesParser < LordsParser
     end
     unless text.downcase == "petition"
       @subject = text
-      @segment_link = "#{page.url}\##{@last_link}"
+      @segment_link = "#{@page.url}\##{@last_link}"
     end
   end
   
@@ -292,11 +292,11 @@ class LordsDebatesParser < LordsParser
     end
   end
   
-  def process_oral_question(text, page)
+  def process_oral_question(text)
     if text =~ /^((?:T|Q)\d+)\.\s\[([^\]]*)\] /
       qno = $1
       question = $2
-      set_subjects_and_store(qno, page)
+      set_subjects_and_store(qno)
       @questions << question
     elsif text[text.length-1..text.length] == "]" and text.length > 3
       question = text[text.rindex("[")+1..text.length-2]
@@ -304,7 +304,7 @@ class LordsDebatesParser < LordsParser
     end
   end
   
-  def set_subjects_and_store(qno, page)
+  def set_subjects_and_store(qno)
     if @questions.empty?
       if @subject =~ /\- (?:T|Q)\d+/
         @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{qno}")}"
@@ -317,29 +317,29 @@ class LordsDebatesParser < LordsParser
       else
         @subject = "#{@subject} - #{@question_no}"
       end
-      store_debate(page)
+      save_fragment
       reset_vars()
     end
     @question_no = qno
-    @segment_link = "#{page.url}\##{@last_link}"
+    @segment_link = "#{@page.url}\##{@last_link}"
     @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
   end
   
-  def check_debate_contributions(text, member_name, page)
+  def check_debate_contributions(text, member_name)
     case member_name
     when /^(([^\(]*) \(in the Chair\):)/
       #the Chair
       name = $2
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       @contribution.segments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       @contribution.segments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\))/
       #an MP speaking for the first time in the debate
@@ -347,13 +347,13 @@ class LordsDebatesParser < LordsParser
       constituency = $3
       party = $4
       member = HansardMember.new(name, "", constituency, party)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       @contribution.segments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*):)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
-      handle_contribution(@member, member, page)
+      handle_contribution(@member, member)
       @contribution.segments << sanitize_text(text.gsub($1, "")).strip
     else
       if @member
@@ -393,7 +393,7 @@ class LordsDebatesParser < LordsParser
     fragment
   end
   
-  def process_para(node, page)
+  def process_para(node)
     column_desc = ""
     member_name = ""
     
@@ -408,7 +408,7 @@ class LordsDebatesParser < LordsParser
     
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
-        if bold.text =~ COLUMN_HEADER  #older page format
+        if bold.text =~ COLUMN_HEADER #older page format
           if @start_column.empty?
             @start_column = $1
           else
@@ -426,7 +426,7 @@ class LordsDebatesParser < LordsParser
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
     if @page_fragments_type == "question"
-      process_oral_question(text, page)
+      process_oral_question(text)
     elsif @page_fragments_type == "division"
       process_division(text)
     end
@@ -437,15 +437,15 @@ class LordsDebatesParser < LordsParser
     #ignore column heading text
     unless (text =~ COLUMN_HEADER) or text == ""
       #check if this is a new contrib
-      check_debate_contributions(text, member_name, page)
+      check_debate_contributions(text, member_name)
       
       if @preamble[:title]
-        build_preamble(text, page.url)
+        build_preamble(text, @page.url)
       elsif @page_fragments_type != "division"
         fragment = create_fragment(text)
         
         @page_fragments << fragment
-        @segment_link = "#{page.url}\##{@last_link}" if @segment_link == ""
+        @segment_link = "#{@page.url}\##{@last_link}" if @segment_link == ""
       end
     end
   end
@@ -457,7 +457,7 @@ class LordsDebatesParser < LordsParser
     para.sequence = @para_seq
     para.url = @preamble[:links][idx]
     para.column = @preamble[:columns][idx]
-    para.save(:safe => true)
+    para.save
     para
   end
   
@@ -481,9 +481,9 @@ class LordsDebatesParser < LordsParser
     cols.delete_if { |x| x.nil? or x.empty? }
     preamble.columns = cols
     
-    preamble.save(:safe => true)
+    preamble.save
     @hansard_component.fragments << preamble
-    @hansard_component.save(:safe => true)
+    @hansard_component.save
     
     @preamble = {:fragments => [], :columns => [], :links => []}
   end
@@ -561,12 +561,12 @@ class LordsDebatesParser < LordsParser
     para.column = fragment.column
     para.sequence = @para_seq
     para.fragment = @debate
-    para.save(:safe => true)
+    para.save
     
     @debate.paragraphs << para
   end
   
-  def store_segment(page)
+  def store_segment
     @page_fragments_seq += 1
     segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
     
@@ -588,11 +588,11 @@ class LordsDebatesParser < LordsParser
     
     @para_seq = 0
     @hansard_component.fragments << @debate
-    @hansard_component.save(:safe => true)
+    @hansard_component.save
     
-    @daily_part.volume = page.volume
-    @daily_part.part = sanitize_text(page.part.to_s)
-    @daily_part.save(:safe => true)
+    @daily_part.volume = @page.volume
+    @daily_part.part = sanitize_text(@page.part.to_s)
+    @daily_part.save
     
     @debate.component = @hansard_component
     @debate.title = @subject
@@ -604,7 +604,7 @@ class LordsDebatesParser < LordsParser
     segment_ident
   end
   
-  def store_debate(page)
+  def save_fragment
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
@@ -612,11 +612,11 @@ class LordsDebatesParser < LordsParser
       store_preamble()
     else
       unless @page_fragments.empty?
-        handle_contribution(@member, @member, page)
+        handle_contribution(@member, @member)
         
         #no point storing pointers that don't link back to the source
         if @segment_link
-          segment_ident = store_segment(page)
+          segment_ident = store_segment
         end
         
         set_columns_and_save()
@@ -627,7 +627,7 @@ class LordsDebatesParser < LordsParser
   
   def set_columns_and_save
     @debate.columns = @debate.paragraphs.map {|x| x.column}.uniq
-    @debate.save(:safe => true)
+    @debate.save
     @start_column = @end_column if @end_column != ""
   end
   

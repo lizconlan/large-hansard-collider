@@ -20,26 +20,26 @@ class WHDebatesParser < CommonsParser
   
   private
   
-  def parse_node(node, page)
+  def parse_node(node)
     case node.name
     when "h2"
-      setup_preamble(node.content, page.url)
+      setup_preamble(node.content, @page.url)
     when "a"
       process_links_and_columns(node)
     when "h3"
-      create_new_fragment(minify_whitespace(node.text), page)
+      create_new_fragment(minify_whitespace(node.text))
     when "h4"
-      process_subheading(minify_whitespace(node.text), page)
+      process_subheading(minify_whitespace(node.text))
     when "h5"
-      process_timestamp(node.text, page)
+      process_timestamp(node.text)
     when "p" 
-      process_para(node, page)
+      process_para(node)
     end
   end
   
-  def create_new_fragment(text, page)
+  def create_new_fragment(text)
     unless @page_fragments.empty?
-      store_debate(page)
+      save_fragment
       @page_fragments = []
       @segment_link = ""
     end
@@ -48,30 +48,30 @@ class WHDebatesParser < CommonsParser
     fragment.column = @end_column
     @page_fragments << fragment
     @subject = sanitize_text(text)
-    @segment_link = "#{page.url}\##{@last_link}"
+    @segment_link = "#{@page.url}\##{@last_link}"
   end
   
-  def process_subheading(text, page)
+  def process_subheading(text)
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end
     if @preamble[:title]
       @preamble[:fragments] << text
       @preamble[:columns] << @end_column
-      @preamble[:links] << "#{page.url}\##{@last_link}"
+      @preamble[:links] << "#{@page.url}\##{@last_link}"
     end
   end
   
-  def process_timestamp(text, page)
+  def process_timestamp(text)
     fragment = PageFragment.new
     fragment.content = text
     fragment.desc = "timestamp"
     fragment.column = @end_column
-    fragment.link = "#{page.url}\##{@last_link}"
+    fragment.link = "#{@page.url}\##{@last_link}"
     @page_fragments << fragment
   end
   
-  def process_para(node, page)
+  def process_para(node)
     column_desc = ""
     member_name = ""
     if node.xpath("a") and node.xpath("a").length > 0
@@ -108,11 +108,11 @@ class WHDebatesParser < CommonsParser
     #ignore column heading text
     unless text =~ COLUMN_HEADER
       #check if this is a new contrib
-      process_member_contribution(member_name, text, page, true, italic_text)
+      process_member_contribution(member_name, text, true, italic_text)
       
       fragment = PageFragment.new
       fragment.content = sanitize_text(text)
-      fragment.link = "#{page.url}\##{@last_link}"
+      fragment.link = "#{@page.url}\##{@last_link}"
       if @member
         if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
           fragment.printed_name = "#{@member.post} (#{@member.name})"
@@ -129,7 +129,7 @@ class WHDebatesParser < CommonsParser
     end
   end
   
-  def store_debate(page)
+  def save_fragment
     if @preamble[:title]
       @page_fragments_seq += 1
       preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
@@ -161,7 +161,7 @@ class WHDebatesParser < CommonsParser
       
       @preamble = {:fragments => [], :columns => [], :links => []}
     else
-      handle_contribution(@member, @member, page)
+      handle_contribution(@member, @member)
       
       if @segment_link #no point storing pointers that don't link back to the source
         @page_fragments_seq += 1
@@ -182,8 +182,8 @@ class WHDebatesParser < CommonsParser
         @hansard_component.fragments << @debate
         @hansard_component.save
         
-        @daily_part.volume = page.volume
-        @daily_part.part = sanitize_text(page.part.to_s)
+        @daily_part.volume = @page.volume
+        @daily_part.part = sanitize_text(@page.part.to_s)
         @daily_part.save
         
         @debate.component = @hansard_component

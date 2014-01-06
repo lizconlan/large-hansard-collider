@@ -37,28 +37,28 @@ class CommonsDebatesParser < CommonsParser
   
   private
   
-  def parse_node(node, page)
+  def parse_node(node)
     case node.name
     when "a"
       process_links_and_columns(node)
       determine_fragment_type(node)
     when "h2"
-      process_top_level_heading(minify_whitespace(node.text), node.content, page)
+      process_top_level_heading(minify_whitespace(node.text), node.content)
     when "h3"
-      process_heading(minify_whitespace(node.text), page)
+      process_heading(minify_whitespace(node.text))
     when "h4"
-      process_subheading(sanitize_text(minify_whitespace(node.text)), page)
+      process_subheading(sanitize_text(minify_whitespace(node.text)))
     when "h5"
-      process_timestamp(minify_whitespace(node.text), page)
+      process_timestamp(minify_whitespace(node.text))
     when "p", "center"
-      process_para(node, page)
+      process_para(node)
     when "div", "hr"
       #ignore
     end
   end
   
-  def store_and_reset(page)
-    store_debate(page)
+  def store_and_reset
+    save_fragment
     @page_fragments = []
     @segment_link = ""
     @questions = []
@@ -66,44 +66,44 @@ class CommonsDebatesParser < CommonsParser
     @component_members = {}
   end
   
-  def process_top_level_heading(text, title, page)
+  def process_top_level_heading(text, title)
     if fragment_has_text or @preamble[:title]
-      store_and_reset(page)
+      store_and_reset
     end
     
     case text
     when "House of Commons"
-      setup_preamble(title, page.url)
+      setup_preamble(title, @page.url)
     when "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_preamble(title, page.url)
+      setup_preamble(title, @page.url)
     end
   end
   
-  def process_heading(text, page)
+  def process_heading(text)
     if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
-        store_and_reset(page)
+        store_and_reset
         
-        @segment_link = "#{page.url}\##{@last_link}"
+        @segment_link = "#{@page.url}\##{@last_link}"
       else
         @subject = text
         
         if @preamble[:title]
-          build_preamble(text, page.url)
+          build_preamble(text, @page.url)
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
-          @segment_link = "#{page.url}\##{@last_link}"
+          @segment_link = "#{@page.url}\##{@last_link}"
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
       if (fragment_has_text and @subject != "") or @preamble[:title]
-        store_and_reset(page)
+        store_and_reset
       end
       @subject = text
-      @segment_link = "#{page.url}\##{@last_link}"
+      @segment_link = "#{@page.url}\##{@last_link}"
     else
       if text =~ /.? Bill(?: |$)/
         @bill[:title] = text.gsub(" [Lords]", "")
@@ -111,25 +111,25 @@ class CommonsDebatesParser < CommonsParser
       
       @subcomponent = ""
       if text.downcase == "prayers"
-        build_preamble(text, page.url)
+        build_preamble(text, @page.url)
       else
         if (@page_fragments.empty? == false) or @preamble[:title]
-          store_and_reset(page)
+          store_and_reset
         end
-        setup_new_fragment(text, page)
+        setup_new_fragment(text)
       end
     end
   end
   
-  def process_subheading(text, page)
+  def process_subheading(text)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @preamble[:title]
-      build_preamble(text, page.url)
+      build_preamble(text, @page.url)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honorary h3 / main heading
         if fragment_has_text or @preamble[:title]
-          store_and_reset(page)
+          store_and_reset
         end
         @preamble[:title] = text
         @subcomponent = ""
@@ -139,19 +139,19 @@ class CommonsDebatesParser < CommonsParser
         unless @subcomponent == "Oral Answer"
           @subject = sanitize_text(text)
         end
-        @segment_link = "#{page.url}\##{@last_link}"
+        @segment_link = "#{@page.url}\##{@last_link}"
       end
     end
   end
   
-  def process_timestamp(text, page)
+  def process_timestamp(text)
     fragment = create_fragment(text)
     fragment.desc = "timestamp"
-    fragment.link = "#{page.url}\##{@last_link}"
+    fragment.link = "#{@page.url}\##{@last_link}"
     @page_fragments << fragment
   end
   
-  def setup_new_fragment(text, page)
+  def setup_new_fragment(text)
     case text.downcase
     when "business without debate"
       @subcomponent = ""
@@ -174,7 +174,7 @@ class CommonsDebatesParser < CommonsParser
     end
     unless text.downcase == "petition"
       @subject = text
-      @segment_link = "#{page.url}\##{@last_link}"
+      @segment_link = "#{@page.url}\##{@last_link}"
     end
   end
   
@@ -284,11 +284,11 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def process_oral_question(text, page)
+  def process_oral_question(text)
     if text =~ /^((?:T|Q)\d+)\.\s\[([^\]]*)\] /
       qno = $1
       question = $2
-      set_subjects_and_store(qno, page)
+      set_subjects_and_store(qno)
       @questions << question
     elsif text[text.length-1..text.length] == "]" and text.length > 3
       question = text[text.rindex("[")+1..text.length-2]
@@ -296,7 +296,7 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def set_subjects_and_store(qno, page)
+  def set_subjects_and_store(qno)
     if @questions.empty?
       if @subject =~ /\- (?:T|Q)\d+/
         @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{qno}")}"
@@ -309,11 +309,11 @@ class CommonsDebatesParser < CommonsParser
       else
         @subject = "#{@subject} - #{@question_no}"
       end
-      store_debate(page)
+      save_fragment
       reset_vars()
     end
     @question_no = qno
-    @segment_link = "#{page.url}\##{@last_link}"
+    @segment_link = "#{@page.url}\##{@last_link}"
     @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
   end
   
@@ -350,7 +350,7 @@ class CommonsDebatesParser < CommonsParser
     "<p>#{prefix}<b>#{@coder.encode(fragment.printed_name, :named)}</b>#{@coder.encode(fragment.content.strip[fragment.printed_name.length+pref_length..fragment.content.strip.length], :named)}</p>"
   end
   
-  def process_para(node, page)
+  def process_para(node)
     column_desc = ""
     member_name = ""
     
@@ -383,7 +383,7 @@ class CommonsDebatesParser < CommonsParser
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
     if @page_fragments_type == "question"
-      process_oral_question(text, page)
+      process_oral_question(text)
     elsif @page_fragments_type == "division"
       process_division(text)
     end
@@ -394,15 +394,15 @@ class CommonsDebatesParser < CommonsParser
     #ignore column heading text
     unless (text =~ COLUMN_HEADER) or text == ""
       #check if this is a new contrib
-      process_member_contribution(member_name, text, page)
+      process_member_contribution(member_name, text)
       
       if @preamble[:title]
-        build_preamble(text, page.url)
+        build_preamble(text, @page.url)
       elsif @page_fragments_type != "division"
         fragment = create_fragment(text)
         
         @page_fragments << fragment
-        @segment_link = "#{page.url}\##{@last_link}" if @segment_link == ""
+        @segment_link = "#{@page.url}\##{@last_link}" if @segment_link == ""
       end
     end
   end
@@ -415,7 +415,7 @@ class CommonsDebatesParser < CommonsParser
     para.url = @preamble[:links][idx]
     para.column = @preamble[:columns][idx]
     
-    para.save(:safe => true)
+    para.save
     para
   end
   
@@ -437,9 +437,9 @@ class CommonsDebatesParser < CommonsParser
     end
     preamble.columns = preamble.paragraphs.map { |x| x.column }.uniq
     
-    preamble.save(:safe => true)
+    preamble.save
     @hansard_component.fragments << preamble
-    @hansard_component.save(:safe => true)
+    @hansard_component.save
     
     @preamble = {:fragments => [], :columns => [], :links => []}
   end
@@ -517,12 +517,12 @@ class CommonsDebatesParser < CommonsParser
     para.column = fragment.column
     para.sequence = @para_seq
     para.fragment = @debate
-    para.save(:safe => true)
+    para.save
     
     @debate.paragraphs << para
   end
   
-  def store_segment(page)
+  def store_segment
     @page_fragments_seq += 1
     segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
     
@@ -541,11 +541,11 @@ class CommonsDebatesParser < CommonsParser
     
     @para_seq = 0
     @hansard_component.fragments << @debate
-    @hansard_component.save(:safe => true)
+    @hansard_component.save
     
-    @daily_part.volume = page.volume
-    @daily_part.part = sanitize_text(page.part.to_s)
-    @daily_part.save(:safe => true)
+    @daily_part.volume = @page.volume
+    @daily_part.part = sanitize_text(@page.part.to_s)
+    @daily_part.save
     
     @debate.component = @hansard_component
     @debate.title = @subject
@@ -557,7 +557,7 @@ class CommonsDebatesParser < CommonsParser
     segment_ident
   end
   
-  def store_debate(page)
+  def save_fragment
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
@@ -566,11 +566,11 @@ class CommonsDebatesParser < CommonsParser
       store_preamble()
     else
       unless @page_fragments.empty?
-        handle_contribution(@member, @member, page)
+        handle_contribution(@member, @member)
         
         #no point storing pointers that don't link back to the source
         if @segment_link
-          segment_id = store_segment(page)
+          segment_id = store_segment
         end
         
         set_columns_and_save()
@@ -586,7 +586,7 @@ class CommonsDebatesParser < CommonsParser
       @debate.bill_stage = @bill[:stage]
       @bill = {}
     end
-    @debate.save(:safe => true)
+    @debate.save
     @start_column = @end_column if @end_column != ""
   end
   
