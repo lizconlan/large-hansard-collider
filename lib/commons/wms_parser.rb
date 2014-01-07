@@ -43,7 +43,6 @@ class WMSParser < CommonsParser
   def process_department_heading(text)
     set_new_heading
     @segment_link = ""
-    
     @department = sanitize_text(text)          
     @segment_link = "#{@page.url}\##{@last_link}"
   end
@@ -54,8 +53,7 @@ class WMSParser < CommonsParser
       @preamble[:columns] << @end_column
       @preamble[:links] << "#{@page.url}\##{@last_link}"
     else
-      parse_new_fragment
-      
+      start_new_section
       @subject = sanitize_text(text)
       @segment_link = "#{@page.url}\##{@last_link}"
     end
@@ -126,7 +124,7 @@ class WMSParser < CommonsParser
     end
   end
   
-  def save_fragment
+  def save_section
     return false unless @preamble[:title] or fragment_has_text
     
     if @preamble[:title]
@@ -145,27 +143,27 @@ class WMSParser < CommonsParser
           column_text = "#{@start_column} to #{@end_column}"
         end
         
-        @fragment = Statement.find_or_create_by(ident: segment_ident)
+        @section = Statement.find_or_create_by(ident: segment_ident)
         @para_seq = 0
-        @hansard_component.fragments << @fragment
+        @hansard_component.sections << @section
         @hansard_component.save
         
         @daily_part.volume = @page.volume
         @daily_part.part = sanitize_text(@page.part.to_s)
         @daily_part.save
         
-        @fragment.component = @hansard_component
+        @section.component = @hansard_component
         
-        @fragment.title = @subject
-        @fragment.department = @department
-        @fragment.url = @segment_link
+        @section.title = @subject
+        @section.department = @department
+        @section.url = @segment_link
         
-        @fragment.sequence = @page_fragments_seq
+        @section.sequence = @page_fragments_seq
         
         @page_fragments.each do |fragment|
-          unless fragment.content == @fragment.title or fragment.content == ""
+          unless fragment.content == @section.title or fragment.content == ""
             @para_seq += 1
-            para_ident = "#{@fragment.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+            para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
             
             case fragment.desc
             when "timestamp"
@@ -178,14 +176,14 @@ class WMSParser < CommonsParser
               elsif fragment.content.strip[0..5] == "<table"
                 para = ContributionTable.find_or_create_by(ident: para_ident)
                 para.member = fragment.speaker
-                para.contribution_ident = "#{@fragment.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
+                para.contribution_ident = "#{@section.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
                 
                 table = Nokogiri::HTML(fragment.content)
                 para.content = table.content
               else
                 para = ContributionPara.find_or_create_by(ident: para_ident)
                 para.member = fragment.speaker
-                para.contribution_ident = "#{@fragment.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
+                para.contribution_ident = "#{@section.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
                 if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
                   para.speaker_printed_name = fragment.printed_name
                 end
@@ -196,16 +194,16 @@ class WMSParser < CommonsParser
             para.url = fragment.link
             para.column = fragment.column
             para.sequence = @para_seq
-            para.fragment = @fragment
+            para.section = @section
             para.save
             
-            @fragment.paragraphs << para
+            @section.paragraphs << para
           end
         end
         
-        @fragment.columns = @fragment.paragraphs.collect{|x| x.column}.uniq
-        @fragment.members = @fragment.paragraphs.collect{|x| x.member}.uniq
-        @fragment.save
+        @section.columns = @section.paragraphs.collect{|x| x.column}.uniq
+        @section.members = @section.paragraphs.collect{|x| x.member}.uniq
+        @section.save
         @start_column = @end_column if @end_column != ""
         
         unless ENV["RACK_ENV"] == "test"

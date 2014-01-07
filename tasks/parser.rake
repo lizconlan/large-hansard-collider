@@ -13,7 +13,7 @@ require './lib/commons/written_answers_parser'
 #persisted models
 require './models/daily_part'
 require './models/component'
-require './models/fragment'
+require './models/section'
 require './models/paragraph'
 
 #non-persisted models

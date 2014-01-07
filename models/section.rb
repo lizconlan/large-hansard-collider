@@ -2,7 +2,7 @@
 
 require 'active_record'
 
-class Fragment < ActiveRecord::Base
+class Section < ActiveRecord::Base
   belongs_to :component
   has_many :paragraphs
   
@@ -26,20 +26,20 @@ class Fragment < ActiveRecord::Base
   end
 end
 
-class Debate < Fragment
+class Debate < Section
 end
 
-class Statement < Fragment
+class Statement < Section
 end
 
-class Question < Fragment
+class Question < Section
 end
 
-class Preamble < Fragment
+class Preamble < Section
 end
 
-class MemberIntroduction < Fragment
+class MemberIntroduction < Section
 end
 
-class Tributes < Fragment
+class Tributes < Section
 end

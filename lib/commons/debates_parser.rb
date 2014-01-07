@@ -78,7 +78,7 @@ class CommonsDebatesParser < CommonsParser
         
         @segment_link = "#{@page.url}\##{@last_link}"
       else
-        parse_new_fragment
+        start_new_section
         @subject = text
         
         if @preamble[:title]
@@ -90,7 +90,7 @@ class CommonsDebatesParser < CommonsParser
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
-      parse_new_fragment
+      start_new_section
       @subject = text
       @segment_link = "#{@page.url}\##{@last_link}"
     else
@@ -102,7 +102,7 @@ class CommonsDebatesParser < CommonsParser
       if text.downcase == "prayers"
         build_preamble(text, @page.url)
       else
-        parse_new_fragment
+        start_new_section
         setup_new_fragment(text)
       end
     end
@@ -296,7 +296,7 @@ class CommonsDebatesParser < CommonsParser
       else
         @subject = "#{@subject} - #{@question_no}"
       end
-      save_fragment
+      save_section
       reset_vars()
     end
     @question_no = qno
@@ -387,7 +387,7 @@ class CommonsDebatesParser < CommonsParser
   
   def store_non_contribution_para(preamble, fragment, idx, para_ident)
     para = NonContributionPara.find_or_create_by(ident: para_ident)
-    para.fragment = preamble
+    para.section = preamble
     para.content = fragment
     para.sequence = @para_seq
     para.url = @preamble[:links][idx]
@@ -416,7 +416,7 @@ class CommonsDebatesParser < CommonsParser
     preamble.columns = preamble.paragraphs.map { |x| x.column }.uniq
     
     preamble.save
-    @hansard_component.fragments << preamble
+    @hansard_component.sections << preamble
     @hansard_component.save
     
     @preamble = {:fragments => [], :columns => [], :links => []}
@@ -494,7 +494,7 @@ class CommonsDebatesParser < CommonsParser
     para.url = fragment.link
     para.column = fragment.column
     para.sequence = @para_seq
-    para.fragment = @debate
+    para.section = @debate
     para.save
     
     @debate.paragraphs << para
@@ -518,7 +518,7 @@ class CommonsDebatesParser < CommonsParser
     end
     
     @para_seq = 0
-    @hansard_component.fragments << @debate
+    @hansard_component.sections << @debate
     @hansard_component.save
     
     @daily_part.volume = @page.volume
@@ -535,7 +535,7 @@ class CommonsDebatesParser < CommonsParser
     segment_ident
   end
   
-  def save_fragment
+  def save_section
     return false unless @preamble[:title] or fragment_has_text
     
     unless @questions.empty?

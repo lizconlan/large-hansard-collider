@@ -3,7 +3,7 @@
 require 'active_record'
 
 class Paragraph < ActiveRecord::Base
-  belongs_to :fragment
+  belongs_to :section
   
   def self.by_member(member_name)
     where(:_type => "ContributionPara", :member => member_name)

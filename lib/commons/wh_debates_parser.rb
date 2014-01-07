@@ -39,7 +39,7 @@ class WHDebatesParser < CommonsParser
   end
   
   def create_new_fragment(text)
-    parse_new_fragment
+    start_new_section
     fragment = PageFragment.new
     fragment.content = sanitize_text(text)
     fragment.column = @end_column
@@ -126,7 +126,7 @@ class WHDebatesParser < CommonsParser
     end
   end
   
-  def save_fragment
+  def save_section
     return false unless @preamble[:title] or fragment_has_text
     
     if @preamble[:title]
@@ -143,7 +143,7 @@ class WHDebatesParser < CommonsParser
         para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
         
         para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.fragment = preamble
+        para.section = preamble
         para.content = fragment
         para.sequence = @para_seq
         para.url = @preamble[:links][i]
@@ -155,7 +155,7 @@ class WHDebatesParser < CommonsParser
       preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
       
       preamble.save
-      @hansard_component.fragments << preamble
+      @hansard_component.sections << preamble
       @hansard_component.save
       
       @preamble = {:fragments => [], :columns => [], :links => []}
@@ -178,7 +178,7 @@ class WHDebatesParser < CommonsParser
         
         @debate = Debate.find_or_create_by(ident: segment_ident)
         @para_seq = 0
-        @hansard_component.fragments << @debate
+        @hansard_component.sections << @debate
         @hansard_component.save
         
         @daily_part.volume = @page.volume
@@ -219,7 +219,7 @@ class WHDebatesParser < CommonsParser
             para.url = fragment.link
             para.column = fragment.column
             para.sequence = @para_seq
-            para.fragment = @debate
+            para.section = @debate
             para.save
             
             @debate.paragraphs << para

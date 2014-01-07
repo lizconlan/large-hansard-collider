@@ -143,7 +143,7 @@ class CommonsParser < Parser
       para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
       
       para = NonContributionPara.find_or_create_by(ident: para_ident)
-      para.fragment = preamble
+      para.section = preamble
       para.content = fragment
       para.sequence = @para_seq
       para.url = @preamble[:links][i]
@@ -155,7 +155,7 @@ class CommonsParser < Parser
     preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
     
     preamble.save
-    @hansard_component.fragments << preamble
+    @hansard_component.sections << preamble
     @hansard_component.save
     
     @preamble = {:fragments => [], :columns => [], :links => []}

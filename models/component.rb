@@ -2,11 +2,9 @@
 
 require 'active_record'
 
-# slightly odd choice of word, but have confirmed that
-# Section was misleading
 class Component < ActiveRecord::Base
   belongs_to :daily_part
-  has_many :fragments
+  has_many :sections
   
   def date
     daily_part.date

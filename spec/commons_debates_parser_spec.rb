@@ -48,7 +48,7 @@ describe CommonsDebatesParser do
       stub_part("Commons", "2099-01-01", "190", "531")
       
       @component = Component.new
-      @component.stubs(:fragments).returns([])
+      @component.stubs(:sections).returns([])
       Component.stubs(:find_or_create_by).returns(@component)
       
       CommonsDebatesParser.any_instance.stubs(:house=)
@@ -70,19 +70,19 @@ describe CommonsDebatesParser do
       paragraph.stubs(:member).returns("test")
       
       nc = NonContributionPara.new
-      nc.stubs(:fragment=)
+      nc.stubs(:section=)
       NonContributionPara.stubs(:find_or_create_by).returns(nc)
       
       cp = ContributionPara.new
-      cp.stubs(:fragment=)
+      cp.stubs(:section=)
       ContributionPara.stubs(:find_or_create_by).returns(cp)
       
       div = Division.new
-      div.stubs(:fragment=)
+      div.stubs(:section=)
       Division.stubs(:find_or_create_by).returns(div)
       
       ts = Timestamp.new
-      ts.stubs(:fragment=)
+      ts.stubs(:section=)
       Timestamp.stubs(:find_or_create_by).returns(ts)
       
       debate = Debate.new
@@ -102,7 +102,7 @@ describe CommonsDebatesParser do
       stub_part("Commons", "2099-01-01", nil, "531")
       
       @component = Component.new
-      @component.stubs(:fragments).returns([])
+      @component.stubs(:sections).returns([])
       Component.stubs(:find_or_create_by).returns(@component)
       
       @parser = CommonsDebatesParser.new("2099-01-01")
@@ -120,7 +120,7 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).returns(ncpara)
-      ncpara.expects(:fragment=).with(preamble)
+      ncpara.expects(:section=).with(preamble)
       ncpara.expects(:content=).with("[30th Allotted Day]")
       ncpara.expects(:sequence=).with(1)
       ncpara.expects(:url=).with("#{@url}\#11071988000020")
@@ -134,7 +134,7 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).returns(ncpara)
-      NonContributionPara.any_instance.stubs(:fragment=)
+      NonContributionPara.any_instance.stubs(:section=)
       NonContributionPara.any_instance.stubs(:content=)
       NonContributionPara.any_instance.stubs(:sequence=)
       NonContributionPara.any_instance.stubs(:url=)
@@ -297,7 +297,7 @@ describe CommonsDebatesParser do
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000001").returns(ncpara)
       ncpara.expects(:content=).with("The Secretary of State was asked - ")
-      ncpara.expects(:fragment=).with(question)
+      ncpara.expects(:section=).with(question)
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000002").returns(contribution)
@@ -410,7 +410,7 @@ describe CommonsDebatesParser do
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000001").returns(ncpara)
       ncpara.expects(:content=).with("The Secretary of State was asked - ")
-      ncpara.expects(:fragment=).with(question)
+      ncpara.expects(:section=).with(question)
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000002").returns(contribution)

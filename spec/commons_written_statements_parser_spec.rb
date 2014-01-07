@@ -57,7 +57,7 @@ describe WrittenAnswersParser do
         
         ncpara = NonContributionPara.new
         NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000001_p000002").returns(ncpara)
-        ncpara.expects(:fragment=).with(preamble)
+        ncpara.expects(:section=).with(preamble)
         ncpara.expects(:content=).with("Tuesday 19 July 2011")
         ncpara.expects(:sequence=).with(2)
         ncpara.expects(:url=).with("#{@url}\#110719112000009")
@@ -70,7 +70,7 @@ describe WrittenAnswersParser do
         question = Question.new(:ident => "question")
         
         ContributionPara.expects(:find_or_create_by).at_least_once.returns(contribution)
-        contribution.expects(:fragment=).at_least_once
+        contribution.expects(:section=).at_least_once
         contribution.expects(:content=).at_least_once
         contribution.expects(:url=).at_least_once
         contribution.expects(:sequence=).at_least_once
@@ -107,7 +107,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002_p000001").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with('Mr Leigh: To ask the hon. Member for Caithness, Sutherland and Easter Ross, representing the House of Commons Commission when the House of Commons Commission will respond to the First Report of the Administration Committee, Session 2010-12, on Catering and Retail Services in the House of Commons, HC 560; and if he will make a statement. [67391]')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(1)
@@ -117,7 +117,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002_p000002").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with("John Thurso: The Commission welcomes the Administration Committee's report on Catering and Retail Services in the House of Commons and is grateful to the Committee for its work. The Commission agrees with most of the recommendations, including all those which the Management Board has recommended be accepted. It has asked that the remainder be discussed with the Committee by officials of the House Service, after which the Commission will consider them again. That is expected to be in September.")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(2)
@@ -130,7 +130,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000003_p000001").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with('Priti Patel: To ask the hon. Member for Caithness, Sutherland and Easter Ross, representing the House of Commons Commission pursuant to the answer of 1 December 2010, Official Report, column 824W, on smartphone applications, what recent progress has been made in the development of smartphone applications for Parliament. [67110]')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(1)
@@ -140,7 +140,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000003_p000002").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with("John Thurso: The development of a smartphone application, designed primarily for those visiting Parliament, has been halted. The quotes received from the procurement exercise were too expensive and it has been decided not to continue at this stage. Further work will be undertaken in due course to explore a more cost-effective method of providing visitor information via smartphones.")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(2)
@@ -153,7 +153,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000004_p000001").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with('Mr Bain: To ask the Secretary of State for the Home Department how many places in Scotland were designated as a (a) supplying establishment, (b) breeding establishment and (c) scientific procedure establishment under the Animals (Scientific Procedures) Act 1986 at the end of 2010. [67046]')
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(1)
@@ -163,7 +163,7 @@ describe WrittenAnswersParser do
         
         contribution = ContributionPara.new
         ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000004_p000002").returns(contribution)
-        contribution.expects(:fragment=).with(question)
+        contribution.expects(:section=).with(question)
         contribution.expects(:content=).with("Lynne Featherstone: As at 31 December 2010, there were 32 establishments in Scotland designated as scientific procedure establishments under the Animals (Scientific Procedures) Act 1986. Of these, 13 were also designated as breeding establishments and 19 as supplying establishments.")
         contribution.expects(:url=)
         contribution.expects(:sequence=).with(2)

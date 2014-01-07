@@ -50,7 +50,7 @@ describe LordsDebatesParser do
   #     stub_part("Lords", "2099-01-01", "94", "723")
   #     
   #     @component = Component.new
-  #     @component.stubs(:fragments).returns([])
+  #     @component.stubs(:sections).returns([])
   #     Component.stubs(:find_or_create_by).returns(@component)
   #     
   #     @parser = LordsDebatesParser.new("2099-01-01")
@@ -64,7 +64,7 @@ describe LordsDebatesParser do
       stub_part("Lords", "2099-01-01", "94", "723")
       
       @component = Component.new
-      @component.stubs(:fragments).returns([])
+      @component.stubs(:sections).returns([])
       @component.stubs(:find_or_create_by).returns(@component)
       @component.stubs(:ident).returns("2099-01-01_hansard_l_d")
       
@@ -90,12 +90,12 @@ describe LordsDebatesParser do
       ncpara1.expects(:content=).with("Tuesday, 11 January 2011.")
       ncpara1.expects(:column=).with("1285")
       ncpara1.expects(:column).at_least_once.returns("1285")
-      ncpara1.expects(:fragment=).with(preamble)
+      ncpara1.expects(:section=).with(preamble)
       
       ncpara2 = NonContributionPara.new(:ident => "2099-01-01_hansard_l_d_000001_p000002")
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_l_d_000001_p000002").returns(ncpara2)
       ncpara2.expects(:content=).with("Prayers-read by the Lord Bishop of Gloucester.")
-      ncpara2.expects(:fragment=).with(preamble)
+      ncpara2.expects(:section=).with(preamble)
       ncpara2.expects(:column=).with("1285")
       preamble.expects(:paragraphs).at_least_once.returns([ncpara1, ncpara2])
       
@@ -108,12 +108,12 @@ describe LordsDebatesParser do
       Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_l_d_000002_p000001").returns(timestamp)
       timestamp.expects(:content=).with("2.22 pm")
       timestamp.expects(:column=).at_least_once.with("1285")
-      timestamp.expects(:fragment=).with(member_intro)
+      timestamp.expects(:section=).with(member_intro)
       
       ncpara = NonContributionPara.new(:ident => '2099-01-01_hansard_l_d_000002_p000002')
  NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_l_d_000002_p000002').returns(ncpara)
       ncpara.expects(:content=).with("Nicholas Edward True, Esquire, CBE, having been created Baron True, of East Sheen in the County of Surrey, was introduced and took the oath, supported by Lord Strathclyde and Lord Howard of Rising, and signed an undertaking to abide by the Code of Conduct.")
-      ncpara.expects(:fragment=).with(member_intro)
+      ncpara.expects(:section=).with(member_intro)
       member_intro.expects(:paragraphs).at_least_once.returns([ncpara])
       
       member_intro = MemberIntroduction.new(:ident => "2099-01-01_hansard_l_d_000003")
@@ -124,11 +124,11 @@ describe LordsDebatesParser do
       timestamp = Timestamp.new(:ident => "2099-01-01_hansard_l_d_000003_p000001")
       Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_l_d_000003_p000001").returns(timestamp)
       timestamp.expects(:content=).with("2.27 pm")
-      timestamp.expects(:fragment=).with(member_intro)
+      timestamp.expects(:section=).with(member_intro)
       
       ncpara = NonContributionPara.new(:ident => "2099-01-01_hansard_l_d_000003_p000002")
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_l_d_000003_p000002").returns(ncpara)
-      ncpara.expects(:fragment=).with(member_intro)
+      ncpara.expects(:section=).with(member_intro)
       ncpara.expects(:content=).with("Judith Anne Jolly, having been created Baroness Jolly, of Congdon's Shop in the County of Cornwall, was introduced and took the oath, supported by Lord Tyler and Lord Teverson, and signed an undertaking to abide by the Code of Conduct.")
       member_intro.expects(:paragraphs).at_least_once.returns([ncpara])
       
@@ -140,7 +140,7 @@ describe LordsDebatesParser do
     #   
     #   ncpara = NonContributionPara.new
     #   NonContributionPara.expects(:find_or_create_by).returns(ncpara)
-    #   NonContributionPara.any_instance.stubs(:fragment=)
+    #   NonContributionPara.any_instance.stubs(:section=)
     #   NonContributionPara.any_instance.stubs(:content=)
     #   NonContributionPara.any_instance.stubs(:sequence=)
     #   NonContributionPara.any_instance.stubs(:url=)
@@ -303,7 +303,7 @@ describe LordsDebatesParser do
   #     ncpara = NonContributionPara.new
   #     NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000001").returns(ncpara)
   #     ncpara.expects(:content=).with("The Secretary of State was asked - ")
-  #     ncpara.expects(:fragment=).with(question)
+  #     ncpara.expects(:section=).with(question)
   #     
   #     contribution = ContributionPara.new
   #     ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000002").returns(contribution)
@@ -412,7 +412,7 @@ describe LordsDebatesParser do
   #     ncpara = NonContributionPara.new
   #     NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000001").returns(ncpara)
   #     ncpara.expects(:content=).with("The Secretary of State was asked - ")
-  #     ncpara.expects(:fragment=).with(question)
+  #     ncpara.expects(:section=).with(question)
   #     
   #     contribution = ContributionPara.new
   #     ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003_p000002").returns(contribution)

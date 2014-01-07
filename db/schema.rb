@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20131221230720) do
+ActiveRecord::Schema.define(version: 20140107141908) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,28 +35,8 @@ ActiveRecord::Schema.define(version: 20131221230720) do
 
   add_index "daily_parts", ["ident"], name: "index_daily_parts_on_ident", using: :btree
 
-  create_table "fragments", force: true do |t|
-    t.integer "component_id"
-    t.string  "ident"
-    t.string  "title"
-    t.string  "url"
-    t.integer "sequence"
-    t.string  "members",       array: true
-    t.string  "columns",       array: true
-    t.string  "chair"
-    t.string  "department"
-    t.string  "subject"
-    t.string  "number"
-    t.string  "asked_by"
-    t.string  "question_type"
-    t.string  "bill_title"
-    t.string  "bill_stage"
-  end
-
-  add_index "fragments", ["ident"], name: "index_fragments_on_ident", using: :btree
-
   create_table "paragraphs", force: true do |t|
-    t.integer "fragment_id"
+    t.integer "section_id"
     t.string  "ident"
     t.string  "url"
     t.string  "column"
@@ -75,5 +55,25 @@ ActiveRecord::Schema.define(version: 20131221230720) do
   end
 
   add_index "paragraphs", ["ident"], name: "index_paragraphs_on_ident", using: :btree
+
+  create_table "sections", force: true do |t|
+    t.integer "component_id"
+    t.string  "ident"
+    t.string  "title"
+    t.string  "url"
+    t.integer "sequence"
+    t.string  "members",       array: true
+    t.string  "columns",       array: true
+    t.string  "chair"
+    t.string  "department"
+    t.string  "subject"
+    t.string  "number"
+    t.string  "asked_by"
+    t.string  "question_type"
+    t.string  "bill_title"
+    t.string  "bill_stage"
+  end
+
+  add_index "sections", ["ident"], name: "index_sections_on_ident", using: :btree
 
 end

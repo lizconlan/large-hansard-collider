@@ -8,7 +8,7 @@ require './models/hansard_member'
 
 require './models/daily_part'
 require './models/component'
-require './models/fragment'
+require './models/section'
 require './models/paragraph'
 
 require 'state_machine'
@@ -17,9 +17,9 @@ class Parser
   attr_reader :date, :doc_id, :house, :state
   
   state_machine :state, :initial => :idle do
-    before_transition [:starting, :parsing_fragment] => :parsing_fragment, :do => :save_fragment
-    before_transition all - [:idle, :finished] => :setting_heading, :do => :save_fragment
-    before_transition all - :idle => :finished, :do => :save_fragment
+    before_transition [:starting, :parsing_section] => :parsing_section, :do => :save_section
+    before_transition all - [:idle, :finished] => :setting_heading, :do => :save_section
+    before_transition all - :idle => :finished, :do => :save_section
     
     event :start do
       transition :idle => :starting
@@ -29,8 +29,8 @@ class Parser
       transition all - [:idle, :finished] => :setting_heading
     end
     
-    event :parse_new_fragment do
-      transition all - [:idle, :finished] => :parsing_fragment
+    event :start_new_section do
+      transition all - [:idle, :finished] => :parsing_section
     end
     
     event :finish do
@@ -39,7 +39,7 @@ class Parser
     
     state :starting
     state :setting_heading
-    state :parsing_fragment
+    state :parsing_section
     state :finished
   end
   
@@ -54,7 +54,6 @@ class Parser
     @hansard_component = nil
     @page_fragments = nil
     @page = nil
-    @current_speaker = ""
     @start_url = ""
     super()
   end
