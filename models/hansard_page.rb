@@ -38,6 +38,31 @@ class HansardPage
     content
   end
   
+  def self.component_link_xpath(house)
+    if house.downcase == "commons"
+      "//ul[@class='publications']/li/a"
+    else
+      "//ul[@class='event-list']/li/h3/a"
+    end
+  end
+  
+  def self.get_starting_link(doc, house, start_url)
+    if house.downcase == "commons"
+      rel_link = doc.xpath("string(//div[@id='content-small']/p[3]/a/@href)")
+      if rel_link.empty?
+        rel_link = doc.xpath("string(//div[@id='content-small']/table/tr/td[1]/p[3]/a[1]/@href)")
+      end
+      if rel_link.empty?
+        rel_link = doc.xpath("string(//div[@id='maincontent1']/div/a[1]/@href)")
+      end
+      "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
+    else
+      anchor_name = start_url.split("#").last
+      anchor_test = anchor_name.empty? ? "" : "='#{anchor_name}'"
+      doc.xpath("string(//a[@name#{anchor_test}][1]/following-sibling::*[1]/a[@href][1]/@href)")
+    end
+  end
+  
   private
     def scrape_metadata
       subject = doc.xpath("//meta[@name='Subject']").attr("content").value.to_s
