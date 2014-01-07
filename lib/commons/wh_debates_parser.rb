@@ -15,7 +15,7 @@ class WHDebatesParser < CommonsParser
   
   def reset_vars
     @page_fragments = []
-    @segment_link = ""
+    @section_link = ""
   end
   
   
@@ -45,7 +45,7 @@ class WHDebatesParser < CommonsParser
     fragment.column = @end_column
     @page_fragments << fragment
     @subject = sanitize_text(text)
-    @segment_link = "#{@page.url}\##{@last_link}"
+    @section_link = "#{@page.url}\##{@last_link}"
   end
   
   def process_subheading(text)
@@ -162,9 +162,9 @@ class WHDebatesParser < CommonsParser
     else
       handle_contribution(@member, @member)
       
-      if @segment_link #no point storing pointers that don't link back to the source
+      unless @section_link.empty? #no point storing pointers that don't link back to the source
         @page_fragments_seq += 1
-        segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+        section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
         
         names = []
         @members.each { |x, y| names << y.index_name unless names.include?(y.index_name) }
@@ -176,7 +176,7 @@ class WHDebatesParser < CommonsParser
           column_text = "#{@start_column} to #{@end_column}"
         end
         
-        @debate = Debate.find_or_create_by(ident: segment_ident)
+        @debate = Debate.find_or_create_by(ident: section_ident)
         @para_seq = 0
         @hansard_component.sections << @debate
         @hansard_component.save
@@ -190,7 +190,7 @@ class WHDebatesParser < CommonsParser
         
         @debate.title = @subject
         @debate.chair = @chair
-        @debate.url = @segment_link
+        @debate.url = @section_link
         
         @debate.sequence = @page_fragments_seq
         
@@ -232,8 +232,8 @@ class WHDebatesParser < CommonsParser
         
         unless ENV["RACK_ENV"] == "test"
           p @subject
-          p segment_ident
-          p @segment_link
+          p section_ident
+          p @section_link
           p ""
         end
       end

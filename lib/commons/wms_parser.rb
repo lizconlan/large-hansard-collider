@@ -17,7 +17,7 @@ class WMSParser < CommonsParser
     @page_fragments = []
     @members = {}
     @component_members = {}
-    @segment_link = ""
+    @section_link = ""
   end
   
   
@@ -42,9 +42,9 @@ class WMSParser < CommonsParser
   
   def process_department_heading(text)
     set_new_heading
-    @segment_link = ""
-    @department = sanitize_text(text)          
-    @segment_link = "#{@page.url}\##{@last_link}"
+    @section_link = ""
+    @department = sanitize_text(text)
+    @section_link = "#{@page.url}\##{@last_link}"
   end
   
   def process_statement_heading(text)
@@ -55,7 +55,7 @@ class WMSParser < CommonsParser
     else
       start_new_section
       @subject = sanitize_text(text)
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
     end
   end
   
@@ -132,9 +132,9 @@ class WMSParser < CommonsParser
     else
       handle_contribution(@member, @member)
       
-      if @segment_link #no point storing pointers that don't link back to the source
+      if @section_link #no point storing pointers that don't link back to the source
         @page_fragments_seq += 1
-        segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+        section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
         
         column_text = ""
         if @start_column == @end_column or @end_column == ""
@@ -143,7 +143,7 @@ class WMSParser < CommonsParser
           column_text = "#{@start_column} to #{@end_column}"
         end
         
-        @section = Statement.find_or_create_by(ident: segment_ident)
+        @section = Statement.find_or_create_by(ident: section_ident)
         @para_seq = 0
         @hansard_component.sections << @section
         @hansard_component.save
@@ -156,7 +156,7 @@ class WMSParser < CommonsParser
         
         @section.title = @subject
         @section.department = @department
-        @section.url = @segment_link
+        @section.url = @section_link
         
         @section.sequence = @page_fragments_seq
         
@@ -208,8 +208,8 @@ class WMSParser < CommonsParser
         
         unless ENV["RACK_ENV"] == "test"
           p @subject
-          p segment_ident
-          p @segment_link
+          p section_ident
+          p @section_link
           p ""
         end
       end

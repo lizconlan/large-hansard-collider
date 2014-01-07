@@ -39,7 +39,7 @@ class CommonsParser < Parser
       if seq
         @contribution_seq += 1
       else
-        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
       end
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
@@ -50,7 +50,7 @@ class CommonsParser < Parser
       if seq
         @contribution_seq += 1
       else
-        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
       end
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
       #an MP speaking for the first time in the debate
@@ -62,7 +62,7 @@ class CommonsParser < Parser
       if seq
         @contribution_seq += 1
       else
-        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
       end
     when /^(([^\(]*):)/
       #an MP who's spoken before
@@ -72,7 +72,7 @@ class CommonsParser < Parser
       if seq
         @contribution_seq += 1
       else
-        @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
       end
     else
       if italic_text
@@ -85,7 +85,7 @@ class CommonsParser < Parser
         if @member
           unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
               text == "#{@member.search_name} rose\342\200\224"
-            @contribution.segments << sanitize_text(text)
+            @contribution.fragments << sanitize_text(text)
           end
         end
       end

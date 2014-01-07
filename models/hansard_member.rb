@@ -45,12 +45,12 @@ end
 
 class HansardContribution
   attr_reader :link, :start_column
-  attr_accessor :end_column, :segments
+  attr_accessor :end_column, :fragments
   
   def initialize(link, start_column)
     @link = link
     @start_column = start_column
     @end_column = ""
-    @segments = []
+    @fragments = []
   end
 end

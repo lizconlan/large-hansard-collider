@@ -11,6 +11,7 @@ class LordsParser < Parser
     super(date, "Lords")
   end
   
+  
   private
   
   def process_links_and_columns(node)

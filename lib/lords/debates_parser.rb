@@ -30,7 +30,7 @@ class LordsDebatesParser < LordsParser
     @page_fragments = []
     @questions = []
     @petitions = []
-    @segment_link = ""
+    @section_link = ""
     @component_members = {}
   end
   
@@ -94,7 +94,7 @@ class LordsDebatesParser < LordsParser
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
         set_new_heading
-        @segment_link = "#{@page.url}\##{@last_link}"
+        @section_link = "#{@page.url}\##{@last_link}"
       else
         @subject = text
         if @preamble[:title]
@@ -102,7 +102,7 @@ class LordsDebatesParser < LordsParser
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
-          @segment_link = "#{@page.url}\##{@last_link}"
+          @section_link = "#{@page.url}\##{@last_link}"
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
@@ -110,7 +110,7 @@ class LordsDebatesParser < LordsParser
         start_new_section
       end
       @subject = text
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
     else
       @subcomponent = ""
       if text.downcase == "prayers"
@@ -138,7 +138,7 @@ class LordsDebatesParser < LordsParser
         unless @subcomponent == "Oral Answer"
           @subject = sanitize_text(text)
         end
-        @segment_link = "#{@page.url}\##{@last_link}"
+        @section_link = "#{@page.url}\##{@last_link}"
       end
     end
   end
@@ -175,7 +175,7 @@ class LordsDebatesParser < LordsParser
     end
     unless text.downcase == "petition"
       @subject = text
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
     end
   end
   
@@ -310,7 +310,7 @@ class LordsDebatesParser < LordsParser
       reset_vars()
     end
     @question_no = qno
-    @segment_link = "#{@page.url}\##{@last_link}"
+    @section_link = "#{@page.url}\##{@last_link}"
     @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
   end
   
@@ -322,14 +322,14 @@ class LordsDebatesParser < LordsParser
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
       handle_contribution(@member, member)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
       handle_contribution(@member, member)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\))/
       #an MP speaking for the first time in the debate
       name = $2
@@ -337,18 +337,18 @@ class LordsDebatesParser < LordsParser
       party = $4
       member = HansardMember.new(name, "", constituency, party)
       handle_contribution(@member, member)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*):)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
       handle_contribution(@member, member)
-      @contribution.segments << sanitize_text(text.gsub($1, "")).strip
+      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     else
       if @member
         unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
             text == "#{@member.search_name} rose\342\200\224"
-          @contribution.segments << sanitize_text(text)
+          @contribution.fragments << sanitize_text(text)
         end
       end
     end
@@ -434,7 +434,7 @@ class LordsDebatesParser < LordsParser
         fragment = create_fragment(text)
         
         @page_fragments << fragment
-        @segment_link = "#{@page.url}\##{@last_link}" if @segment_link == ""
+        @section_link = "#{@page.url}\##{@last_link}" if @section_link == ""
       end
     end
   end
@@ -555,9 +555,9 @@ class LordsDebatesParser < LordsParser
     @debate.paragraphs << para
   end
   
-  def store_segment
+  def store_current_section
     @page_fragments_seq += 1
-    segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
     
     column_text = ""
     if @start_column == @end_column or @end_column == ""
@@ -567,12 +567,12 @@ class LordsDebatesParser < LordsParser
     end
     
     if @subcomponent == "Oral Answer"
-      create_question(segment_id)
+      create_question(section_id)
     elsif @subcomponent == "Member Introduction"
-      @debate = MemberIntroduction.find_or_create_by(ident: segment_ident)
+      @debate = MemberIntroduction.find_or_create_by(ident: section_ident)
       @debate.members = [@subject.gsub("Introduction: ", "")]
     else
-      @debate = Debate.find_or_create_by(ident: segment_ident)
+      @debate = Debate.find_or_create_by(ident: section_ident)
     end
     
     @para_seq = 0
@@ -585,12 +585,12 @@ class LordsDebatesParser < LordsParser
     
     @debate.component = @hansard_component
     @debate.title = @subject
-    @debate.url = @segment_link
+    @debate.url = @section_link
     
     @debate.sequence = @page_fragments_seq
     
     store_fragments()
-    segment_ident
+    section_ident
   end
   
   def save_section
@@ -606,12 +606,12 @@ class LordsDebatesParser < LordsParser
         handle_contribution(@member, @member)
         
         #no point storing pointers that don't link back to the source
-        if @segment_link
-          segment_ident = store_segment
+        unless @section_link.empty?
+          section_ident = store_current_section
         end
         
         set_columns_and_save()
-        print_debug(segment_ident)
+        print_debug(section_ident)
       end
     end
     reset_vars
@@ -623,11 +623,11 @@ class LordsDebatesParser < LordsParser
     @start_column = @end_column if @end_column != ""
   end
   
-  def print_debug(segment_ident)
+  def print_debug(section_ident)
     unless ENV["RACK_ENV"] == "test"
       p @subject
-      p segment_ident
-      p @segment_link
+      p section_ident
+      p @section_link
       p ""
     end
   end

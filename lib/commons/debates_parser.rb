@@ -32,7 +32,7 @@ class CommonsDebatesParser < CommonsParser
     @page_fragments = []
     @questions = []
     @petitions = []
-    @segment_link = ""
+    @section_link = ""
     @component_members = {}
   end
   
@@ -76,7 +76,7 @@ class CommonsDebatesParser < CommonsParser
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
         set_new_heading
         
-        @segment_link = "#{@page.url}\##{@last_link}"
+        @section_link = "#{@page.url}\##{@last_link}"
       else
         start_new_section
         @subject = text
@@ -86,13 +86,13 @@ class CommonsDebatesParser < CommonsParser
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
-          @segment_link = "#{@page.url}\##{@last_link}"
+          @section_link = "#{@page.url}\##{@last_link}"
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
       start_new_section
       @subject = text
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
     else
       if text =~ /.? Bill(?: |$)/
         @bill[:title] = text.gsub(" [Lords]", "")
@@ -126,7 +126,7 @@ class CommonsDebatesParser < CommonsParser
         unless @subcomponent == "Oral Answer"
           @subject = sanitize_text(text)
         end
-        @segment_link = "#{@page.url}\##{@last_link}"
+        @section_link = "#{@page.url}\##{@last_link}"
       end
     end
   end
@@ -161,7 +161,7 @@ class CommonsDebatesParser < CommonsParser
     end
     unless text.downcase == "petition"
       @subject = text
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
     end
   end
   
@@ -300,7 +300,7 @@ class CommonsDebatesParser < CommonsParser
       reset_vars()
     end
     @question_no = qno
-    @segment_link = "#{@page.url}\##{@last_link}"
+    @section_link = "#{@page.url}\##{@last_link}"
     @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
   end
   
@@ -380,7 +380,7 @@ class CommonsDebatesParser < CommonsParser
         fragment = create_fragment(text)
         
         @page_fragments << fragment
-        @segment_link = "#{@page.url}\##{@last_link}" if @segment_link == ""
+        @section_link = "#{@page.url}\##{@last_link}" if @section_link == ""
       end
     end
   end
@@ -500,9 +500,9 @@ class CommonsDebatesParser < CommonsParser
     @debate.paragraphs << para
   end
   
-  def store_segment
+  def store_current_section
     @page_fragments_seq += 1
-    segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
     
     column_text = ""
     if @start_column == @end_column or @end_column == ""
@@ -512,9 +512,9 @@ class CommonsDebatesParser < CommonsParser
     end
     
     if @subcomponent == "Oral Answer"
-      create_question(segment_ident)
+      create_question(section_ident)
     else
-      @debate = Debate.find_or_create_by(ident: segment_ident)
+      @debate = Debate.find_or_create_by(ident: section_ident)
     end
     
     @para_seq = 0
@@ -527,12 +527,12 @@ class CommonsDebatesParser < CommonsParser
     
     @debate.component = @hansard_component
     @debate.title = @subject
-    @debate.url = @segment_link
+    @debate.url = @section_link
     
     @debate.sequence = @page_fragments_seq
     
     store_fragments()
-    segment_ident
+    section_ident
   end
   
   def save_section
@@ -549,12 +549,12 @@ class CommonsDebatesParser < CommonsParser
         handle_contribution(@member, @member)
         
         #no point storing pointers that don't link back to the source
-        if @segment_link
-          segment_id = store_segment
+        unless @section_link.empty?
+          section_ident = store_current_section
         end
         
         set_columns_and_save()
-        print_debug(segment_id)
+        print_debug(section_ident)
       end
     end
     reset_vars
@@ -571,11 +571,11 @@ class CommonsDebatesParser < CommonsParser
     @start_column = @end_column if @end_column != ""
   end
   
-  def print_debug(segment_id)
+  def print_debug(section_ident)
     unless ENV["RACK_ENV"] == "test"
       p @subject
-      p segment_id
-      p @segment_link
+      p section_ident
+      p @section_link
       p ""
     end
   end

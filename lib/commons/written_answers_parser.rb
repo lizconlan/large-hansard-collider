@@ -17,7 +17,7 @@ class WrittenAnswersParser < CommonsParser
     @page_fragments = []
     @questions = []
     @members = {}
-    @segment_link = ""
+    @section_link = ""
   end
   
   
@@ -48,7 +48,7 @@ class WrittenAnswersParser < CommonsParser
     else
       @subject = sanitize_text(text)
     end
-    @segment_link = "#{@page.url}\##{@last_link}"
+    @section_link = "#{@page.url}\##{@last_link}"
   end
   
   def process_subheading(text)
@@ -60,7 +60,7 @@ class WrittenAnswersParser < CommonsParser
       start_new_section
       
       @subject = sanitize_text(text)
-      @segment_link = "#{@page.url}\##{@last_link}"
+      @section_link = "#{@page.url}\##{@last_link}"
       
       fragment = PageFragment.new
       fragment.content = sanitize_text(text)
@@ -147,9 +147,9 @@ class WrittenAnswersParser < CommonsParser
     else
       handle_contribution(@member, @member)
       
-      if @segment_link #no point storing pointers that don't link back to the source
+      if @section_link #no point storing pointers that don't link back to the source
         @page_fragments_seq += 1
-        segment_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+        section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
         
         column_text = ""
         if @start_column == @end_column or @end_column == ""
@@ -158,7 +158,7 @@ class WrittenAnswersParser < CommonsParser
           column_text = "#{@start_column} to #{@end_column}"
         end
         
-        @section = Question.find_or_create_by(ident: segment_ident)
+        @section = Question.find_or_create_by(ident: section_ident)
         @section.question_type = "for written answer"
         @para_seq = 0
         @hansard_component.sections << @section
@@ -172,7 +172,7 @@ class WrittenAnswersParser < CommonsParser
         
         @section.title = @subject
         @section.department = @department
-        @section.url = @segment_link
+        @section.url = @section_link
         @section.number = @questions.last
         
         @section.sequence = @page_fragments_seq
@@ -227,8 +227,8 @@ class WrittenAnswersParser < CommonsParser
         
         unless ENV["RACK_ENV"] == "test"
           p @subject
-          p segment_ident
-          p @segment_link
+          p section_ident
+          p @section_link
           p ""
         end
       end

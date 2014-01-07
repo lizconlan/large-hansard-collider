@@ -41,5 +41,5 @@ end
 class MemberIntroduction < Section
 end
 
-class Tributes < Section
+class Tribute < Section
 end
