@@ -30,13 +30,14 @@ describe WHDebatesParser do
   
   def stub_page(file)
     html = File.read(file)
-    @page = mock("HansardPage")
-    HansardPage.stubs(:new).returns(@page)
-    @page.expects(:next_url).returns(nil)
-    @page.expects(:doc).returns(Nokogiri::HTML(html))
-    @page.expects(:url).at_least_once.returns(@url)
-    @page.stubs(:volume).returns("531")
-    @page.stubs(:part).returns("190")
+    HansardPage.any_instance.stubs(:scrape_metadata)
+    HansardPage.any_instance.stubs(:volume).returns("531")
+    HansardPage.any_instance.stubs(:part).returns("190")
+    HansardPage.any_instance.stubs(:next_url).returns(nil)
+    mock_response = mock("response")
+    mock_response.expects(:body).at_least_once.returns(html)
+    RestClient.expects(:get).at_least_once.returns(mock_response)
+    @page = HansardPage.new(@url)
   end
   
   context "in general" do

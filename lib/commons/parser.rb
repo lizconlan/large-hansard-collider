@@ -161,6 +161,9 @@ class CommonsParser < Parser
     @preamble = {:fragments => [], :columns => [], :links => []}
   end
   
+  def save_section
+  end
+  
   def get_sequence(component_name)
     sequence = nil
     case component_name

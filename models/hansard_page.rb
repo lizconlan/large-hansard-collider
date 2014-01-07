@@ -28,12 +28,22 @@ class HansardPage
     scrape_metadata()
   end
   
+  def get_content
+    content = doc.xpath("//div[@id='content-small']")
+    if content.empty?
+      content = doc.xpath("//div[@id='maincontent1']")
+    elsif content.children.size < 10
+      content = doc.xpath("//div[@id='content-small']/table/tr/td[1]")
+    end
+    content
+  end
+  
   private
     def scrape_metadata
       subject = doc.xpath("//meta[@name='Subject']").attr("content").value.to_s
       column_range = doc.xpath("//meta[@name='Columns']").attr("content").value.to_s
       cols = column_range.gsub("Columns: ", "").split(" to ")
-
+      
       @start_column = cols[0]
       @end_column = cols[1]
       @volume = subject[subject.index("Volume:")+8..subject.rindex(",")-1]

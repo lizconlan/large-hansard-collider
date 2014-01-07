@@ -20,13 +20,14 @@ describe LordsDebatesParser do
   
   def stub_page(file)
     html = File.read(file)
-    @page = mock("HansardPage")
-    HansardPage.stubs(:new).returns(@page)
-    @page.expects(:next_url).returns(nil)
-    @page.expects(:doc).at_least_once.returns(Nokogiri::HTML(html))
-    @page.expects(:url).at_least_once.returns(@url)
-    @page.stubs(:volume).returns("723")
-    @page.stubs(:part).returns("94")
+    HansardPage.any_instance.stubs(:scrape_metadata)
+    HansardPage.any_instance.stubs(:volume).returns("723")
+    HansardPage.any_instance.stubs(:part).returns("94")
+    HansardPage.any_instance.stubs(:next_url).returns(nil)
+    mock_response = mock("response")
+    mock_response.expects(:body).at_least_once.returns(html)
+    RestClient.expects(:get).at_least_once.returns(mock_response)
+    @page = HansardPage.new(@url)
   end
   
   def stub_part(house, date, part, volume)

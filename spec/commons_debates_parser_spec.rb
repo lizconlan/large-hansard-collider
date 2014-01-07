@@ -18,13 +18,14 @@ describe CommonsDebatesParser do
   
   def stub_page(file)
     html = File.read(file)
-    @page = mock("HansardPage")
-    HansardPage.stubs(:new).returns(@page)
-    @page.expects(:next_url).returns(nil)
-    @page.expects(:doc).returns(Nokogiri::HTML(html))
-    @page.expects(:url).at_least_once.returns(@url)
-    @page.stubs(:volume).returns("531")
-    @page.stubs(:part).returns("190")
+    HansardPage.any_instance.stubs(:scrape_metadata)
+    HansardPage.any_instance.stubs(:volume).returns("531")
+    HansardPage.any_instance.stubs(:part).returns("190")
+    HansardPage.any_instance.stubs(:next_url).returns(nil)
+    mock_response = mock("response")
+    mock_response.expects(:body).at_least_once.returns(html)
+    RestClient.expects(:get).at_least_once.returns(mock_response)
+    @page = HansardPage.new(@url)
   end
   
   def stub_part(house, date, part, volume)
@@ -59,7 +60,6 @@ describe CommonsDebatesParser do
     
     it "should pick out the timestamps" do
       stub_page("spec/data/commons/backbench_business_excerpt.html")
-      @page.expects(:part).at_least_once.returns('190')
       
       preamble = Preamble.new
       preamble.stubs(:paragraphs).returns([])

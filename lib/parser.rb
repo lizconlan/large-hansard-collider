@@ -89,14 +89,14 @@ class Parser
   end
   
   def parse
-    start()
-    init_vars()
+    start
+    init_vars
     first_page = link_to_first_page
     
     unless first_page
       warn "No #{@component} data available for this date".squeeze(' ')
     else
-      create_component()
+      create_component
       
       @page = HansardPage.new(first_page)
       parse_page
@@ -104,18 +104,12 @@ class Parser
         @page = HansardPage.new(@page.next_url)
         parse_page
       end
-      
-      finish
     end
+    finish
   end
   
   def parse_page(page = @page)
-    content = page.doc.xpath("//div[@id='content-small']")
-    if content.empty?
-      content = page.doc.xpath("//div[@id='maincontent1']")
-    elsif content.children.size < 10
-      content = page.doc.xpath("//div[@id='content-small']/table/tr/td[1]")
-    end
+    content = page.get_content
     content.children.each do |child|
       if child.class == Nokogiri::XML::Element
         parse_node(child)
