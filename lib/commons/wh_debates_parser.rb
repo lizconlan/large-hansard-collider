@@ -15,6 +15,7 @@ class WHDebatesParser < CommonsParser
   
   def reset_vars
     @page_fragments = []
+    @segment_link = ""
   end
   
   
@@ -38,11 +39,7 @@ class WHDebatesParser < CommonsParser
   end
   
   def create_new_fragment(text)
-    unless @page_fragments.empty?
-      save_fragment
-      @page_fragments = []
-      @segment_link = ""
-    end
+    parse_new_fragment
     fragment = PageFragment.new
     fragment.content = sanitize_text(text)
     fragment.column = @end_column
@@ -130,6 +127,8 @@ class WHDebatesParser < CommonsParser
   end
   
   def save_fragment
+    return false unless @preamble[:title] or fragment_has_text
+    
     if @preamble[:title]
       @page_fragments_seq += 1
       preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
@@ -239,5 +238,6 @@ class WHDebatesParser < CommonsParser
         end
       end
     end
+    reset_vars
   end
 end

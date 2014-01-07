@@ -32,6 +32,8 @@ class CommonsDebatesParser < CommonsParser
     @page_fragments = []
     @questions = []
     @petitions = []
+    @segment_link = ""
+    @component_members = {}
   end
   
   
@@ -57,24 +59,12 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def store_and_reset
-    save_fragment
-    @page_fragments = []
-    @segment_link = ""
-    @questions = []
-    @petitions = []
-    @component_members = {}
-  end
-  
   def process_top_level_heading(text, title)
-    if fragment_has_text or @preamble[:title]
-      store_and_reset
-    end
-    
     case text
     when "House of Commons"
       setup_preamble(title, @page.url)
     when "Oral Answers to Questions"
+      set_new_heading
       @subcomponent = "Oral Answer"
       setup_preamble(title, @page.url)
     end
@@ -84,10 +74,11 @@ class CommonsDebatesParser < CommonsParser
     if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
-        store_and_reset
+        set_new_heading
         
         @segment_link = "#{@page.url}\##{@last_link}"
       else
+        parse_new_fragment
         @subject = text
         
         if @preamble[:title]
@@ -99,9 +90,7 @@ class CommonsDebatesParser < CommonsParser
         end
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
-      if (fragment_has_text and @subject != "") or @preamble[:title]
-        store_and_reset
-      end
+      parse_new_fragment
       @subject = text
       @segment_link = "#{@page.url}\##{@last_link}"
     else
@@ -113,9 +102,7 @@ class CommonsDebatesParser < CommonsParser
       if text.downcase == "prayers"
         build_preamble(text, @page.url)
       else
-        if (@page_fragments.empty? == false) or @preamble[:title]
-          store_and_reset
-        end
+        parse_new_fragment
         setup_new_fragment(text)
       end
     end
@@ -129,7 +116,7 @@ class CommonsDebatesParser < CommonsParser
       if text.downcase =~ /^back\s?bench business$/
         #treat as honorary h3 / main heading
         if fragment_has_text or @preamble[:title]
-          store_and_reset
+          set_new_heading
         end
         @preamble[:title] = text
         @subcomponent = ""
@@ -549,6 +536,8 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def save_fragment
+    return false unless @preamble[:title] or fragment_has_text
+    
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
@@ -568,6 +557,7 @@ class CommonsDebatesParser < CommonsParser
         print_debug(segment_id)
       end
     end
+    reset_vars
   end
   
   def set_columns_and_save

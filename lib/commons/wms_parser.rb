@@ -17,6 +17,7 @@ class WMSParser < CommonsParser
     @page_fragments = []
     @members = {}
     @component_members = {}
+    @segment_link = ""
   end
   
   
@@ -40,11 +41,8 @@ class WMSParser < CommonsParser
   end
   
   def process_department_heading(text)
-    unless @page_fragments.empty? or @page_fragments.join("").length == 0
-      save_fragment
-      @page_fragments = []
-      @segment_link = ""
-    end
+    set_new_heading
+    @segment_link = ""
     
     @department = sanitize_text(text)          
     @segment_link = "#{@page.url}\##{@last_link}"
@@ -56,11 +54,7 @@ class WMSParser < CommonsParser
       @preamble[:columns] << @end_column
       @preamble[:links] << "#{@page.url}\##{@last_link}"
     else
-      unless @page_fragments.empty? or @page_fragments.join("").length == 0
-        save_fragment
-        @page_fragments = []
-        @segment_link = ""
-      end
+      parse_new_fragment
       
       @subject = sanitize_text(text)
       @segment_link = "#{@page.url}\##{@last_link}"
@@ -133,6 +127,8 @@ class WMSParser < CommonsParser
   end
   
   def save_fragment
+    return false unless @preamble[:title] or fragment_has_text
+    
     if @preamble[:title]
       store_preamble
     else

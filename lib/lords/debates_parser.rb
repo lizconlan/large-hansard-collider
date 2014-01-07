@@ -30,6 +30,8 @@ class LordsDebatesParser < LordsParser
     @page_fragments = []
     @questions = []
     @petitions = []
+    @segment_link = ""
+    @component_members = {}
   end
   
   
@@ -63,22 +65,13 @@ class LordsDebatesParser < LordsParser
     end
   end
   
-  def store_and_reset
-    save_fragment
-    @page_fragments = []
-    @segment_link = ""
-    @questions = []
-    @petitions = []
-    @component_members = {}
-  end
-  
   def process_h2(text, title)
     if fragment_has_text or @preamble[:title]
       if @preamble[:title] == "House of Lords" and
          text.strip =~ /^[A-Z][a-z]+day, \d+ [A-Z][a-z]+ \d{4}/
         build_preamble(text, @page.url)
       else
-        store_and_reset
+        set_new_heading
       end
     end
     
@@ -100,7 +93,7 @@ class LordsDebatesParser < LordsParser
     if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
-        store_and_reset
+        set_new_heading
         @segment_link = "#{@page.url}\##{@last_link}"
       else
         @subject = text
@@ -114,7 +107,7 @@ class LordsDebatesParser < LordsParser
       end
     elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
       if (fragment_has_text and @subject != "") or @preamble[:title]
-        store_and_reset
+        parse_new_fragment
       end
       @subject = text
       @segment_link = "#{@page.url}\##{@last_link}"
@@ -123,9 +116,7 @@ class LordsDebatesParser < LordsParser
       if text.downcase == "prayers"
         build_preamble(text, @page.url)
       else
-        if (@page_fragments.empty? == false) or @preamble[:title]
-          store_and_reset
-        end
+        parse_new_fragment
         setup_new_fragment(text)
       end
     end
@@ -138,9 +129,7 @@ class LordsDebatesParser < LordsParser
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
-        if fragment_has_text or @preamble[:title]
-          store_and_reset
-        end
+        set_new_heading
         @preamble[:title] = text
         @subcomponent = ""
       else              
@@ -605,6 +594,8 @@ class LordsDebatesParser < LordsParser
   end
   
   def save_fragment
+    return false unless @preamble[:title] or fragment_has_text
+    
     unless @questions.empty?
       @subcomponent = "Oral Answer"
     end
@@ -623,6 +614,7 @@ class LordsDebatesParser < LordsParser
         print_debug(segment_ident)
       end
     end
+    reset_vars
   end
   
   def set_columns_and_save

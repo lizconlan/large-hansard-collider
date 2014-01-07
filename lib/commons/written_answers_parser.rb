@@ -17,6 +17,7 @@ class WrittenAnswersParser < CommonsParser
     @page_fragments = []
     @questions = []
     @members = {}
+    @segment_link = ""
   end
   
   
@@ -41,13 +42,7 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def process_heading(text)
-    unless @page_fragments.empty? or @page_fragments.join("").length == 0
-      save_fragment
-      @page_fragments = []
-      @segment_link = ""
-      @questions = []
-      @members = {}
-    end
+    set_new_heading
     if @page_fragments_type == "department heading"
       @department = sanitize_text(text)
     else
@@ -61,14 +56,8 @@ class WrittenAnswersParser < CommonsParser
       @preamble[:fragments] << text
       @preamble[:columns] << @end_column
       @preamble[:links] << "#{@page.url}\##{@last_link}"
-    else          
-      unless @page_fragments.empty? or @page_fragments.join("").length == 0
-        save_fragment
-        @page_fragments = []
-        @questions = []
-        @segment_link = ""
-        @members = {}
-      end
+    else
+      parse_new_fragment
       
       @subject = sanitize_text(text)
       @segment_link = "#{@page.url}\##{@last_link}"
@@ -151,6 +140,8 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def save_fragment
+    return false unless @preamble[:title] or fragment_has_text
+    
     if @preamble[:title]
       store_preamble
     else
@@ -242,5 +233,6 @@ class WrittenAnswersParser < CommonsParser
         end
       end
     end
+    reset_vars
   end
 end

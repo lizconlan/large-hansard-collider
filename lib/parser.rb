@@ -17,11 +17,16 @@ class Parser
   attr_reader :date, :doc_id, :house, :state
   
   state_machine :state, :initial => :idle do
-    before_transition :parsing_fragment => :parse_new_fragment, :do => :save_fragment
+    before_transition [:starting, :parsing_fragment] => :parsing_fragment, :do => :save_fragment
+    before_transition all - [:idle, :finished] => :setting_heading, :do => :save_fragment
     before_transition all - :idle => :finished, :do => :save_fragment
     
     event :start do
       transition :idle => :starting
+    end
+    
+    event :set_new_heading do
+      transition all - [:idle, :finished] => :setting_heading
     end
     
     event :parse_new_fragment do
@@ -33,6 +38,7 @@ class Parser
     end
     
     state :starting
+    state :setting_heading
     state :parsing_fragment
     state :finished
   end
@@ -73,9 +79,6 @@ class Parser
     @end_column = ""
     @chair = ""
     @department = ""
-  end
-  
-  def reset_vars
   end
   
   def get_component_index(component_name)
