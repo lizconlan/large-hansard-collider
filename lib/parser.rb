@@ -17,7 +17,7 @@ class Parser
   attr_reader :date, :doc_id, :house, :state
   
   state_machine :state, :initial => :idle do
-    before_transition [:starting, :parsing_section] => :parsing_section, :do => :save_section
+    before_transition [:starting, :parsing_preamble, :parsing_section] => :parsing_section, :do => :save_section
     before_transition all - [:idle, :finished] => :setting_heading, :do => :save_section
     before_transition all - :idle => :finished, :do => :save_section
     
@@ -33,12 +33,17 @@ class Parser
       transition all - [:idle, :finished] => :parsing_section
     end
     
+    event :start_preamble do
+      transition :starting => :parsing_preamble
+    end
+    
     event :finish do
       transition all => :finished
     end
     
     state :starting
     state :setting_heading
+    state :parsing_preamble
     state :parsing_section
     state :finished
   end
@@ -194,6 +199,7 @@ class Parser
   end
   
   def setup_preamble(title, url)
+    start_preamble
     @preamble[:title] = title
     @preamble[:link] = "#{url}\##{@last_link}"
   end
