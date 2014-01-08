@@ -451,14 +451,14 @@ class LordsDebatesParser < LordsParser
   end
   
   def store_preamble
-    @page_fragments_seq += 1
-    preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    @section_seq += 1
+    preamble_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     preamble = Preamble.find_or_create_by(ident: preamble_ident)
     @para_seq = 0
     preamble.title = @preamble[:title]
     preamble.component = @hansard_component
     preamble.url = @preamble[:link]
-    preamble.sequence = @page_fragments_seq
+    preamble.sequence = @section_seq
     
     @preamble[:fragments].each_with_index do |fragment, i|
       @para_seq += 1
@@ -556,8 +556,8 @@ class LordsDebatesParser < LordsParser
   end
   
   def store_current_section
-    @page_fragments_seq += 1
-    section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     
     column_text = ""
     if @start_column == @end_column or @end_column == ""
@@ -587,7 +587,7 @@ class LordsDebatesParser < LordsParser
     @debate.title = @subject
     @debate.url = @section_link
     
-    @debate.sequence = @page_fragments_seq
+    @debate.sequence = @section_seq
     
     store_fragments()
     section_ident

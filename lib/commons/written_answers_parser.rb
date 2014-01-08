@@ -148,8 +148,8 @@ class WrittenAnswersParser < CommonsParser
       handle_contribution(@member, @member)
       
       if @section_link #no point storing pointers that don't link back to the source
-        @page_fragments_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+        @section_seq += 1
+        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
         
         column_text = ""
         if @start_column == @end_column or @end_column == ""
@@ -175,7 +175,7 @@ class WrittenAnswersParser < CommonsParser
         @section.url = @section_link
         @section.number = @questions.last
         
-        @section.sequence = @page_fragments_seq
+        @section.sequence = @section_seq
         
         @page_fragments.each do |fragment|
           unless fragment.content == @section.title or fragment.content == ""

@@ -59,13 +59,14 @@ class Parser
     @hansard_component = nil
     @page_fragments = nil
     @page = nil
+    @component_ident = ""
     @start_url = ""
     super()
   end
   
   def init_vars
     @component_seq = 0
-    @page_fragments_seq = 0
+    @section_seq = 0
     @para_seq = 0
     @contribution_seq = 0
     
@@ -186,7 +187,7 @@ class Parser
     
     @hansard_component = Component.find_or_create_by(ident: component_ident)
     @hansard_component.url = @start_url
-    @page_fragments_seq = 0
+    @section_seq = 0
     @hansard_component.daily_part = @daily_part
     
     @hansard_component.sequence = get_sequence(@component_name)

@@ -93,14 +93,14 @@ class CommonsParser < Parser
   end
   
   def store_preamble
-    @page_fragments_seq += 1
-    preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
+    @section_seq += 1
+    preamble_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     preamble = Preamble.find_or_create_by(ident: preamble_ident)
     @para_seq += 1
     preamble.title = @preamble[:title]
     preamble.component = @hansard_component
     preamble.url = @preamble[:link]
-    preamble.sequence = @page_fragments_seq
+    preamble.sequence = @section_seq
     
     @preamble[:fragments].each_with_index do |fragment, i|
       @para_seq += 1
