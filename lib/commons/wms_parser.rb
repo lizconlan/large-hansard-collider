@@ -125,9 +125,9 @@ class WMSParser < CommonsParser
   end
   
   def save_section
-    return false unless @preamble[:title] or fragment_has_text
+    return false unless self.state == "parsing_preamble" or fragment_has_text
     
-    if @preamble[:title]
+    if self.state == "parsing_preamble"
       store_preamble
     else
       handle_contribution(@member, @member)

@@ -52,7 +52,7 @@ class WHDebatesParser < CommonsParser
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end
-    if @preamble[:title]
+    if self.state == "parsing_preamble"
       @preamble[:fragments] << text
       @preamble[:columns] << @end_column
       @preamble[:links] << "#{@page.url}\##{@last_link}"
@@ -127,9 +127,9 @@ class WHDebatesParser < CommonsParser
   end
   
   def save_section
-    return false unless @preamble[:title] or fragment_has_text
+    return false unless self.state == "parsing_preamble" or fragment_has_text
     
-    if @preamble[:title]
+    if self.state == "parsing_preamble"
       @page_fragments_seq += 1
       preamble_ident = "#{@hansard_component.ident}_#{@page_fragments_seq.to_s.rjust(6, "0")}"
       preamble = Preamble.find_or_create_by(ident: preamble_ident)
