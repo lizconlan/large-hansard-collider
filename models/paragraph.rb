@@ -9,12 +9,12 @@ class Paragraph < ActiveRecord::Base
     where(:_type => "ContributionPara", :member => member_name)
   end
   
-  def self.by_member_and_fragment_id(member_name, fragment_id)
-    where(:_type => "ContributionPara", :member => member_name, :fragment_id => fragment_id).sort(:sequence)
+  def self.by_member_and_section_id(member_name, section_id)
+    where(:_type => "ContributionPara", :member => member_name, :section_id => section_id).sort(:sequence)
   end
   
-  def self.by_member_and_fragment_id_start(member_name, fragment_start)
-    where(:_type => "ContributionPara", :member => member_name, :fragment_id => /^#{fragment_start}/).sort(:fragment_id, :sequence)
+  def self.by_member_and_section_id_start(member_name, section_start)
+    where(:_type => "ContributionPara", :member => member_name, :section_id => /^#{section_start}/).sort(:section_id, :sequence)
   end
 end
 
