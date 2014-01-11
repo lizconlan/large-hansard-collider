@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140107141908) do
+ActiveRecord::Schema.define(version: 20140110193724) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -52,6 +52,7 @@ ActiveRecord::Schema.define(version: 20140107141908) do
     t.string  "ayes",                 array: true
     t.string  "noes",                 array: true
     t.string  "timestamp"
+    t.string  "type"
   end
 
   add_index "paragraphs", ["ident"], name: "index_paragraphs_on_ident", using: :btree
@@ -72,6 +73,7 @@ ActiveRecord::Schema.define(version: 20140107141908) do
     t.string  "question_type"
     t.string  "bill_title"
     t.string  "bill_stage"
+    t.string  "type"
   end
 
   add_index "sections", ["ident"], name: "index_sections_on_ident", using: :btree
