@@ -7,15 +7,11 @@ class WHDebatesParser < CommonsParser
     super(date)
     @component_name = component_name
     @component_prefix = "wh"
+    @chair = ""
   end
   
   def get_component_index
     super(component_name)
-  end
-  
-  def reset_vars
-    @page_fragments = []
-    @section_link = ""
   end
   
   
@@ -24,11 +20,11 @@ class WHDebatesParser < CommonsParser
   def parse_node(node)
     case node.name
     when "h2"
-      setup_preamble(node.content, @page.url)
+      setup_preamble(node.text)
     when "a"
       process_links_and_columns(node)
     when "h3"
-      create_new_fragment(minify_whitespace(node.text))
+      create_new_debate(minify_whitespace(node.text))
     when "h4"
       process_subheading(minify_whitespace(node.text))
     when "h5"
@@ -38,47 +34,95 @@ class WHDebatesParser < CommonsParser
     end
   end
   
-  def create_new_fragment(text)
+  def setup_preamble(title)
+    start_preamble
+    
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    @section = Preamble.find_or_create_by(ident: section_ident)
+    @section.title = title
+    @section.url = @page.url
+    @section.sequence = @section_seq
+    @section.component = @hansard_component
+    @section.columns = []
+    @para_seq = 0
+  end
+  
+  def build_preamble(text)
+    @para_seq +=1
+    para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    para = NonContributionPara.find_or_create_by(ident: para_ident)
+    para.sequence = @para_seq
+    para.content = text
+    para.url = "#{@page.url}\##{@last_link}"
+    para.section = @section
+    if @end_column.empty?
+      @section.columns << @start_column
+      para.column = @start_column
+    else
+      @section.columns << @end_column
+      para.column = @end_column
+    end
+    para.save
+    @section.paragraphs << para
+  end
+  
+  def create_new_debate(text)
     start_new_section
-    fragment = PageFragment.new
-    fragment.content = sanitize_text(text)
-    fragment.column = @end_column
-    @page_fragments << fragment
-    @subject = sanitize_text(text)
-    @section_link = "#{@page.url}\##{@last_link}"
+    
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    @section = Debate.find_or_create_by(ident: section_ident)
+    @section.title = sanitize_text(text)
+    @section.chair = @chair
+    @section.url = "#{@page.url}\##{@last_link}"
+    @section.sequence = @section_seq
+    @section.columns = [@end_column]
+    @para_seq = 0
   end
   
   def process_subheading(text)
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end
-    if self.state == "parsing_preamble"
-      @preamble[:fragments] << text
-      @preamble[:columns] << @end_column
-      @preamble[:links] << "#{@page.url}\##{@last_link}"
+    if @section.type == "Preamble"
+      build_preamble(text)
     end
   end
   
   def process_timestamp(text)
-    fragment = PageFragment.new
-    fragment.content = text
-    fragment.desc = "timestamp"
-    fragment.column = @end_column
-    fragment.link = "#{@page.url}\##{@last_link}"
-    @page_fragments << fragment
+    return false unless @section
+    
+    @para_seq +=1
+    ts_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    timestamp = Timestamp.find_or_create_by(ident: ts_ident)
+    timestamp.content = text
+    timestamp.column = @end_column
+    timestamp.url = "#{@page.url}\##{@last_link}"
+    timestamp.section = @section
+    timestamp.sequence = @para_seq
+    timestamp.save
+    
+    @section.paragraphs << timestamp
   end
   
   def process_para(node)
+    if self.state == "starting"
+      return false
+    end
+    
     column_desc = ""
     member_name = ""
     if node.xpath("a") and node.xpath("a").length > 0
       @last_link = node.xpath("a").last.attr("name")
     end
+    
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
         if bold.text =~ COLUMN_HEADER #older page format
-          if @start_column == ""
+          if @start_column.empty?
             @start_column = $1
+            @end_column = $1
           else
             @end_column = $1
           end
@@ -97,147 +141,53 @@ class WHDebatesParser < CommonsParser
     else
       italic_text = ""
     end
-    
+
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end
     
+    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
-      #check if this is a new contrib
-      process_member_contribution(member_name, text, true, italic_text)
+      @para_seq += 1
+      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      para = nil
       
-      fragment = PageFragment.new
-      fragment.content = sanitize_text(text)
-      fragment.link = "#{@page.url}\##{@last_link}"
+      #check if this is a new contrib
+      process_member_contribution(member_name, text)
+      
       if @member
-        if fragment.content =~ /^#{@member.post} \(#{@member.name}\)/
-          fragment.printed_name = "#{@member.post} (#{@member.name})"
-        elsif fragment.content =~ /^#{@member.search_name}/
-          fragment.printed_name = @member.search_name
+        para = ContributionPara.find_or_create_by(ident: para_ident)
+        para.content = sanitize_text(text)
+        
+        if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
+          para.speaker_printed_name = "#{@member.post} (#{@member.name})"
         else
-          fragment.printed_name = @member.printed_name
+          para.speaker_printed_name = @member.printed_name
         end
-        fragment.speaker = @member.index_name
+        para.member = @member.index_name
+        link_member_to_contribution(@member)
+      else
+        para = NonContributionPara.find_or_create_by(ident: para_ident)
+        para.content = sanitize_text(text)
       end
-      fragment.column = @end_column
-      fragment.contribution_seq = @contribution_seq
-      @page_fragments << fragment
+      if @end_column.empty?
+        para.column = @start_column
+      else
+        para.column = @end_column
+      end
+      para.url = "#{@page.url}\##{@last_link}"
+      para.sequence = @para_seq
+      para.section = @section
+      para.save
+      @section.paragraphs << para
     end
   end
   
   def save_section
-    return false unless self.state == "parsing_preamble" or fragment_has_text
-    
-    if self.state == "parsing_preamble"
-      @section_seq += 1
-      preamble_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-      preamble = Preamble.find_or_create_by(ident: preamble_ident)
-      preamble.title = @preamble[:title]
-      preamble.component = @hansard_component
-      preamble.url = @preamble[:link]
-      preamble.sequence = @section_seq
-      
-      @preamble[:fragments].each_with_index do |fragment, i|
-        @para_seq += 1
-        para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-        
-        para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.section = preamble
-        para.content = fragment
-        para.sequence = @para_seq
-        para.url = @preamble[:links][i]
-        para.column = @preamble[:columns][i]
-        
-        para.save
-        preamble.paragraphs << para
-      end
-      preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
-      
-      preamble.save
-      @hansard_component.sections << preamble
-      @hansard_component.save
-      
-      @preamble = {:fragments => [], :columns => [], :links => []}
-    else
-      handle_contribution(@member, @member)
-      
-      unless @section_link.empty? #no point storing pointers that don't link back to the source
-        @section_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-        
-        names = []
-        @members.each { |x, y| names << y.index_name unless names.include?(y.index_name) }
-        
-        column_text = ""
-        if @start_column == @end_column or @end_column == ""
-          column_text = @start_column
-        else
-          column_text = "#{@start_column} to #{@end_column}"
-        end
-        
-        @debate = Debate.find_or_create_by(ident: section_ident)
-        @para_seq = 0
-        @hansard_component.sections << @debate
-        @hansard_component.save
-        
-        @daily_part.volume = @page.volume
-        @daily_part.part = sanitize_text(@page.part.to_s)
-        @daily_part.save
-        
-        @debate.component = @hansard_component
-        @debate.members = names
-        
-        @debate.title = @subject
-        @debate.chair = @chair
-        @debate.url = @section_link
-        
-        @debate.sequence = @section_seq
-        
-        @page_fragments.each do |fragment|
-          unless fragment.content == @debate.title or fragment.content == ""
-            @para_seq += 1
-            para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-            
-            case fragment.desc
-            when "timestamp"
-              para = Timestamp.find_or_create_by(ident: para_ident)
-            else
-              if fragment.speaker.nil?
-                para = NonContributionPara.find_or_create_by(ident: para_ident)
-              else
-                para = ContributionPara.find_or_create_by(ident: para_ident)
-                para.member = fragment.speaker
-                para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-                if fragment.content.strip =~ /^#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
-                  para.speaker_printed_name = fragment.printed_name
-                end
-              end
-            end
-            
-            para.content = fragment.content
-            para.url = fragment.link
-            para.column = fragment.column
-            para.sequence = @para_seq
-            para.section = @debate
-            para.save
-            
-            @debate.paragraphs << para
-          end
-        end
-        
-        @debate.columns = @debate.paragraphs.collect{|x| x.column}.uniq
-        @debate.save
-        @start_column = @end_column if @end_column != ""
-        
-        unless ENV["RACK_ENV"] == "test"
-          p @subject
-          p section_ident
-          p @section_link
-          p ""
-        end
-      end
-    end
-    reset_vars
+    return false unless @section
+    @section.save
+    debug()
   end
 end

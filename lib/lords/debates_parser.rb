@@ -90,7 +90,7 @@ class LordsDebatesParser < LordsParser
   end
   
   def process_h3(text)
-    if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
+    if (@page_fragment_type == "department heading" and @subcomponent == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
         set_new_heading
@@ -105,7 +105,7 @@ class LordsDebatesParser < LordsParser
           @section_link = "#{@page.url}\##{@last_link}"
         end
       end
-    elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
+    elsif @page_fragment_type == "subject heading" and @subcomponent == "Oral Answer"
       if (fragment_has_text and @subject != "") or @preamble[:title]
         start_new_section
       end
@@ -265,16 +265,16 @@ class LordsDebatesParser < LordsParser
       node.xpath("a").each do |anchor|
         case anchor.attr("name")
         when /^qn_/
-          @page_fragments_type = "question"
+          @page_fragment_type = "question"
           @link = node.attr("name")
         when /^st_/, /^stpa_/
-          if @page_fragments_type == "division" and @div_fragment
+          if @page_fragment_type == "division" and @div_fragment
             stash_division()
           end
-          @page_fragments_type = "contribution"
+          @page_fragment_type = "contribution"
           @link = node.attr("name")
         when /^divlst_/
-          @page_fragments_type = "division"
+          @page_fragment_type = "division"
           @link = node.attr("name")
         end
       end
@@ -374,7 +374,7 @@ class LordsDebatesParser < LordsParser
       else
         fragment.printed_name = @member.printed_name
       end
-      if @page_fragments_type == "question" and @asked_by.empty?
+      if @page_fragment_type == "question" and @asked_by.empty?
         @asked_by = @member.index_name
       end
       fragment.content = sanitize_text(text)
@@ -414,9 +414,9 @@ class LordsDebatesParser < LordsParser
     
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
-    if @page_fragments_type == "question"
+    if @page_fragment_type == "question"
       process_oral_question(text)
-    elsif @page_fragments_type == "division"
+    elsif @page_fragment_type == "division"
       process_division(text)
     end
     if @subcomponent == "Petition" and text =~ /\[(P[^\]]*)\]/
@@ -430,7 +430,7 @@ class LordsDebatesParser < LordsParser
       
       if @preamble[:title]
         build_preamble(text, @page.url)
-      elsif @page_fragments_type != "division"
+      elsif @page_fragment_type != "division"
         fragment = create_fragment(text)
         
         @page_fragments << fragment

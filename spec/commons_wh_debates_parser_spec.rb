@@ -76,8 +76,6 @@ describe WHDebatesParser do
       ncpara.expects(:url=).with("#{@url}\#11071984000005")
       ncpara.expects(:column=).with("183WH")
       
-      preamble.expects(:paragraphs).at_least_once.returns([ncpara])
-      
       #ignore the rest of the file, not relevant
       timestamp = Timestamp.new
       contribution = ContributionPara.new
@@ -125,7 +123,7 @@ describe WHDebatesParser do
       debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000002")
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002").returns(debate)
       debate.expects(:paragraphs).at_least_once.returns([])
-
+    
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
       ncpara.expects(:section=).with(debate)

@@ -17,7 +17,7 @@ class Parser
   attr_reader :date, :doc_id, :house, :state
   
   state_machine :state, :initial => :idle do
-    before_transition [:starting, :parsing_preamble, :parsing_section] => :parsing_section, :do => :save_section
+    before_transition [:starting, :heading_complete, :parsing_section] => :parsing_section, :do => :save_section
     before_transition all - [:idle, :finished] => :setting_heading, :do => :save_section
     before_transition all - :idle => :finished, :do => :save_section
     
@@ -29,12 +29,16 @@ class Parser
       transition all - [:idle, :finished] => :setting_heading
     end
     
+    event :stop_new_heading do
+      transition :setting_heading => :heading_complete
+    end
+    
     event :start_new_section do
       transition all - [:idle, :finished] => :parsing_section
     end
     
     event :start_preamble do
-      transition :starting => :parsing_preamble
+      transition :starting => :parsing_section
     end
     
     event :finish do
@@ -43,7 +47,7 @@ class Parser
     
     state :starting
     state :setting_heading
-    state :parsing_preamble
+    state :heading_complete
     state :parsing_section
     state :finished
   end
@@ -61,6 +65,7 @@ class Parser
     @page = nil
     @component_ident = ""
     @start_url = ""
+    @section = nil
     super()
   end
   
@@ -69,6 +74,7 @@ class Parser
     @section_seq = 0
     @para_seq = 0
     @contribution_seq = 0
+    
     
     @members = {}
     @component_members = {}
@@ -83,7 +89,6 @@ class Parser
     @start_column = ""
     @end_column = ""
     @chair = ""
-    @department = ""
   end
   
   def get_component_index(component_name)
@@ -222,25 +227,25 @@ class Parser
     case node.attr("name")
     when /^hd_/
       #heading e.g. the date, The House met at..., The Deputy PM was asked
-      @page_fragments_type = "heading"
+      @page_fragment_type = "heading"
       @link = node.attr("name")
     when /^place_/
-      @page_fragments_type = "location heading"
+      @page_fragment_type = "location heading"
       @link = node.attr("name")
     when /^dpthd_/
-      @page_fragments_type = "department heading"
+      @page_fragment_type = "department heading"
       @link = node.attr("name")
     when /^subhd_/
-      @page_fragments_type = "subject heading"
+      @page_fragment_type = "subject heading"
       @link = node.attr("name")
     when /^qn_/
-      @page_fragments_type = "question"
+      @page_fragment_type = "question"
       @link = node.attr("name")
     when /^st_/
-      @page_fragments_type = "contribution"
+      @page_fragment_type = "contribution"
       @link = node.attr("name")
     when /^divlst_/
-      @page_fragments_type = "division"
+      @page_fragment_type = "division"
       @link = node.attr("name")
     end 
   end
@@ -313,5 +318,16 @@ class Parser
   
   def fragment_has_text
     (@page_fragments.empty? == false and @page_fragments.map {|x| x.content}.join("").length > 0)
+  end
+  
+  def debug()
+    unless ENV["RACK_ENV"] == "test"
+      p ""
+      p "Type: #{@section.type}"
+      p "title: #{@section.title ? @section.title : "nil"}"
+      p "ident: #{@section.ident ? @section.ident : "nil"}"
+      p "url: #{@section.url ? @section.url : "nil"}"
+      p "****"
+    end
   end
 end

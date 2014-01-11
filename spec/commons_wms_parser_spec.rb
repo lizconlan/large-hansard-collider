@@ -45,7 +45,7 @@ describe WMSParser do
         @parser.stubs(:component_prefix).returns("wms")
         @parser.expects(:link_to_first_page).returns(@url)
       end
-  
+      
       it "should create the Preamble section" do
         stub_page("spec/data/commons/wms.html")
         HansardPage.expects(:new).returns(@page)
@@ -58,10 +58,10 @@ describe WMSParser do
         preamble.expects(:title=).with("Written Ministerial Statements")
         
         ncpara = NonContributionPara.new
-        NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000001_p000002").returns(ncpara)
+        NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wms_000001_p000001").returns(ncpara)
         ncpara.expects(:section=).with(preamble)
         ncpara.expects(:content=).with("Tuesday 19 July 2011")
-        ncpara.expects(:sequence=).with(2)
+        ncpara.expects(:sequence=).with(1)
         ncpara.expects(:url=).with("#{@url}\#11071985000016")
         ncpara.expects(:column=).with("89WS")
         
@@ -94,7 +94,6 @@ describe WMSParser do
         
         preamble = Preamble.new(:ident => "preamble")
         Preamble.any_instance.stubs(:paragraphs).returns([])
-        Preamble.any_instance.stubs(:title=)
         Preamble.expects(:find_or_create_by).returns(preamble)
         
         ncpara = NonContributionPara.new

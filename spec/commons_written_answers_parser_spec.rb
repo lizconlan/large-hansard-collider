@@ -45,7 +45,7 @@ describe WrittenAnswersParser do
         @parser.stubs(:component_prefix).returns("w")
         @parser.expects(:link_to_first_page).returns(@url)
       end
-  
+      
       it "should create the Preamble section" do
         stub_page("spec/data/commons/written_answers.html")
         HansardPage.expects(:new).returns(@page)
@@ -58,10 +58,10 @@ describe WrittenAnswersParser do
         preamble.expects(:title=).with("Written Answers to Questions")
         
         ncpara = NonContributionPara.new
-        NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000001_p000002").returns(ncpara)
+        NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000001_p000001").returns(ncpara)
         ncpara.expects(:section=).with(preamble)
         ncpara.expects(:content=).with("Tuesday 19 July 2011")
-        ncpara.expects(:sequence=).with(2)
+        ncpara.expects(:sequence=).with(1)
         ncpara.expects(:url=).with("#{@url}\#110719112000009")
         ncpara.expects(:column=).with("773W")
         
@@ -190,7 +190,7 @@ describe WrittenAnswersParser do
     it "should handle tables without escaping the markup" do
       html = %Q|<div id="content-small">
         <a class="anchor" name="11071988000009"></a>
-        <a class="anchor-column" name="column_831"></a>
+        <a class="anchor-column" name="column_831W"></a>
         <a class="anchor" name="dpthd_2"> </a>
         <a class="anchor" name="110719112000002"> </a>
         <a class="anchor" name="110719w0001.htm_dpthd0"> </a>

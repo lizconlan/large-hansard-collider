@@ -23,7 +23,7 @@ class CommonsDebatesParser < CommonsParser
     @petitions = []
     
     @column = ""
-    @subcomponent = ""
+    @subsection = ""
     @asked_by = ""
     @div_fragment = nil
   end
@@ -65,13 +65,13 @@ class CommonsDebatesParser < CommonsParser
       setup_preamble(title, @page.url)
     when "Oral Answers to Questions"
       set_new_heading
-      @subcomponent = "Oral Answer"
+      @subsection = "Oral Answer"
       setup_preamble(title, @page.url)
     end
   end
   
   def process_heading(text)
-    if (@page_fragments_type == "department heading" and @subcomponent == "Oral Answer")
+    if (@page_fragment_type == "department heading" and @subsection == "Oral Answer")
       @department = text
       if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
         set_new_heading
@@ -89,7 +89,7 @@ class CommonsDebatesParser < CommonsParser
           @section_link = "#{@page.url}\##{@last_link}"
         end
       end
-    elsif @page_fragments_type == "subject heading" and @subcomponent == "Oral Answer"
+    elsif @page_fragment_type == "subject heading" and @subsection == "Oral Answer"
       start_new_section
       @subject = text
       @section_link = "#{@page.url}\##{@last_link}"
@@ -98,7 +98,7 @@ class CommonsDebatesParser < CommonsParser
         @bill[:title] = text.gsub(" [Lords]", "")
       end
       
-      @subcomponent = ""
+      @subsection = ""
       if text.downcase == "prayers"
         build_preamble(text, @page.url)
       else
@@ -119,11 +119,11 @@ class CommonsDebatesParser < CommonsParser
           set_new_heading
         end
         @preamble[:title] = text
-        @subcomponent = ""
+        @subsection = ""
       else              
         fragment = create_fragment(text)
         @page_fragments << fragment
-        unless @subcomponent == "Oral Answer"
+        unless @subsection == "Oral Answer"
           @subject = sanitize_text(text)
         end
         @section_link = "#{@page.url}\##{@last_link}"
@@ -141,7 +141,7 @@ class CommonsDebatesParser < CommonsParser
   def setup_new_fragment(text)
     case text.downcase
     when "business without debate"
-      @subcomponent = ""
+      @subsection = ""
     when /^business/,
          "european union documents",
          "points of order",
@@ -149,14 +149,14 @@ class CommonsDebatesParser < CommonsParser
          "royal assent",
          "bill presented"
       @subject = text
-      @subcomponent = ""
+      @subsection = ""
     when "petition"
-      @subcomponent = "Petition"
+      @subsection = "Petition"
     when /adjournment/
-      @subcomponent = "Adjournment Debate"
+      @subsection = "Adjournment Debate"
     else
-      if @subcomponent == ""
-        @subcomponent = "Debate"
+      if @subsection == ""
+        @subsection = "Debate"
       end
     end
     unless text.downcase == "petition"
@@ -229,18 +229,18 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def override_subcomponent(node)
+  def override_subsection(node)
     case node.xpath("i").first.text.strip
     when /^Motion/
       unless (node.xpath("i").map { |x| x.text }).join(" ") =~ /and Question p/
-        @subcomponent = "Motion"
+        @subsection = "Motion"
         @member = nil
       end
     when /^Debate resumed/
       @subject = "#{@subject} (resumed)"
       @member = nil
     when /^Ordered/, /^Question put/
-      @subcomponent = ""
+      @subsection = ""
       @member = nil
     when /Reading$/
       if @bill[:title]
@@ -255,16 +255,16 @@ class CommonsDebatesParser < CommonsParser
       node.xpath("a").each do |anchor|
         case anchor.attr("name")
         when /^qn_/
-          @page_fragments_type = "question"
+          @page_fragment_type = "question"
           @link = node.attr("name")
         when /^st_/, /^stpa_/
-          if @page_fragments_type == "division" and @div_fragment
+          if @page_fragment_type == "division" and @div_fragment
             stash_division()
           end
-          @page_fragments_type = "contribution"
+          @page_fragment_type = "contribution"
           @link = node.attr("name")
         when /^divlst_/
-          @page_fragments_type = "division"
+          @page_fragment_type = "division"
           @link = node.attr("name")
         end
       end
@@ -320,7 +320,7 @@ class CommonsDebatesParser < CommonsParser
       else
         fragment.printed_name = @member.printed_name
       end
-      if @page_fragments_type == "question" and @asked_by.empty?
+      if @page_fragment_type == "question" and @asked_by.empty?
         @asked_by = @member.index_name
       end
       fragment.content = sanitize_text(text)
@@ -332,9 +332,9 @@ class CommonsDebatesParser < CommonsParser
     column_desc = ""
     member_name = ""
     
-    #check for inner subcomponents
-    if @subcomponent == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
-      override_subcomponent(node)
+    #check for nested sections
+    if @subsection == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
+      override_subsection(node)
     end
     
     unless @page_fragments.empty? and node.xpath("center") and node.xpath("center").text == node.text
@@ -360,12 +360,12 @@ class CommonsDebatesParser < CommonsParser
     
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
-    if @page_fragments_type == "question"
+    if @page_fragment_type == "question"
       process_oral_question(text)
-    elsif @page_fragments_type == "division"
+    elsif @page_fragment_type == "division"
       process_division(text)
     end
-    if @subcomponent == "Petition" and text =~ /\[(P[^\]]*)\]/
+    if @subsection == "Petition" and text =~ /\[(P[^\]]*)\]/
       @petitions << $1
     end
     
@@ -376,7 +376,7 @@ class CommonsDebatesParser < CommonsParser
       
       if @preamble[:title]
         build_preamble(text, @page.url)
-      elsif @page_fragments_type != "division"
+      elsif @page_fragment_type != "division"
         fragment = create_fragment(text)
         
         @page_fragments << fragment
@@ -511,7 +511,7 @@ class CommonsDebatesParser < CommonsParser
       column_text = "#{@start_column} to #{@end_column}"
     end
     
-    if @subcomponent == "Oral Answer"
+    if @subsection == "Oral Answer"
       create_question(section_ident)
     else
       @debate = Debate.find_or_create_by(ident: section_ident)
@@ -539,7 +539,7 @@ class CommonsDebatesParser < CommonsParser
     return false unless @preamble[:title] or fragment_has_text
     
     unless @questions.empty?
-      @subcomponent = "Oral Answer"
+      @subsection = "Oral Answer"
     end
     
     if @preamble[:title]
