@@ -7,7 +7,7 @@ class WHDebatesParser < CommonsParser
     super(date)
     @component_name = component_name
     @component_prefix = "wh"
-    @chair = ""
+    @chair = []
   end
   
   def get_component_index
@@ -74,19 +74,47 @@ class WHDebatesParser < CommonsParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Debate.find_or_create_by(ident: section_ident)
     @section.title = sanitize_text(text)
-    @section.chair = [@chair]
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.columns = [@end_column]
     @para_seq = 0
+    
+    if @chair.length > 1
+      @chair = [@chair.last]
+    end
   end
   
   def process_subheading(text)
     if text[text.length-13..text.length-2] == "in the Chair"
-      @chair = text[1..text.length-15]
+      if @chair.empty?
+        @chair = [text[1..text.length-15]]
+      else
+        if @section.paragraphs.empty?
+          @chair = [text[1..text.length-15]]
+        else
+          @chair << text[1..text.length-15]
+        end
+      end
     end
     if @section.type == "Preamble"
       build_preamble(text)
+    else
+      @para_seq += 1
+      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      para = nil
+      
+      para = NonContributionPara.find_or_create_by(ident: para_ident)
+      para.content = sanitize_text(text)
+      if @end_column.empty?
+        para.column = @start_column
+      else
+        para.column = @end_column
+      end
+      para.url = "#{@page.url}\##{@last_link}"
+      para.sequence = @para_seq
+      para.section = @section
+      para.save
+      @section.paragraphs << para
     end
   end
   
@@ -187,6 +215,7 @@ class WHDebatesParser < CommonsParser
   
   def save_section
     return false unless @section
+    @section.chair = @chair if @chair and @section.type == "Debate"
     @section.save
     debug()
   end

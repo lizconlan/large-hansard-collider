@@ -171,4 +171,216 @@ describe WHDebatesParser do
       @parser.parse
     end
   end
+  
+  context "when a new Chair is brought in between debates" do
+    before(:each) do
+      @url = "http://www.publications.parliament.uk/pa/cm201213/cmhansrd/cm121205/halltext/121205h0001.htm"
+      stub_part("Commons", "2099-01-01", nil, "190")
+      
+      @parser = WHDebatesParser.new("2099-01-01")
+      @parser.expects(:component_prefix).times(2).returns("wh")
+      @parser.expects(:link_to_first_page).returns(@url)
+    end
+    
+    it "should correctly record a single Chair for each debate" do
+      stub_page("spec/data/commons/wh_debates_mid-session_change.html")
+      
+      component = Component.new(:ident => '2099-01-01_hansard_c_wh')
+      Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh').returns(component)
+      
+      preamble = Preamble.new(:ident => "preamble")
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      Preamble.any_instance.stubs(:title=)
+      Preamble.expects(:find_or_create_by).returns(preamble)
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      ncpara.stubs(:section=)
+      ncpara.stubs(:content=)
+      ncpara.stubs(:url=)
+      ncpara.stubs(:sequence=)
+      ncpara.stubs(:column=)
+      
+      debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000002")
+      Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002").returns(debate)
+      debate.expects(:paragraphs).at_least_once.returns([])
+      debate.expects(:title=).with("Unemployment in Scotland")
+      debate.expects(:chair=).with(["Ms Nadine Dorries"])
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
+      ncpara.expects(:section=).with(debate)
+      ncpara.expects(:content=).with("Motion made, and Question proposed, That the sitting be now adjourned. - (Nicky Morgan.)")
+      ncpara.expects(:url=)
+      ncpara.expects(:sequence=).with(1)
+      ncpara.expects(:column=)
+      
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000002").returns(timestamp)
+      timestamp.expects(:content=).with("9.30 am")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000003").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with('Gemma Doyle (West Dunbartonshire) (Lab/Co-op): It is a pleasure to serve under your chairmanship, Ms Dorries.')
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(3)
+      contribution.expects(:column=)
+      contribution.expects(:member=).with("Gemma Doyle")
+      contribution.expects(:speaker_printed_name=).with("Gemma Doyle")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000004").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with("However, I first want to look at what the UK Government are - or are not - doing.")
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(4)
+      contribution.expects(:member=).with("Gemma Doyle")
+      contribution.expects(:column=)
+      
+      
+      debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000003")
+      Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003").returns(debate)
+      debate.expects(:paragraphs).at_least_once.returns([])
+      debate.expects(:title=).with("Regional Newspapers")
+      debate.expects(:chair=).with(["Mr Jim Hood"])
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000003_p000001').returns(ncpara)
+      ncpara.expects(:section=).with(debate)
+      ncpara.expects(:content=).with("[Mr Jim Hood in the Chair]")
+      ncpara.expects(:url=)
+      ncpara.expects(:sequence=).with(1)
+      ncpara.expects(:column=)
+      
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003_p000002").returns(timestamp)
+      timestamp.expects(:content=).with("2.30 pm")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003_p000003").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with("Mr Jim Hood (in the Chair): Members will have noticed the new clock displays in the Chamber. As before, the top display is the current time and the bottom display, when a speech is not being timed, will show the time it started. If it becomes necessary to introduce a speech limit, the bottom display will change, to show the time remaining to the Member who currently has the Floor. As in the main Chamber, the display can now award an extra minute for the first two interventions in a speech.")
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(3)
+      contribution.expects(:member=).with("Jim Hood")
+      contribution.expects(:speaker_printed_name=).with("Mr Jim Hood")
+      contribution.expects(:column=)
+      
+      @parser.parse
+    end
+  end
+  
+  context "when a new Chair is brought in during a debate" do
+    before(:each) do
+      @url = "http://www.publications.parliament.uk/pa/cm201314/cmhansrd/cm140109/halltext/140109h0001.htm"
+      stub_part("Commons", "2099-01-01", nil, "190")
+      
+      @parser = WHDebatesParser.new("2099-01-01")
+      @parser.expects(:component_prefix).times(2).returns("wh")
+      @parser.expects(:link_to_first_page).returns(@url)
+    end
+    
+    it "should correctly record a single Chair for each debate" do
+      stub_page("spec/data/commons/wh_debates_mid-debate_change.html")
+      
+      component = Component.new(:ident => '2099-01-01_hansard_c_wh')
+      Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh').returns(component)
+      
+      preamble = Preamble.new(:ident => "preamble")
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      Preamble.any_instance.stubs(:title=)
+      Preamble.expects(:find_or_create_by).returns(preamble)
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000001').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble_p000002').returns(ncpara)
+      ncpara.stubs(:section=)
+      ncpara.stubs(:content=)
+      ncpara.stubs(:url=)
+      ncpara.stubs(:sequence=)
+      ncpara.stubs(:column=)
+      
+      debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000002")
+      Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002").returns(debate)
+      debate.expects(:paragraphs).at_least_once.returns([])
+      debate.expects(:title=).with("Disabled People (Access to Transport)")
+      debate.expects(:chair=).with(["Nadine Dorries", "Katy Clark"])
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
+      ncpara.expects(:section=).with(debate)
+      ncpara.expects(:content=).with("[Relevant documents: Fifth Report of the Transport Committee, Access to Transport for Disabled People, HC 116, and the Government response, HC 870.]")
+      ncpara.expects(:url=)
+      ncpara.expects(:sequence=).with(1)
+      ncpara.expects(:column=)
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000002').returns(ncpara)
+      ncpara.expects(:section=).with(debate)
+      ncpara.expects(:content=).with("Motion made, and Question proposed, That the sitting be now adjourned. - (Karen Bradley.)")
+      ncpara.expects(:url=)
+      ncpara.expects(:sequence=).with(2)
+      ncpara.expects(:column=)
+      
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000003").returns(timestamp)
+      timestamp.expects(:content=).with("1.30 pm")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000004").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with('Mrs Louise Ellman (Liverpool, Riverside) (Lab/Co-op): It is a pleasure to serve under your chairmanship, Ms Dorries.')
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(4)
+      contribution.expects(:column=)
+      contribution.expects(:member=).with("Louise Ellman")
+      contribution.expects(:speaker_printed_name=).with("Mrs Louise Ellman")
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000005').returns(ncpara)
+      ncpara.expects(:section=).with(debate)
+      ncpara.expects(:content=).with("[Katy Clark in the Chair]")
+      ncpara.expects(:url=)
+      ncpara.expects(:sequence=).with(5)
+      ncpara.expects(:column=)
+      
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000006").returns(timestamp)
+      timestamp.expects(:content=).with("2.58 pm")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002_p000007").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with("Mrs Ellman: The debate has reinforced the importance of this issue and the importance of the Committee's conducting its report, securing its reply and debating this further with the Minister. I thank all hon. Members who have participated in the debate and contributed to it.")
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(7)
+      contribution.expects(:column=)
+      contribution.expects(:member=).with("Louise Ellman")
+      contribution.expects(:speaker_printed_name=).with("Mrs Louise Ellman")
+      
+      debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000003")
+      Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003").returns(debate)
+      debate.expects(:paragraphs).at_least_once.returns([])
+      debate.expects(:title=).with("Global Food Security")
+      debate.expects(:chair=).with(["Katy Clark"])
+      
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003_p000001").returns(timestamp)
+      timestamp.expects(:content=).with("3.2 pm")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003_p000002").returns(contribution)
+      contribution.expects(:section=).with(debate)
+      contribution.expects(:content=).with("Sir Malcolm Bruce (Gordon) (LD): I am glad to have the opportunity to initiate this short debate on the International Development Committee's report on global food security.")
+      contribution.expects(:url=)
+      contribution.expects(:sequence=).with(2)
+      contribution.expects(:member=).with("Malcolm Bruce")
+      contribution.expects(:speaker_printed_name=).with("Sir Malcolm Bruce")
+      contribution.expects(:column=)
+      
+      @parser.parse
+    end
+  end
 end
