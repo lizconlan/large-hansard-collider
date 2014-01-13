@@ -74,7 +74,7 @@ class WHDebatesParser < CommonsParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Debate.find_or_create_by(ident: section_ident)
     @section.title = sanitize_text(text)
-    @section.chair = @chair
+    @section.chair = [@chair]
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.columns = [@end_column]

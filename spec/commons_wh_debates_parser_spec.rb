@@ -95,6 +95,7 @@ describe WHDebatesParser do
       contribution.expects(:speaker_printed_name=).at_least_once
       
       Debate.expects(:find_or_create_by).at_least_once.returns(debate)
+      debate.expects(:chair=).with(["Jim Dobbin"])
       debate.expects(:paragraphs).at_least_once.returns([])
       
       @parser.parse
@@ -123,7 +124,8 @@ describe WHDebatesParser do
       debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000002")
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002").returns(debate)
       debate.expects(:paragraphs).at_least_once.returns([])
-    
+      debate.expects(:chair=).with(["Jim Dobbin"])
+      
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
       ncpara.expects(:section=).with(debate)
