@@ -69,14 +69,14 @@ class LordsDebatesParser < LordsParser
     if fragment_has_text or @preamble[:title]
       if @preamble[:title] == "House of Lords" and
          text.strip =~ /^[A-Z][a-z]+day, \d+ [A-Z][a-z]+ \d{4}/
-        build_preamble(text, @page.url)
+        build_preamble(text)
       else
         set_new_heading
       end
     end
     
     if text == "House of Lords"
-      setup_preamble(text, @page.url)
+      setup_preamble(text)
     end
     
     if text.strip =~ /^Introduction:/
@@ -85,7 +85,7 @@ class LordsDebatesParser < LordsParser
     
     if text == "Oral Answers to Questions"
       @subcomponent = "Oral Answer"
-      setup_preamble(title, @page.url)
+      setup_preamble(title)
     end
   end
   
@@ -98,7 +98,7 @@ class LordsDebatesParser < LordsParser
       else
         @subject = text
         if @preamble[:title]
-          build_preamble(text, @page.url)
+          build_preamble(text)
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
@@ -114,7 +114,7 @@ class LordsDebatesParser < LordsParser
     else
       @subcomponent = ""
       if text.downcase == "prayers"
-        build_preamble(text, @page.url)
+        build_preamble(text)
       else
         start_new_section
         setup_new_fragment(text)
@@ -125,7 +125,7 @@ class LordsDebatesParser < LordsParser
   def process_h4(text)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @preamble[:title]
-      build_preamble(text, @page.url)
+      build_preamble(text)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
@@ -429,7 +429,7 @@ class LordsDebatesParser < LordsParser
       check_debate_contributions(text, member_name)
       
       if @preamble[:title]
-        build_preamble(text, @page.url)
+        build_preamble(text)
       elsif @page_fragment_type != "division"
         fragment = create_fragment(text)
         
