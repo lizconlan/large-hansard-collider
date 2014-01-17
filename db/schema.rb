@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140113114859) do
+ActiveRecord::Schema.define(version: 20140117131428) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -63,8 +63,8 @@ ActiveRecord::Schema.define(version: 20140113114859) do
     t.string  "title"
     t.string  "url"
     t.integer "sequence"
-    t.string  "members",       array: true
-    t.string  "columns",       array: true
+    t.string  "members",           array: true
+    t.string  "columns",           array: true
     t.string  "department"
     t.string  "subject"
     t.string  "number"
@@ -73,7 +73,8 @@ ActiveRecord::Schema.define(version: 20140113114859) do
     t.string  "bill_title"
     t.string  "bill_stage"
     t.string  "type"
-    t.string  "chair",         array: true
+    t.string  "chair",             array: true
+    t.integer "parent_section_id"
   end
 
   add_index "sections", ["ident"], name: "index_sections_on_ident", using: :btree
