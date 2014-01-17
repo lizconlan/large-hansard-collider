@@ -204,22 +204,6 @@ class Parser
     @hansard_component.save
   end
   
-  def setup_preamble(title, url)
-    start_preamble
-    @preamble[:title] = title
-    @preamble[:link] = "#{url}\##{@last_link}"
-  end
-  
-  def build_preamble(text, url)
-    @preamble[:fragments] << text
-    if @end_column.empty?
-      @preamble[:columns] << @start_column
-    else
-      @preamble[:columns] << @end_column
-    end
-    @preamble[:links] << "#{url}\##{@last_link}"
-  end
-  
   def get_sequence(component_name)
   end
   
@@ -318,6 +302,55 @@ class Parser
   
   def fragment_has_text
     (@page_fragments.empty? == false and @page_fragments.map {|x| x.content}.join("").length > 0)
+  end
+  
+  def process_timestamp(text)
+    return false unless @section
+    
+    @para_seq +=1
+    ts_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    timestamp = Timestamp.find_or_create_by(ident: ts_ident)
+    timestamp.content = text
+    timestamp.column = @end_column
+    timestamp.url = "#{@page.url}\##{@last_link}"
+    timestamp.section = @section
+    timestamp.sequence = @para_seq
+    timestamp.save
+    
+    @section.paragraphs << timestamp
+  end
+  
+  def setup_preamble(title)
+    start_preamble
+    
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    @section = Preamble.find_or_create_by(ident: section_ident)
+    @section.title = title
+    @section.url = @page.url
+    @section.sequence = @section_seq
+    @section.component = @hansard_component
+    @section.columns = []
+    @para_seq = 0
+  end
+  
+  def build_preamble(text)
+    @para_seq +=1
+    para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    para = NonContributionPara.find_or_create_by(ident: para_ident)
+    para.sequence = @para_seq
+    para.content = text
+    para.url = "#{@page.url}\##{@last_link}"
+    para.section = @section
+    if @end_column.empty?
+      @section.columns << @start_column
+      para.column = @start_column
+    else
+      @section.columns << @end_column
+      para.column = @end_column
+    end
+    para.save
+    @section.paragraphs << para
   end
   
   def debug()
