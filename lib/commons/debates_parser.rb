@@ -9,7 +9,6 @@ class CommonsDebatesParser < CommonsParser
     @component_prefix = "d"
     @department = ""
     @bill = {}
-    @asked_by = ""
     @subsection_name = ""
     @section_stack = []
   end
@@ -71,14 +70,7 @@ class CommonsDebatesParser < CommonsParser
       else
         #a subject heading, inside Oral Answers
         start_new_section
-        @section_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-        @section = Question.find_or_create_by(ident: section_ident)
-        @section.title = sanitize_text(text)
-        @section.url = "#{@page.url}\##{@last_link}"
-        @section.department = @department
-        @section.question_type = "for oral answer"
-        @para_seq = 0
+        @section = create_new_question(sanitize_text(text))
       end
       @section.sequence = @section_seq
       @section.columns = [@end_column]
@@ -97,21 +89,12 @@ class CommonsDebatesParser < CommonsParser
         setup_preamble(text)
       else
         start_new_section
-        @section_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-        @section = Debate.find_or_create_by(ident: section_ident)
-        @section.title = sanitize_text(text)
-        @section.url = "#{@page.url}\##{@last_link}"
-        @section.sequence = @section_seq
-        @section.columns = [@end_column]
-        @para_seq = 0
+        @section = create_new_debate(sanitize_text(text))
       end
     end
   end
   
   def process_subheading(text)
-    #day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
-    
     if @section and @section.type == "Preamble"
       build_preamble(text)
     else
@@ -121,25 +104,40 @@ class CommonsDebatesParser < CommonsParser
         start_subsection
         @section = create_new_container(text)
       else
-        @para_seq += 1
-        para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-        
-        para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.content = sanitize_text(text)
+        para = create_new_noncontribution_para(sanitize_text(text))
         if @end_column.empty?
           para.column = @start_column
         else
           para.column = @end_column
         end
         para.url = "#{@page.url}\##{@last_link}"
-        para.sequence = @para_seq
-        para.section = @section
-        para.save
-        @section.paragraphs << para
         @subject = sanitize_text(text)
-        @section_link = "#{@page.url}\##{@last_link}"
       end
     end
+  end
+  
+  def create_new_debate(text)
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    section = Debate.find_or_create_by(ident: section_ident)
+    section.title = text
+    section.url = "#{@page.url}\##{@last_link}"
+    section.sequence = @section_seq
+    section.columns = [@end_column]
+    @para_seq = 0
+    section
+  end
+  
+  def create_new_division
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    section = Division.find_or_create_by(ident: section_ident)
+    section.ayes = []
+    section.noes = []
+    section.tellers_ayes = []
+    section.tellers_noes = []
+    @para_seq = 0
+    section
   end
   
   def create_new_container(title, parent=nil)
@@ -162,62 +160,86 @@ class CommonsDebatesParser < CommonsParser
     section
   end
   
+  def create_new_question(text, member=false)
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    section = Question.find_or_create_by(ident: section_ident)
+    section.question_type = "for oral answer"
+    if section.number.blank?
+      number = get_question_number(text)
+      unless number.blank?
+        section.number = get_question_number(text) 
+      end
+    end
+    section.asked_by = member.index_name if member
+    if text =~ /^\s?(T\d+). /
+      section.title = "Topical Questions - #{$1}"
+    else
+      section.title = text
+    end
+    section.department = @department if @department
+    section.url = "#{@page.url}\##{@last_link}"
+    @para_seq = 0
+    section
+  end
+  
+  def create_new_contribution_para(text, member_name="", ident=nil)
+    unless ident
+      @para_seq += 1
+      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    end
+    para = ContributionPara.find_or_create_by(ident: ident)
+    para.content = text
+    
+    if text.strip =~ /^#{@member.post} \(#{@member.name}\)/
+      para.speaker_printed_name = "#{@member.post} (#{@member.name})"
+    else
+      unless member_name.empty?
+        para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
+      end
+    end
+    para.member = @member.index_name
+    link_member_to_contribution(@member)
+    
+    para.sequence = @para_seq
+    para.section = @section
+    para.save
+    @section.paragraphs << para
+    
+    para
+  end
+  
+  def create_new_noncontribution_para(text, ident=nil)
+    unless ident
+      @para_seq += 1
+      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    end
+    
+    para = NonContributionPara.find_or_create_by(ident: ident)
+    para.content = text
+    para.sequence = @para_seq
+    para.section = @section
+    para.save
+    @section.paragraphs << para
+    para
+  end
+  
   def process_division(text)
     case text.strip
-    when /^The House (having )?divided/
-      @para_seq += 1
-      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      
-      para = NonContributionPara.find_or_create_by(ident: para_ident)
-      para.content = sanitize_text(text)
+    when /^The House (having )?divided/, /^Motion/, /^Question/
+      para = create_new_noncontribution_para(sanitize_text(text))
       if @end_column.empty?
         para.column = @start_column
       else
         para.column = @end_column
       end
-      para.url = "#{@page.url}\##{@last_link}"
-      para.sequence = @para_seq
-      para.section = @section
-      para.save
-      
-      @section.paragraphs << para
-      @section_link = "#{@page.url}\##{@last_link}"
-      @section.ayes = []
-      @section.noes = []
-      @section.tellers_ayes = []
-      @section.tellers_noes = []
-    when /^Motion/, /^Question/
-      @para_seq += 1
-      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      
-      para = NonContributionPara.find_or_create_by(ident: para_ident)
-      para.content = sanitize_text(text)
-      if @end_column.empty?
-        para.column = @start_column
-      else
-        para.column = @end_column
-      end
-      para.url = "#{@page.url}\##{@last_link}"
-      para.sequence = @para_seq
-      para.section = @section
-      para.save
     when /^Ayes \d+, Noes \d+./
-      @para_seq += 1
-      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      
-      para = NonContributionPara.find_or_create_by(ident: para_ident)
-      para.content = sanitize_text(text)
+      para = create_new_noncontribution_para(sanitize_text(text))
       if @end_column.empty?
         para.column = @start_column
       else
         para.column = @end_column
       end
-      para.url = "#{@page.url}\##{@last_link}"
-      para.sequence = @para_seq
-      para.section = @section
-      para.save
-      
-      @section.paragraphs << para
     when /^Division No\. ([^\]]*)\]/
       @section.number = $1
     when /\[(\d+\.\d+ (a|p)m)/
@@ -359,7 +381,6 @@ class CommonsDebatesParser < CommonsParser
     
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
-    
     if @page_fragment_type == "question"
       if @subsection_name == "Oral Answer"
         @section.number = get_question_number(text) if @section.number.blank?
@@ -369,25 +390,12 @@ class CommonsDebatesParser < CommonsParser
         @section_stack << @section if @section.type == "Container"
         @page_fragment_type = ""
         start_new_section
-        @section_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-        @section = Question.find_or_create_by(ident: section_ident)
-        @section.question_type = "for oral answer"
-        @section.number = get_question_number(text) if @section.number.blank?
-        @section.asked_by = @member.index_name
-        if text =~ /^\s?(T\d+). /
-          @section.title = "Topical Questions - #{$1}"
-        end
-        @section.department = @department if @department
-        @para_seq = 0
+        @section = create_new_question(text, @member)
       end
     elsif @page_fragment_type == "division"
       unless @section.type == "Division"
         start_new_section
-        @section_seq += 1
-        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-        @section = Division.find_or_create_by(ident: section_ident)
-        @para_seq = 0
+        @section = create_new_division
       end
       process_division(text)
     end
@@ -407,25 +415,10 @@ class CommonsDebatesParser < CommonsParser
         para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
         para = nil
         
-        #check if this is a new contrib
-        process_member_contribution(member_name, text)
-        
         if @member
-          para = ContributionPara.find_or_create_by(ident: para_ident)
-          para.content = sanitize_text(text)
-          
-          if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
-            para.speaker_printed_name = "#{@member.post} (#{@member.name})"
-          else
-            unless member_name.empty?
-              para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
-            end
-          end
-          para.member = @member.index_name
-          link_member_to_contribution(@member)
+          para = create_new_contribution_para(sanitize_text(text), member_name, para_ident)
         else
-          para = NonContributionPara.find_or_create_by(ident: para_ident)
-          para.content = sanitize_text(text)
+          para = create_new_noncontribution_para(sanitize_text(text), para_ident)
         end
         if @end_column.empty?
           para.column = @start_column
@@ -433,10 +426,6 @@ class CommonsDebatesParser < CommonsParser
           para.column = @end_column
         end
         para.url = "#{@page.url}\##{@last_link}"
-        para.sequence = @para_seq
-        para.section = @section
-        para.save
-        @section.paragraphs << para
       end
     end
   end
