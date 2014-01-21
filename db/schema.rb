@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140117131428) do
+ActiveRecord::Schema.define(version: 20140121120333) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,13 +45,6 @@ ActiveRecord::Schema.define(version: 20140117131428) do
     t.string  "member"
     t.string  "speaker_printed_name"
     t.string  "contribution_ident"
-    t.string  "description"
-    t.string  "number"
-    t.string  "tellers_ayes"
-    t.string  "tellers_noes"
-    t.string  "ayes",                 array: true
-    t.string  "noes",                 array: true
-    t.string  "timestamp"
     t.string  "type"
   end
 
@@ -75,6 +68,11 @@ ActiveRecord::Schema.define(version: 20140117131428) do
     t.string  "type"
     t.string  "chair",             array: true
     t.integer "parent_section_id"
+    t.string  "division_number"
+    t.string  "tellers_ayes",      array: true
+    t.string  "tellers_noes",      array: true
+    t.string  "ayes",              array: true
+    t.string  "noes",              array: true
   end
 
   add_index "sections", ["ident"], name: "index_sections_on_ident", using: :btree

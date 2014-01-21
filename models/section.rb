@@ -5,6 +5,8 @@ require 'active_record'
 class Section < ActiveRecord::Base
   belongs_to :component
   has_many :paragraphs
+  has_many :sections, :foreign_key => 'parent_section_id', :dependent => :destroy
+  belongs_to :parent_section, :class_name => "Section", :foreign_key => 'parent_section_id'
   
   def contributions_by_member(member_name)
     contribs = []
@@ -26,6 +28,9 @@ class Section < ActiveRecord::Base
   end
 end
 
+class Container < Section
+end
+
 class Debate < Section
 end
 
@@ -42,4 +47,7 @@ class MemberIntroduction < Section
 end
 
 class Tribute < Section
+end
+
+class Division < Section
 end

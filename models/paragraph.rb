@@ -29,6 +29,3 @@ end
 
 class ContributionTable < Paragraph
 end
-
-class Division < Paragraph
-end
