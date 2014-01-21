@@ -11,6 +11,7 @@ class CommonsParser < Parser
     super(date, "Commons")
   end
   
+  
   private
   
   def process_links_and_columns(node)
@@ -18,14 +19,8 @@ class CommonsParser < Parser
       @last_link = node.attr("name")
     end
     
-    column = set_column(node)
-    if @start_column.empty? and column
-      #need to set the start column
-      @start_column = set_column(node)
-    elsif column
-      #need to set the end column
-      @end_column = set_column(node)
-    end
+    col = set_column(node)
+    @column = col if col
   end
   
   def process_member_contribution(member_name, text, seq=nil, italic_text=nil)
@@ -90,39 +85,6 @@ class CommonsParser < Parser
         end
       end
     end
-  end
-  
-  def store_preamble
-    @section_seq += 1
-    preamble_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-    preamble = Preamble.find_or_create_by(ident: preamble_ident)
-    @para_seq += 1
-    preamble.title = @preamble[:title]
-    preamble.component = @hansard_component
-    preamble.url = @preamble[:link]
-    preamble.sequence = @section_seq
-    
-    @preamble[:fragments].each_with_index do |fragment, i|
-      @para_seq += 1
-      para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      
-      para = NonContributionPara.find_or_create_by(ident: para_ident)
-      para.section = preamble
-      para.content = fragment
-      para.sequence = @para_seq
-      para.url = @preamble[:links][i]
-      para.column = @preamble[:columns][i]
-      
-      para.save
-      preamble.paragraphs << para
-    end
-    preamble.columns = preamble.paragraphs.collect{ |x| x.column }.uniq
-    
-    preamble.save
-    @hansard_component.sections << preamble
-    @hansard_component.save
-    
-    @preamble = {:fragments => [], :columns => [], :links => []}
   end
   
   def save_section

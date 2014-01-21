@@ -73,7 +73,7 @@ class CommonsDebatesParser < CommonsParser
         @section = create_new_question(sanitize_text(text))
       end
       @section.sequence = @section_seq
-      @section.columns = [@end_column]
+      @section.columns = [@column]
       @section.department if @department
     else
       if @subsection_name == "Oral Answer" or @subsection_name == "Topical Questions"
@@ -105,11 +105,7 @@ class CommonsDebatesParser < CommonsParser
         @section = create_new_container(text)
       else
         para = create_new_noncontribution_para(sanitize_text(text))
-        if @end_column.empty?
-          para.column = @start_column
-        else
-          para.column = @end_column
-        end
+        para.column = @column
         para.url = "#{@page.url}\##{@last_link}"
         @subject = sanitize_text(text)
       end
@@ -123,7 +119,7 @@ class CommonsDebatesParser < CommonsParser
     section.title = text
     section.url = "#{@page.url}\##{@last_link}"
     section.sequence = @section_seq
-    section.columns = [@end_column]
+    section.columns = [@column]
     @para_seq = 0
     section
   end
@@ -228,18 +224,10 @@ class CommonsDebatesParser < CommonsParser
     case text.strip
     when /^The House (having )?divided/, /^Motion/, /^Question/
       para = create_new_noncontribution_para(sanitize_text(text))
-      if @end_column.empty?
-        para.column = @start_column
-      else
-        para.column = @end_column
-      end
+      para.column = @column
     when /^Ayes \d+, Noes \d+./
       para = create_new_noncontribution_para(sanitize_text(text))
-      if @end_column.empty?
-        para.column = @start_column
-      else
-        para.column = @end_column
-      end
+      para.column = @column
     when /^Division No\. ([^\]]*)\]/
       @section.number = $1
     when /\[(\d+\.\d+ (a|p)m)/
@@ -420,11 +408,7 @@ class CommonsDebatesParser < CommonsParser
         else
           para = create_new_noncontribution_para(sanitize_text(text), para_ident)
         end
-        if @end_column.empty?
-          para.column = @start_column
-        else
-          para.column = @end_column
-        end
+        para.column = @column
         para.url = "#{@page.url}\##{@last_link}"
       end
     end

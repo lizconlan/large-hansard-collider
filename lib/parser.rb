@@ -67,7 +67,6 @@ class Parser
     @daily_part.house = house
     @daily_part.date = date
     @hansard_component = nil
-    @page_fragments = nil
     @page = nil
     @component_ident = ""
     @start_url = ""
@@ -81,20 +80,14 @@ class Parser
     @para_seq = 0
     @contribution_seq = 0
     
-    
     @members = {}
     @component_members = {}
     @member = nil
     @contribution = nil
     
     @last_link = ""
-    @page_fragments = []
-    @questions = []
-    @preamble = {:fragments => [], :columns => [], :links => []}
     @subject = ""
-    @start_column = ""
-    @end_column = ""
-    @chair = ""
+    @column = ""
   end
   
   def get_component_index(component_name)
@@ -242,14 +235,10 @@ class Parser
   
   def handle_contribution(member, new_member, seq=nil)
     if @contribution and member
-      @contribution.end_column = @end_column
+      @contribution.end_column = @column
       link_member_to_contribution(member)
     end
-    if @end_column.empty?
-      @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @start_column)
-    else
-      @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @end_column)
-    end
+    @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @column)
     
     if new_member
       @member = resolve_member_name(new_member)
@@ -306,10 +295,6 @@ class Parser
     text
   end
   
-  def fragment_has_text
-    (@page_fragments.empty? == false and @page_fragments.map {|x| x.content}.join("").length > 0)
-  end
-  
   def process_timestamp(text)
     return false unless @section
     
@@ -348,13 +333,8 @@ class Parser
     para.content = text
     para.url = "#{@page.url}\##{@last_link}"
     para.section = @section
-    if @end_column.empty?
-      @section.columns << @start_column
-      para.column = @start_column
-    else
-      @section.columns << @end_column
-      para.column = @end_column
-    end
+    @section.columns << @column
+    para.column = @column
     para.save
     @section.paragraphs << para
   end

@@ -81,7 +81,7 @@ class WMSParser < CommonsParser
       link_member_to_contribution(@member)
     end
     para.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
-    para.column = @end_column
+    para.column = @column
     para.url = "#{@page.url}\##{@last_link}"
     para.section = @section
     para.sequence = @para_seq
@@ -103,11 +103,7 @@ class WMSParser < CommonsParser
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
         if bold.text =~ COLUMN_HEADER #older page format
-          if @start_column == ""
-            @start_column = $1
-          else
-            @end_column = $1
-          end
+          @column = $1
           column_desc = bold.text
         else 
           member_name = bold.text.strip
@@ -141,7 +137,7 @@ class WMSParser < CommonsParser
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.content = sanitize_text(text)
       end
-      para.column = @end_column
+      para.column = @column
       para.url = "#{@page.url}\##{@last_link}"
       para.sequence = @para_seq
       para.section = @section

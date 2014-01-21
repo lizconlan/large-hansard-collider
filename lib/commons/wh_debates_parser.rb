@@ -43,7 +43,7 @@ class WHDebatesParser < CommonsParser
     @section.title = sanitize_text(text)
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
-    @section.columns = [@end_column]
+    @section.columns = [@column]
     @para_seq = 0
     
     if @chair.length > 1
@@ -72,11 +72,7 @@ class WHDebatesParser < CommonsParser
       
       para = NonContributionPara.find_or_create_by(ident: para_ident)
       para.content = sanitize_text(text)
-      if @end_column.empty?
-        para.column = @start_column
-      else
-        para.column = @end_column
-      end
+      para.column = @column
       para.url = "#{@page.url}\##{@last_link}"
       para.sequence = @para_seq
       para.section = @section
@@ -99,12 +95,7 @@ class WHDebatesParser < CommonsParser
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
         if bold.text =~ COLUMN_HEADER #older page format
-          if @start_column.empty?
-            @start_column = $1
-            @end_column = $1
-          else
-            @end_column = $1
-          end
+          @column = $1
           column_desc = bold.text
         else 
           member_name = bold.text.strip
@@ -151,11 +142,7 @@ class WHDebatesParser < CommonsParser
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.content = sanitize_text(text)
       end
-      if @end_column.empty?
-        para.column = @start_column
-      else
-        para.column = @end_column
-      end
+      para.column = @column
       para.url = "#{@page.url}\##{@last_link}"
       para.sequence = @para_seq
       para.section = @section
