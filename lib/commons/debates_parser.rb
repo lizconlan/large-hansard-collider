@@ -7,33 +7,15 @@ class CommonsDebatesParser < CommonsParser
     super(date)
     @component_name = component_name
     @component_prefix = "d"
+    @department = ""
+    @bill = {}
+    @asked_by = ""
+    @subsection_name = ""
+    @section_stack = []
   end
   
   def get_component_index
     super(component_name)
-  end
-  
-  def init_vars
-    super()
-    
-    @bill = {}
-    
-    @questions = []
-    @question_no = ""
-    @petitions = []
-    
-    @column = ""
-    @subsection = ""
-    @asked_by = ""
-    @div_fragment = nil
-  end
-  
-  def reset_vars
-    @page_fragments = []
-    @questions = []
-    @petitions = []
-    @section_link = ""
-    @component_members = {}
   end
   
   
@@ -54,144 +36,192 @@ class CommonsDebatesParser < CommonsParser
       process_timestamp(minify_whitespace(node.text))
     when "p", "center"
       process_para(node)
-    when "div", "hr"
-      #ignore
     end
   end
   
   def process_top_level_heading(text, title)
     case text
     when "House of Commons"
-      setup_preamble(title, @page.url)
+      setup_preamble(title)
     when "Oral Answers to Questions"
-      set_new_heading
-      @subsection = "Oral Answer"
-      setup_preamble(title, @page.url)
+      create_oral_answers_subsection(text)
     end
   end
   
   def process_heading(text)
-    if (@page_fragment_type == "department heading" and @subsection == "Oral Answer")
+    if (@page_fragment_type == "department heading" and @subsection_name == "Oral Answer")
       @department = text
-      if text.downcase != "prayers" and (fragment_has_text or @preamble[:title])
-        set_new_heading
-        
-        @section_link = "#{@page.url}\##{@last_link}"
-      else
+      if text.downcase != "prayers" and @section
         start_new_section
-        @subject = text
-        
-        if @preamble[:title]
-          build_preamble(text, @page.url)
+        @section = create_new_container(text, @section_stack.last)
+      else
+        if @section.type == "Preamble"
+          #wait, is that even possible?
+          build_preamble(text)
         else
-          fragment = create_fragment(text)
-          @page_fragments << fragment
-          @section_link = "#{@page.url}\##{@last_link}"
+          start_new_section
+          setup_preamble(text)
         end
       end
-    elsif @page_fragment_type == "subject heading" and @subsection == "Oral Answer"
-      start_new_section
-      @subject = text
-      @section_link = "#{@page.url}\##{@last_link}"
+    elsif @page_fragment_type == "subject heading" and @subsection_name == "Oral Answer"
+      if text == "Topical Questions"
+        start_subsection
+        @subsection_name = "Topical Questions"
+        @section = create_new_container(sanitize_text(text), @section_stack.last)
+      else
+        #a subject heading, inside Oral Answers
+        start_new_section
+        @section_seq += 1
+        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+        @section = Question.find_or_create_by(ident: section_ident)
+        @section.title = sanitize_text(text)
+        @section.url = "#{@page.url}\##{@last_link}"
+        @section.department = @department
+        @section.question_type = "for oral answer"
+        @para_seq = 0
+      end
+      @section.sequence = @section_seq
+      @section.columns = [@end_column]
+      @section.department if @department
     else
+      if @subsection_name == "Oral Answer" or @subsection_name == "Topical Questions"
+        save_section
+      end
       if text =~ /.? Bill(?: |$)/
         @bill[:title] = text.gsub(" [Lords]", "")
       end
       
-      @subsection = ""
+      @subsection_name = ""
       if text.downcase == "prayers"
-        build_preamble(text, @page.url)
+        start_new_section
+        setup_preamble(text)
       else
         start_new_section
-        setup_new_fragment(text)
+        @section_seq += 1
+        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+        @section = Debate.find_or_create_by(ident: section_ident)
+        @section.title = sanitize_text(text)
+        @section.url = "#{@page.url}\##{@last_link}"
+        @section.sequence = @section_seq
+        @section.columns = [@end_column]
+        @para_seq = 0
       end
     end
   end
   
   def process_subheading(text)
-    day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
-    if @preamble[:title]
-      build_preamble(text, @page.url)
+    #day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
+    
+    if @section and @section.type == "Preamble"
+      build_preamble(text)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honorary h3 / main heading
-        if fragment_has_text or @preamble[:title]
-          set_new_heading
+        @subsection_name = "Backbench Business"
+        start_subsection
+        @section = create_new_container(text)
+      else
+        @para_seq += 1
+        para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+        
+        para = NonContributionPara.find_or_create_by(ident: para_ident)
+        para.content = sanitize_text(text)
+        if @end_column.empty?
+          para.column = @start_column
+        else
+          para.column = @end_column
         end
-        @preamble[:title] = text
-        @subsection = ""
-      else              
-        fragment = create_fragment(text)
-        @page_fragments << fragment
-        unless @subsection == "Oral Answer"
-          @subject = sanitize_text(text)
-        end
+        para.url = "#{@page.url}\##{@last_link}"
+        para.sequence = @para_seq
+        para.section = @section
+        para.save
+        @section.paragraphs << para
+        @subject = sanitize_text(text)
         @section_link = "#{@page.url}\##{@last_link}"
       end
     end
   end
   
-  def process_timestamp(text)
-    fragment = create_fragment(text)
-    fragment.desc = "timestamp"
-    fragment.link = "#{@page.url}\##{@last_link}"
-    @page_fragments << fragment
-  end
-  
-  def setup_new_fragment(text)
-    case text.downcase
-    when "business without debate"
-      @subsection = ""
-    when /^business/,
-         "european union documents",
-         "points of order",
-         "point of order",
-         "royal assent",
-         "bill presented"
-      @subject = text
-      @subsection = ""
-    when "petition"
-      @subsection = "Petition"
-    when /adjournment/
-      @subsection = "Adjournment Debate"
+  def create_new_container(title, parent=nil)
+    @section_seq += 1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    section = Container.find_or_create_by(ident: section_ident)
+    section.url = "#{@page.url}\##{@last_link}"
+    section.component = @hansard_component
+    section.title = title
+    section.sequence = @section_seq
+    section.columns = []
+    @para_seq = 0
+    if parent
+      section.parent_section = parent
+      parent.sections << section
+      @section_stack << section
     else
-      if @subsection == ""
-        @subsection = "Debate"
-      end
+      @section_stack = [section]
     end
-    unless text.downcase == "petition"
-      @subject = text
-      @section_link = "#{@page.url}\##{@last_link}"
-    end
-  end
-  
-  def stash_division
-    @page_fragments << @div_fragment
-    @div_fragment = nil
+    section
   end
   
   def process_division(text)
     case text.strip
-    when /^(Question|Motion)/
-      @div_fragment.summary = text
-      if @div_fragment
-        stash_division()
-      end
     when /^The House (having )?divided/
-      @div_fragment = PageFragment.new
-      @div_fragment.desc = "division"
-      @div_fragment.content = "division"
-      @div_fragment.overview = text
-      @div_fragment.ayes = []
-      @div_fragment.noes = []
-      @div_fragment.tellers_ayes = ""
-      @div_fragment.tellers_noes = ""
+      @para_seq += 1
+      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      
+      para = NonContributionPara.find_or_create_by(ident: para_ident)
+      para.content = sanitize_text(text)
+      if @end_column.empty?
+        para.column = @start_column
+      else
+        para.column = @end_column
+      end
+      para.url = "#{@page.url}\##{@last_link}"
+      para.sequence = @para_seq
+      para.section = @section
+      para.save
+      
+      @section.paragraphs << para
+      @section_link = "#{@page.url}\##{@last_link}"
+      @section.ayes = []
+      @section.noes = []
+      @section.tellers_ayes = []
+      @section.tellers_noes = []
+    when /^Motion/, /^Question/
+      @para_seq += 1
+      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      
+      para = NonContributionPara.find_or_create_by(ident: para_ident)
+      para.content = sanitize_text(text)
+      if @end_column.empty?
+        para.column = @start_column
+      else
+        para.column = @end_column
+      end
+      para.url = "#{@page.url}\##{@last_link}"
+      para.sequence = @para_seq
+      para.section = @section
+      para.save
     when /^Ayes \d+, Noes \d+./
-      @div_fragment.overview = "#{@div_fragment.overview} #{text}".strip
+      @para_seq += 1
+      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+      
+      para = NonContributionPara.find_or_create_by(ident: para_ident)
+      para.content = sanitize_text(text)
+      if @end_column.empty?
+        para.column = @start_column
+      else
+        para.column = @end_column
+      end
+      para.url = "#{@page.url}\##{@last_link}"
+      para.sequence = @para_seq
+      para.section = @section
+      para.save
+      
+      @section.paragraphs << para
     when /^Division No\. ([^\]]*)\]/
-      @div_fragment.number = $1
+      @section.number = $1
     when /\[(\d+\.\d+ (a|p)m)/
-      @div_fragment.timestamp = $1
+      process_timestamp($1)
     when "AYES"
       @current_list = "ayes"
       @tellers = false
@@ -204,26 +234,26 @@ class CommonsDebatesParser < CommonsParser
       @tellers = true
     when /^(?:d(?:e|u|')\s)?(?:Ma?c)?(?:(?:o|O)')?[A-Z][a-z]+(?:(?:\-| )?(?:Ma?c)?[A-Z][a-z]*)?, (?:rh)?\s?(?:Mr|Ms|Mrs|Miss|Dr|Sir)?\s?[A-Z][a-z]*/
       if @current_list == "ayes"
-        @div_fragment.ayes << text.strip
+        @section.ayes << text.strip
       else
-        @div_fragment.noes << text.strip
+        @section.noes << text.strip
       end
     else
       if @tellers
         if @current_list == "ayes"
-          @div_fragment.tellers_ayes = "#{@div_fragment.tellers_ayes} #{text.strip}".strip
+          @section.tellers_ayes << text.strip.gsub(/ and$/, "")
         else
-          @div_fragment.tellers_noes = "#{@div_fragment.tellers_noes} #{text.strip}".strip
+          @section.tellers_noes << text.strip.gsub(/ and$/, "")
         end
       else
         if @current_list == "ayes"
-          aye = @div_fragment.ayes.pop
+          aye = @section.ayes.pop
           aye = "#{aye} #{text.strip}"
-          @div_fragment.ayes << aye
+          @section.ayes << aye
         else
-          noe = @div_fragment.noes.pop
+          noe = @section.noes.pop
           noe = "#{noe} #{text.strip}"
-          @div_fragment.noes << noe
+          @section.noes << noe
         end
       end
     end
@@ -233,14 +263,15 @@ class CommonsDebatesParser < CommonsParser
     case node.xpath("i").first.text.strip
     when /^Motion/
       unless (node.xpath("i").map { |x| x.text }).join(" ") =~ /and Question p/
-        @subsection = "Motion"
+        start_subsection
+        @subsection_name = "Motion"
         @member = nil
       end
     when /^Debate resumed/
       @subject = "#{@subject} (resumed)"
       @member = nil
     when /^Ordered/, /^Question put/
-      @subsection = ""
+      @subsection_name = ""
       @member = nil
     when /Reading$/
       if @bill[:title]
@@ -258,9 +289,6 @@ class CommonsDebatesParser < CommonsParser
           @page_fragment_type = "question"
           @link = node.attr("name")
         when /^st_/, /^stpa_/
-          if @page_fragment_type == "division" and @div_fragment
-            stash_division()
-          end
           @page_fragment_type = "contribution"
           @link = node.attr("name")
         when /^divlst_/
@@ -271,87 +299,58 @@ class CommonsDebatesParser < CommonsParser
     end
   end
   
-  def process_oral_question(text)
+  def create_oral_answers_subsection(text)
+    start_subsection
+    @subsection_name = "Oral Answer"
+    @section = create_new_container(text)
+  end
+  
+  def get_question_number(text)
+    question = ""
     if text =~ /^((?:T|Q)\d+)\.\s\[([^\]]*)\] /
       qno = $1
       question = $2
-      set_subjects_and_store(qno)
-      @questions << question
     elsif text[text.length-1..text.length] == "]" and text.length > 3
       question = text[text.rindex("[")+1..text.length-2]
-      @questions << sanitize_text(question)
     end
+    question
   end
   
-  def set_subjects_and_store(qno)
-    if @questions.empty?
-      if @subject =~ /\- (?:T|Q)\d+/
-        @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{qno}")}"
-      else
-        @subject = "#{@subject} - #{qno}"
-      end
-    else
-      if @subject =~ /\- (?:T|Q)\d+/
-        @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
-      else
-        @subject = "#{@subject} - #{@question_no}"
-      end
-      save_section
-      reset_vars()
-    end
-    @question_no = qno
-    @section_link = "#{@page.url}\##{@last_link}"
-    @subject = "#{@subject.gsub(/\- (?:T|Q)\d+/, "- #{@question_no}")}"
-  end
-  
-  def create_fragment(text)
-    fragment = PageFragment.new
-    if @member
-      fragment.speaker = @member.index_name
-    end
-    fragment.content = sanitize_text(text)
-    fragment.column = @end_column
-    
-    if @member
-      if fragment.content =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.post} \(#{@member.name}\)/
-        fragment.printed_name = "#{@member.post} (#{@member.name})"
-      elsif fragment.content =~ /^((T|Q)?\d+\.\s+(\[\d+\]\s+)?)?#{@member.search_name}/
-        fragment.printed_name = @member.search_name
-      else
-        fragment.printed_name = @member.printed_name
-      end
-      if @page_fragment_type == "question" and @asked_by.empty?
-        @asked_by = @member.index_name
-      end
-      fragment.content = sanitize_text(text)
-    end
-    fragment
-  end
+  # def get_question_title(text, number)
+  #   title = ""
+  #   if text =~ /\- (?:T|Q)\d+/
+  #     title = "#{text.gsub(/\- (?:T|Q)\d+/, "- #{number}")}"
+  #   else
+  #     title = "#{text} - #{number}"
+  #   end
+  #   title
+  # end
   
   def process_para(node)
     column_desc = ""
     member_name = ""
     
     #check for nested sections
-    if @subsection == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
+    if @section and @section.type == "Debate" and (node.xpath("i") and node.xpath("i").length > 0)
       override_subsection(node)
     end
     
-    unless @page_fragments.empty? and node.xpath("center") and node.xpath("center").text == node.text
+    unless node.xpath("center") and node.xpath("center").text == node.text
       process_anchor_element(node)
+    end
+    
+    unless node.xpath("a").empty?
+      process_links_and_columns(node.xpath("a").last)
     end
     
     unless node.xpath("b").empty?
       node.xpath("b").each do |bold|
         if bold.text =~ COLUMN_HEADER #older page format
-          if @start_column.empty?
-            @start_column = $1
-          else
-            @end_column = $1
-          end
+          @column = $1
           column_desc = bold.text
         else 
           member_name = bold.text.strip
+          process_member_contribution(member_name, node.text)
         end
       end
     else
@@ -360,12 +359,39 @@ class CommonsDebatesParser < CommonsParser
     
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
+    
     if @page_fragment_type == "question"
-      process_oral_question(text)
+      if @subsection_name == "Oral Answer"
+        @section.number = get_question_number(text) if @section.number.blank?
+        @section.asked_by = @member.index_name
+      end
+      if @subsection_name == "Topical Questions"
+        @section_stack << @section if @section.type == "Container"
+        @page_fragment_type = ""
+        start_new_section
+        @section_seq += 1
+        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+        @section = Question.find_or_create_by(ident: section_ident)
+        @section.question_type = "for oral answer"
+        @section.number = get_question_number(text) if @section.number.blank?
+        @section.asked_by = @member.index_name
+        if text =~ /^\s?(T\d+). /
+          @section.title = "Topical Questions - #{$1}"
+        end
+        @section.department = @department if @department
+        @para_seq = 0
+      end
     elsif @page_fragment_type == "division"
+      unless @section.type == "Division"
+        start_new_section
+        @section_seq += 1
+        section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+        @section = Division.find_or_create_by(ident: section_ident)
+        @para_seq = 0
+      end
       process_division(text)
     end
-    if @subsection == "Petition" and text =~ /\[(P[^\]]*)\]/
+    if @subsection_name == "Petition" and text =~ /\[(P[^\]]*)\]/
       @petitions << $1
     end
     
@@ -374,209 +400,59 @@ class CommonsDebatesParser < CommonsParser
       #check if this is a new contrib
       process_member_contribution(member_name, text)
       
-      if @preamble[:title]
-        build_preamble(text, @page.url)
+      if @section.type == "Preamble"
+        build_preamble(text)
       elsif @page_fragment_type != "division"
-        fragment = create_fragment(text)
-        
-        @page_fragments << fragment
-        @section_link = "#{@page.url}\##{@last_link}" if @section_link == ""
-      end
-    end
-  end
-  
-  def store_non_contribution_para(preamble, fragment, idx, para_ident)
-    para = NonContributionPara.find_or_create_by(ident: para_ident)
-    para.section = preamble
-    para.content = fragment
-    para.sequence = @para_seq
-    para.url = @preamble[:links][idx]
-    para.column = @preamble[:columns][idx]
-    
-    para.save
-    para
-  end
-  
-  def store_preamble
-    @section_seq += 1
-    preamble_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-    preamble = Preamble.find_or_create_by(ident: preamble_ident)
-    @para_seq = 0
-    preamble.title = @preamble[:title]
-    preamble.component = @hansard_component
-    preamble.url = @preamble[:link]
-    preamble.sequence = @section_seq
-    
-    @preamble[:fragments].each_with_index do |fragment, i|
-      @para_seq += 1
-      para_ident = "#{preamble.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      para = store_non_contribution_para(preamble, fragment, i, para_ident)
-      preamble.paragraphs << para
-    end
-    preamble.columns = preamble.paragraphs.map { |x| x.column }.uniq
-    
-    preamble.save
-    @hansard_component.sections << preamble
-    @hansard_component.save
-    
-    @preamble = {:fragments => [], :columns => [], :links => []}
-  end
-  
-  def create_question(q_ident)
-    @debate = Question.find_or_create_by(ident: q_ident)
-    @debate.number = @questions.last
-    @debate.department = @department
-    @debate.asked_by = @asked_by
-    @debate.question_type = "for oral answer"
-    @asked_by = ""
-  end
-  
-  def store_division_fragment(fragment, para_ident)
-    para = Division.find_or_create_by(ident: para_ident)
-    para.number = fragment.number
-    para.ayes = fragment.ayes
-    para.noes = fragment.noes
-    para.tellers_ayes = fragment.tellers_ayes
-    para.tellers_noes = fragment.tellers_noes
-    para.timestamp = fragment.timestamp
-    
-    para.content = "#{fragment.overview} \n #{fragment.timestamp} - Division No. #{fragment.number} \n Ayes: #{fragment.ayes.join("; ")}, Tellers for the Ayes: #{fragment.tellers_ayes}, Noes: #{fragment.noes.join("; ")}, Tellers for the Noes: #{fragment.tellers_noes} \n #{fragment.summary}"
-    para
-  end
-  
-  def store_contribution_fragment(fragment, para_ident)
-    para = ContributionPara.find_or_create_by(ident: para_ident)
-    para.member = fragment.speaker
-    para.contribution_ident = "#{@debate.ident}__#{fragment.contribution_seq.to_s.rjust(6, "0")}"
-    if fragment.content.strip =~ /^(T?\d+\.\s+(\[\d+\]\s+)?)?#{fragment.printed_name.gsub('(','\(').gsub(')','\)')}/
-      para.speaker_printed_name = fragment.printed_name
-    end
-    para
-  end
-  
-  def store_fragments
-    @page_fragments.each do |fragment|
-      unless fragment.content == @debate.title or fragment.content == ""
         @para_seq += 1
-        para_ident = "#{@debate.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+        para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+        para = nil
         
-        para = create_para_by_type(fragment, para_ident)
-        associate_members_with_debate()
-        assign_para_to_debate(fragment, para)
+        #check if this is a new contrib
+        process_member_contribution(member_name, text)
+        
+        if @member
+          para = ContributionPara.find_or_create_by(ident: para_ident)
+          para.content = sanitize_text(text)
+          
+          if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
+            para.speaker_printed_name = "#{@member.post} (#{@member.name})"
+          else
+            unless member_name.empty?
+              para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
+            end
+          end
+          para.member = @member.index_name
+          link_member_to_contribution(@member)
+        else
+          para = NonContributionPara.find_or_create_by(ident: para_ident)
+          para.content = sanitize_text(text)
+        end
+        if @end_column.empty?
+          para.column = @start_column
+        else
+          para.column = @end_column
+        end
+        para.url = "#{@page.url}\##{@last_link}"
+        para.sequence = @para_seq
+        para.section = @section
+        para.save
+        @section.paragraphs << para
       end
     end
-  end
-  
-  def create_para_by_type(fragment, para_ident)
-    case fragment.desc
-    when "timestamp"
-      para = Timestamp.find_or_create_by(ident: para_ident)
-    when "division"
-      para = store_division_fragment(fragment, para_ident)
-    else
-      if fragment.speaker.nil?
-        para = NonContributionPara.find_or_create_by(ident: para_ident)
-      else
-        para = store_contribution_fragment(fragment, para_ident)
-      end
-    end
-    para
-  end
-  
-  def associate_members_with_debate
-    col_paras = @debate.paragraphs.dup
-    col_paras.delete_if{|x| x.respond_to?("member") == false }
-    @debate.members = col_paras.map {|x| x.member}.uniq
-  end
-  
-  def assign_para_to_debate(fragment, para)
-    para.content = fragment.content
-    para.url = fragment.link
-    para.column = fragment.column
-    para.sequence = @para_seq
-    para.section = @debate
-    para.save
-    
-    @debate.paragraphs << para
-  end
-  
-  def store_current_section
-    @section_seq += 1
-    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
-    
-    column_text = ""
-    if @start_column == @end_column or @end_column == ""
-      column_text = @start_column
-    else
-      column_text = "#{@start_column} to #{@end_column}"
-    end
-    
-    if @subsection == "Oral Answer"
-      create_question(section_ident)
-    else
-      @debate = Debate.find_or_create_by(ident: section_ident)
-    end
-    
-    @para_seq = 0
-    @hansard_component.sections << @debate
-    @hansard_component.save
-    
-    @daily_part.volume = @page.volume
-    @daily_part.part = sanitize_text(@page.part.to_s)
-    @daily_part.save
-    
-    @debate.component = @hansard_component
-    @debate.title = @subject
-    @debate.url = @section_link
-    
-    @debate.sequence = @section_seq
-    
-    store_fragments()
-    section_ident
   end
   
   def save_section
-    return false unless @preamble[:title] or fragment_has_text
-    
-    unless @questions.empty?
-      @subsection = "Oral Answer"
+    return false unless @section
+    unless @section_stack.empty? or @section_stack.last == @section
+      @section.parent_section = @section_stack.last
+      @section_stack.last.sections << @section
+      @section_stack.last.save
     end
-    
-    if @preamble[:title]
-      store_preamble()
-    else
-      unless @page_fragments.empty?
-        handle_contribution(@member, @member)
-        
-        #no point storing pointers that don't link back to the source
-        unless @section_link.empty?
-          section_ident = store_current_section
-        end
-        
-        set_columns_and_save()
-        print_debug(section_ident)
-      end
-    end
-    reset_vars
-  end
-  
-  def set_columns_and_save
-    @debate.columns = @debate.paragraphs.map {|x| x.column}.uniq
-    if @bill[:title]
-      @debate.bill_title = @bill[:title]
-      @debate.bill_stage = @bill[:stage]
+    if @bill[:title] and @bill[:stage]
+      @section.bill_title = @bill[:title]
+      @section.bill_stage = @bill[:stage]
       @bill = {}
     end
-    @debate.save
-    @start_column = @end_column if @end_column != ""
-  end
-  
-  def print_debug(section_ident)
-    unless ENV["RACK_ENV"] == "test"
-      p @subject
-      p section_ident
-      p @section_link
-      p ""
-    end
+    @section.save
   end
 end

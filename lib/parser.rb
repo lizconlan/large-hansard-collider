@@ -17,9 +17,10 @@ class Parser
   attr_reader :date, :doc_id, :house, :state
   
   state_machine :state, :initial => :idle do
-    before_transition [:starting, :heading_complete, :parsing_section] => :parsing_section, :do => :save_section
+    before_transition [:starting, :heading_complete, :parsing_section, :parsing_subsection] => :parsing_section, :do => :save_section
     before_transition all - [:idle, :finished] => :setting_heading, :do => :save_section
     before_transition all - :idle => :finished, :do => :save_section
+    before_transition [:parsing_section, :parsing_subsection] => :parsing_subsection, :do => :save_section
     
     event :start do
       transition :idle => :starting
@@ -41,6 +42,10 @@ class Parser
       transition :starting => :parsing_section
     end
     
+    event :start_subsection do
+      transition [:starting, :parsing_section] => :parsing_subsection
+    end
+    
     event :finish do
       transition all => :finished
     end
@@ -49,6 +54,7 @@ class Parser
     state :setting_heading
     state :heading_complete
     state :parsing_section
+    state :parsing_subsection
     state :finished
   end
   
@@ -311,7 +317,7 @@ class Parser
     ts_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
     timestamp = Timestamp.find_or_create_by(ident: ts_ident)
     timestamp.content = text
-    timestamp.column = @end_column
+    timestamp.column = @column
     timestamp.url = "#{@page.url}\##{@last_link}"
     timestamp.section = @section
     timestamp.sequence = @para_seq
@@ -327,7 +333,7 @@ class Parser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Preamble.find_or_create_by(ident: section_ident)
     @section.title = title
-    @section.url = @page.url
+    @section.url = "#{@page.url}/##{@last_link}"
     @section.sequence = @section_seq
     @section.component = @hansard_component
     @section.columns = []
