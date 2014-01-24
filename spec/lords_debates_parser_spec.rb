@@ -61,6 +61,7 @@ describe LordsDebatesParser do
   
   context "when handling Member Introductions within Debates" do
     before(:each) do
+      pending("Lords parser being rewritten")
       @url = "http://www.publications.parliament.uk/pa/ld201011/ldhansrd/text/110111-0001.htm"
       stub_part("Lords", "2099-01-01", "94", "723")
       
@@ -74,6 +75,7 @@ describe LordsDebatesParser do
     end
     
     it "should correctly recognise the Member Introductions" do
+      pending("Lords parser being rewritten")
       stub_page("spec/data/lords/debates/introductions.html")
       
       Component.expects(:find_or_create_by).returns(@component)
