@@ -38,10 +38,6 @@ class Parser
       transition all - [:idle, :finished] => :parsing_section
     end
     
-    event :start_preamble do
-      transition :starting => :parsing_section
-    end
-    
     event :start_subsection do
       transition [:starting, :parsing_section] => :parsing_subsection
     end
@@ -312,8 +308,6 @@ class Parser
   end
   
   def setup_preamble(title)
-    start_preamble
-    
     @section_seq += 1
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Preamble.find_or_create_by(ident: section_ident)
