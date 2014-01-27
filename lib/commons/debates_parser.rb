@@ -353,19 +353,7 @@ class CommonsDebatesParser < CommonsParser
       process_links_and_columns(node.xpath("a").last)
     end
     
-    unless node.xpath("b").empty?
-      node.xpath("b").each do |bold|
-        if bold.text =~ COLUMN_HEADER #older page format
-          @column = $1
-          column_desc = bold.text
-        else 
-          member_name = bold.text.strip
-          process_member_contribution(member_name, node.text)
-        end
-      end
-    else
-      member_name = ""
-    end
+    member_name, column_desc = get_member_and_column(node, true)
     
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     

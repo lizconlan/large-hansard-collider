@@ -94,24 +94,11 @@ class WMSParser < CommonsParser
       return false
     end
     
-    column_desc = ""
-    member_name = ""
     if node.xpath("a") and node.xpath("a").length > 0
       @last_link = node.xpath("a").last.attr("name")
     end
     
-    unless node.xpath("b").empty?
-      node.xpath("b").each do |bold|
-        if bold.text =~ COLUMN_HEADER #older page format
-          @column = $1
-          column_desc = bold.text
-        else 
-          member_name = bold.text.strip
-        end
-      end
-    else
-      member_name = ""
-    end
+    member_name, column_desc = get_member_and_column(node)
     
     text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     return false if text.empty?

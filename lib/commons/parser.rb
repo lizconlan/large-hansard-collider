@@ -23,6 +23,23 @@ class CommonsParser < Parser
     @column = col if col
   end
   
+  def get_member_and_column(node, process_contribution=false)
+    member_name = ""
+    column_desc = ""
+    unless node.xpath("b").empty?
+      node.xpath("b").each do |bold|
+        if bold.text =~ COLUMN_HEADER #older page format
+          @column = $1
+          column_desc = bold.text
+        else 
+          member_name = bold.text.strip
+          process_member_contribution(member_name, node.text) if process_contribution
+        end
+      end
+    end
+    [member_name, column_desc]
+  end
+  
   def process_member_contribution(member_name, text, seq=nil, italic_text=nil)
     case member_name
     when /^(([^\(]*) \(in the Chair\):)/
