@@ -24,23 +24,25 @@ class HansardMember
     @post = post
   end
   
+  
   private
-    def format_search_name(member_name)
-      if member_name =~ TITLES
-        @title = $1
-        parts = member_name.split(" ").reverse
-        name = parts.pop
-        parts.pop #drop the firstname
-        member_name = "#{name} #{parts.reverse.join(" ")}"
-      end
-      member_name
+  
+  def format_search_name(member_name)
+    if member_name =~ TITLES
+      @title = $1
+      parts = member_name.split(" ").reverse
+      name = parts.pop
+      parts.pop #drop the firstname
+      member_name = "#{name} #{parts.reverse.join(" ")}"
     end
-    
-    def format_index_name(member_name)
-      if member_name =~ TITLES
-        @title = $1
-        member_name = member_name.gsub(@title, "").strip
-      end
-      member_name
+    member_name
+  end
+  
+  def format_index_name(member_name)
+    if member_name =~ TITLES
+      @title = $1
+      member_name = member_name.gsub(@title, "").strip
     end
+    member_name
+  end
 end
