@@ -31,7 +31,6 @@ class LordsDebatesParser < LordsParser
     @questions = []
     @petitions = []
     @section_link = ""
-    @component_members = {}
   end
   
   
@@ -322,14 +321,12 @@ class LordsDebatesParser < LordsParser
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
       handle_contribution(@member, member)
-      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
       handle_contribution(@member, member)
-      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\))/
       #an MP speaking for the first time in the debate
       name = $2
@@ -337,20 +334,11 @@ class LordsDebatesParser < LordsParser
       party = $4
       member = HansardMember.new(name, "", constituency, party)
       handle_contribution(@member, member)
-      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
     when /^(([^\(]*):)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
       handle_contribution(@member, member)
-      @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
-    else
-      if @member
-        unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
-            text == "#{@member.search_name} rose\342\200\224"
-          @contribution.fragments << sanitize_text(text)
-        end
-      end
     end
   end
   

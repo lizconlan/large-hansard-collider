@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140121120333) do
+ActiveRecord::Schema.define(version: 20140129110712) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -44,7 +44,6 @@ ActiveRecord::Schema.define(version: 20140121120333) do
     t.integer "sequence"
     t.string  "member"
     t.string  "speaker_printed_name"
-    t.string  "contribution_ident"
     t.string  "type"
   end
 
