@@ -320,25 +320,25 @@ class LordsDebatesParser < LordsParser
       name = $2
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
-      handle_contribution(@member, member)
+      handle_member_info(@member, member)
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
-      handle_contribution(@member, member)
+      handle_member_info(@member, member)
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\))/
       #an MP speaking for the first time in the debate
       name = $2
       constituency = $3
       party = $4
       member = HansardMember.new(name, "", constituency, party)
-      handle_contribution(@member, member)
+      handle_member_info(@member, member)
     when /^(([^\(]*):)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
-      handle_contribution(@member, member)
+      handle_member_info(@member, member)
     end
   end
   
@@ -591,7 +591,7 @@ class LordsDebatesParser < LordsParser
       store_preamble()
     else
       unless @page_fragments.empty?
-        handle_contribution(@member, @member)
+        handle_member_info(@member, @member)
         
         #no point storing pointers that don't link back to the source
         unless @section_link.empty?

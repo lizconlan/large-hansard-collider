@@ -1,8 +1,9 @@
 #encoding: utf-8
 
 class HansardMember
-  attr_reader :name, :index_name, :post, :party, :constituency, :search_name, :printed_name
-  attr_accessor :contributions
+  attr_reader :name, :index_name, :post, :party, :constituency, :search_name, :printed_name, :title
+  
+  TITLES = /^(Mr |^Ms |^Mrs |^Miss |^Dr |^Sir )/
   
   def initialize(name, search_name="", constituency="", party="", post="")
     @printed_name = name
@@ -21,12 +22,12 @@ class HansardMember
     @constituency = constituency
     @party = party
     @post = post
-    @contributions = []
   end
   
   private
     def format_search_name(member_name)
-      if member_name =~ /^Mr |^Ms |^Mrs |^Miss |^Dr/
+      if member_name =~ TITLES
+        @title = $1
         parts = member_name.split(" ").reverse
         name = parts.pop
         parts.pop #drop the firstname
@@ -36,21 +37,10 @@ class HansardMember
     end
     
     def format_index_name(member_name)
-      if member_name =~ /^(Mr |^Ms |^Mrs |^Miss |^Dr |^Sir )/
-        member_name = member_name.gsub($1, "").strip
+      if member_name =~ TITLES
+        @title = $1
+        member_name = member_name.gsub(@title, "").strip
       end
       member_name
     end
-end
-
-class HansardContribution
-  attr_reader :link, :start_column
-  attr_accessor :end_column, :fragments
-  
-  def initialize(link, start_column)
-    @link = link
-    @start_column = start_column
-    @end_column = ""
-    @fragments = []
-  end
 end

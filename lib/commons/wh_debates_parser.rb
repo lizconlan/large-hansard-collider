@@ -98,7 +98,7 @@ class WHDebatesParser < CommonsParser
     else
       italic_text = ""
     end
-
+    
     if text[text.length-13..text.length-2] == "in the Chair"
       @chair = text[1..text.length-15]
     end
@@ -110,8 +110,6 @@ class WHDebatesParser < CommonsParser
       @para_seq += 1
       para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
       para = nil
-      
-      #check if this is a new contrib
       process_member_contribution(member_name, text)
       
       if @member
@@ -120,11 +118,13 @@ class WHDebatesParser < CommonsParser
         
         if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
           para.speaker_printed_name = "#{@member.post} (#{@member.name})"
-        else
+        elsif sanitize_text(text).strip =~ /^#{@member.name} \(#{@member.constituency}\)/
           para.speaker_printed_name = @member.printed_name
+        else
+          para.speaker_printed_name = @member.search_name
         end
         para.member = @member.index_name
-        link_member_to_contribution(@member)
+        add_member_to_temp_store(@member)
       else
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.content = sanitize_text(text)

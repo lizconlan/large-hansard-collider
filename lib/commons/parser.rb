@@ -47,58 +47,30 @@ class CommonsParser < Parser
       name = $2
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
-      handle_contribution(@member, member)
-      if seq
-        @contribution_seq += 1
-      else
-        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
-      end
+      handle_member_info(@member, member)
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
       name = $3
       member = HansardMember.new(name, "", "", "", post)
-      handle_contribution(@member, member)
-      if seq
-        @contribution_seq += 1
-      else
-        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
-      end
+      handle_member_info(@member, member)
     when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
       #an MP speaking for the first time in the debate
       name = $2
       constituency = $3
       party = $4
       member = HansardMember.new(name, "", constituency, party)
-      handle_contribution(@member, member)
-      if seq
-        @contribution_seq += 1
-      else
-        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
-      end
+      handle_member_info(@member, member)
     when /^(([^\(]*):)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
-      handle_contribution(@member, member)
-      if seq
-        @contribution_seq += 1
-      else
-        @contribution.fragments << sanitize_text(text.gsub($1, "")).strip
-      end
+      handle_member_info(@member, member)
     else
       if italic_text
         if text == "#{member_name} #{italic_text}".squeeze(" ")
           member = HansardMember.new(member_name, member_name)
-          handle_contribution(@member, member)
-          @contribution_seq += 1
-        end
-      else
-        if @member
-          unless text =~ /^Sitting suspended|^Sitting adjourned|^On resuming|^Question put/ or
-              text == "#{@member.search_name} rose\342\200\224"
-            @contribution.fragments << sanitize_text(text)
-          end
+          handle_member_info(@member, member)
         end
       end
     end

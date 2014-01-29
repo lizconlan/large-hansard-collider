@@ -74,12 +74,9 @@ class Parser
     @component_seq = 0
     @section_seq = 0
     @para_seq = 0
-    @contribution_seq = 0
     
     @members = {}
-    @component_members = {}
     @member = nil
-    @contribution = nil
     
     @last_link = ""
     @subject = ""
@@ -229,47 +226,33 @@ class Parser
     end 
   end
   
-  def handle_contribution(member, new_member, seq=nil)
-    if @contribution and member
-      @contribution.end_column = @column
-      link_member_to_contribution(member)
+  def handle_member_info(member, new_member, seq=nil)
+    if member
+      add_member_to_temp_store(member)
     end
-    @contribution = HansardContribution.new("#{@page.url}\##{@last_link}", @column)
     
     if new_member
       @member = resolve_member_name(new_member)
     end
   end
   
-  def link_member_to_contribution(member)
+  def add_member_to_temp_store(member)
     unless @members.keys.include?(member.search_name)
-      if @component_members.keys.include?(member.search_name)
-        @members[member.search_name] = @component_members[member.search_name]
-      else
-        @members[member.search_name] = member
-        @component_members[member.search_name] = member
-      end
+      @members[member.search_name] = member
     end
-    @members[member.search_name].contributions << @contribution
   end
   
   def resolve_member_name(new_member)
     if @members.keys.include?(new_member.search_name)
       new_member = @members[new_member.search_name]
-    elsif @component_members.keys.include?(new_member.search_name)
-      new_member = @component_members[new_member.search_name]
     else
       @members[new_member.search_name] = new_member
-      @component_members[new_member.search_name] = new_member
     end
     @member = new_member
   end
   
   def sanitize_text(text)
     text.force_encoding("utf-8")
-    # text = text.gsub("\342\200\177", "'")
-    # text = text.gsub("\342\200\230", "'")
-    # text = text.gsub("\342\200\231", "'")
     text = text.gsub("’", "'")
     text = text.gsub("‘", "'")
     text = text.gsub("“", '"')

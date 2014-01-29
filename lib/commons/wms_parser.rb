@@ -78,7 +78,7 @@ class WMSParser < CommonsParser
       para = ContributionTable.find_or_create_by(ident: para_ident)
       para.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
       para.member = @member.index_name
-      link_member_to_contribution(@member)
+      add_member_to_temp_store(@member)
     end
     para.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
     para.column = @column
@@ -107,8 +107,6 @@ class WMSParser < CommonsParser
       @para_seq += 1
       para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
       para = nil
-      
-      #check if this is a new contrib
       process_member_contribution(member_name, text)
       
       if @member
@@ -117,9 +115,13 @@ class WMSParser < CommonsParser
         
         if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
           para.speaker_printed_name = "#{@member.post} (#{@member.name})"
+        elsif sanitize_text(text).strip =~ /^#{@member.name} \(#{@member.constituency}\)/
+          para.speaker_printed_name = @member.printed_name
+        else
+          para.speaker_printed_name = @member.search_name
         end
         para.member = @member.index_name
-        link_member_to_contribution(@member)
+        add_member_to_temp_store(@member)
       else
         para = NonContributionPara.find_or_create_by(ident: para_ident)
         para.content = sanitize_text(text)

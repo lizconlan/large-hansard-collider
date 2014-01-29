@@ -358,7 +358,7 @@ describe WHDebatesParser do
       contribution.expects(:sequence=).with(7)
       contribution.expects(:column=)
       contribution.expects(:member=).with("Louise Ellman")
-      contribution.expects(:speaker_printed_name=).with("Mrs Louise Ellman")
+      contribution.expects(:speaker_printed_name=).with("Mrs Ellman")
       
       debate = Debate.new(:ident => "2099-01-01_hansard_c_wh_000003")
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000003").returns(debate)

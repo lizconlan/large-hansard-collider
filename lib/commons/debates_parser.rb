@@ -189,13 +189,13 @@ class CommonsDebatesParser < CommonsParser
     
     if text.strip =~ /^#{@member.post} \(#{@member.name}\)/
       para.speaker_printed_name = "#{@member.post} (#{@member.name})"
-    else
-      unless member_name.empty?
-        para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
-      end
+    elsif text.strip =~  /^#{@member.name} \(#{@member.constituency}\)/
+      para.speaker_printed_name = @member.printed_name
+    elsif member_name != ""
+      para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
     end
     para.member = @member.index_name
-    link_member_to_contribution(@member)
+    add_member_to_temp_store(@member)
     
     para.sequence = @para_seq
     para.section = @section
@@ -381,7 +381,6 @@ class CommonsDebatesParser < CommonsParser
     
     #ignore column heading text
     unless (text =~ COLUMN_HEADER) or text == ""
-      #check if this is a new contrib
       process_member_contribution(member_name, text)
       
       if @section.type == "Preamble"
