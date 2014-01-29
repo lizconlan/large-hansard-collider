@@ -46,6 +46,7 @@ class Parser
       transition all => :finished
     end
     
+    state :idle
     state :starting
     state :setting_heading
     state :heading_complete
