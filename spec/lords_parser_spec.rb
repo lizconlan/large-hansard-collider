@@ -3,8 +3,7 @@ require './lib/lords/parser'
 
 describe LordsParser do
   before(:all) do
-    daily_part = DailyPart.new
-    DailyPart.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_l").returns(daily_part)
+    @daily_part = DailyPart.new
     
     @parser = LordsParser.new("2099-01-01")
     @parser.init_vars()
@@ -53,4 +52,3 @@ describe LordsParser do
     end
   end
 end
-

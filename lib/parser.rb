@@ -60,9 +60,7 @@ class Parser
     @house = house
     @doc_ident = "#{date}_hansard_#{house[0..0].downcase()}"
     
-    @daily_part = DailyPart.find_or_create_by(ident: @doc_ident)
-    @daily_part.house = house
-    @daily_part.date = date
+    @daily_part = nil 
     @hansard_component = nil
     @page = nil
     @component_ident = ""
@@ -126,10 +124,17 @@ class Parser
     unless first_page
       warn "No #{@component} data available for this date".squeeze(' ')
     else
+      @page = HansardPage.new(first_page)
+      
+      @daily_part = DailyPart.find_or_create_by(ident: @doc_ident)
+      @daily_part.house = house
+      @daily_part.date = date
+      @daily_part.volume = @page.volume
+      @daily_part.part = @page.part
       create_component
       
-      @page = HansardPage.new(first_page)
       parse_page
+      
       while @page.next_url
         @page = HansardPage.new(@page.next_url)
         parse_page

@@ -8,6 +8,9 @@ class HansardPage
   
   def initialize(url)
     @url = url
+    @volume = ""
+    @part = ""
+    @title = ""
     response = RestClient.get(url)
     @html = response.body
     @doc = Nokogiri::HTML(@html)
@@ -66,13 +69,8 @@ class HansardPage
   private
     def scrape_metadata
       subject = doc.xpath("//meta[@name='Subject']").attr("content").value.to_s
-      column_range = doc.xpath("//meta[@name='Columns']").attr("content").value.to_s
-      cols = column_range.gsub("Columns: ", "").split(" to ")
-      
-      @start_column = cols[0]
-      @end_column = cols[1]
       @volume = subject[subject.index("Volume:")+8..subject.rindex(",")-1]
-      @part = subject[subject.index("Part:")+5..subject.length].gsub("\302\240", "")
+      @part = subject[subject.index("Part:")+5..subject.length].gsub("\302\240", "").strip
       @title = doc.xpath("//head/title").text.strip
     end
 end
