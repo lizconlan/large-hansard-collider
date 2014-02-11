@@ -144,11 +144,6 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).returns(ncpara)
-      NonContributionPara.any_instance.stubs(:section=)
-      NonContributionPara.any_instance.stubs(:content=)
-      NonContributionPara.any_instance.stubs(:sequence=)
-      NonContributionPara.any_instance.stubs(:url=)
-      NonContributionPara.any_instance.stubs(:column=)
       
       ncpara.expects(:content=).with("[30th Allotted Day]")
       container.paragraphs.expects(:<<).with(ncpara)
@@ -162,32 +157,11 @@ describe CommonsDebatesParser do
       container.sections.expects(:<<).with(debate)
       
       timestamp = Timestamp.new
-      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002_p000001").returns(timestamp)
-      timestamp.expects(:content=).with("2.44 pm")
-      timestamp.expects(:column=).with("831")
+      Timestamp.expects(:find_or_create_by).returns(timestamp)
       
       contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002_p000002").returns(contribution)
-      contribution.expects(:content=).with("Natascha Engel (North East Derbyshire) (Lab):I beg to move,")
-      contribution.expects(:column=).with("831")
-      contribution.expects(:member=).with("Natascha Engel")
-      contribution.expects(:speaker_printed_name=).with("Natascha Engel")
+      ContributionPara.expects(:find_or_create_by).times(4).returns(contribution)
       
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002_p000003").returns(contribution)
-      contribution.expects(:content=).with("That this House has considered matters to be raised before the forthcoming adjournment.")
-      contribution.expects(:column=).with("831")
-      contribution.expects(:member=).with("Natascha Engel")
-      
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002_p000004").returns(contribution)
-      contribution.expects(:content=).with("Thank you for calling me, Mr Deputy Speaker; I thought that this moment would never arrive. A total of 66 Members want to participate in the debate, including our newest Member - my hon. Friend the Member for Inverclyde (Mr McKenzie) - who is hoping to make his maiden speech. [Hon. Members: \"Hear, hear.\"] It is unfortunate therefore that two Government statements, important though they both were, have taken almost two hours out of Back Benchers' time. To set an example of brevity and to prepare us for all the constituency carnivals and fairs at which we will be spending most of our time during the recess, I hereby declare the debate open.")
-      contribution.expects(:column=).with("831")
-      contribution.expects(:member=).with("Natascha Engel")
-      
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000002_p000005").returns(contribution)
-      contribution.expects(:content=).with("Mr Deputy Speaker (Mr Lindsay Hoyle): We are now coming to a maiden speech, and I remind hon. Members not to intervene on it.")
-      contribution.expects(:column=).with("831")
-      contribution.expects(:member=).with("Lindsay Hoyle")
-      contribution.expects(:speaker_printed_name=).with("Mr Deputy Speaker (Mr Lindsay Hoyle)")
       
       debate = Debate.new
       Debate.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003').returns(debate)
@@ -196,20 +170,10 @@ describe CommonsDebatesParser do
       debate.expects(:parent_section=).with(container)
       container.sections.expects(:<<).with(debate)
       
-      Timestamp.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003_p000001').returns(timestamp)
-      timestamp.expects(:content=).with("2.45 pm")
-      timestamp.expects(:column=).with("832")
+      timestamp = Timestamp.new
+      Timestamp.expects(:find_or_create_by).returns(timestamp)
       
-      ContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003_p000002').returns(contribution)
-      contribution.expects(:content=).with('Mr Iain McKenzie (Inverclyde) (Lab): Thank you, Mr Deputy Speaker, for calling me in this debate to make my maiden speech. I regard it as both a privilege and an honour to represent the constituency of Inverclyde. My constituency has been served extremely well by many accomplished individuals; however, I am only the second Member for Inverclyde to have been born in Inverclyde. The first was, of course, David Cairns.')
-      contribution.expects(:member=).with("Iain McKenzie")
-      contribution.expects(:speaker_printed_name=).with("Mr Iain McKenzie")
-      contribution.expects(:column=).with("832")
-      
-      ContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003_p000003').returns(contribution)
-      contribution.expects(:content=).with('My two immediate predecessors in my seat, which has often had its boundaries changed, were Dr Norman Godman and the late David Cairns. Dr Godman served in the House for 18 years, and his hard work and enduring commitment to the peace process in Northern Ireland earned him a great deal of respect and admiration. David Cairns was an excellent MP for Inverclyde; his parliamentary career was cut all too short by his sudden death, and I am well aware of the great respect that all parties had for David, as did the people of Inverclyde, as reflected in the large majority he held in the 2010 general election. If I can serve my constituents half as well as David, I shall be doing well indeed.')
-      contribution.expects(:column=).with("832")
-      contribution.expects(:member=).with("Iain McKenzie")
+      ContributionPara.expects(:find_or_create_by).twice.returns(contribution)
       
       @parser.parse
     end
@@ -242,12 +206,7 @@ describe CommonsDebatesParser do
       preamble.expects(:paragraphs).at_least_once.returns([])      
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000001').returns(ncpara)
-      ncpara.expects(:content=).with("Tuesday 19 July 2011")
-      
-      ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000002').returns(ncpara)
-      ncpara.expects(:content=).with("The House met at half-past Eleven o'clock")
+      NonContributionPara.expects(:find_or_create_by).twice.returns(ncpara)
       
       preamble = Preamble.new(:ident => '2099-01-01_hansard_c_d_000002')
       Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
@@ -259,7 +218,6 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002_p000001').returns(ncpara)
-      ncpara.expects(:content=).with("[Mr Speaker in the Chair]")
       
       section = Container.new
       Container.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003').returns(section)
@@ -271,42 +229,64 @@ describe CommonsDebatesParser do
       @parser.parse
     end
     
-    it "should create a Question for each question found" do
+    it "should create a Container for each department" do
       stub_page("spec/data/commons/debates_and_oral_answers.html")
       
       component = Component.new
-      Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
-      component.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d')
+      Component.expects(:find_or_create_by).returns(component)
       
-      preamble = Preamble.new(ident: "2099-01-01_hansard_c_d_000001")
+      preamble = Preamble.new
       Preamble.any_instance.stubs(:paragraphs).returns([])
-      preamble.stubs(:content=)
-      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001').returns(preamble)
+      Preamble.expects(:find_or_create_by).twice.returns(preamble)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000001').returns(ncpara)
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000001_p000002').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).times(3).returns(ncpara)
+      NonContributionPara.any_instance.stubs(:section=)
       
-      preamble = Preamble.new(ident: "2099-01-01_hansard_c_d_000002")
-      Preamble.any_instance.stubs(:paragraphs).returns([])
-      preamble.stubs(:content=)
-      Preamble.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002').returns(preamble)
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000002_p000001').returns(ncpara)
-      
-      container = Container.new(ident: "2099-01-01_hansard_c_d_000003")
+      container = Container.new(ident: "_000003")
       container.expects(:title=).with("Oral Answers to Questions")
-      Container.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003').returns(container)
+      Container.expects(:find_or_create_by).with(ident: '_000003').returns(container)
       
-      dept_container = Container.new(ident: "2099-01-01_hansard_c_d_000004")
-      Container.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004").returns(dept_container)
+      dept_container = Container.new(ident: "_000004")
+      Container.expects(:find_or_create_by).with(ident: "_000004").returns(dept_container)
       dept_container.expects(:title=).with("Foreign and Commonwealth Office")
       dept_container.expects(:parent_section=).with(container)
       container.sections.expects(:<<).with(dept_container)
       
       ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004_p000001").returns(ncpara)
-      ncpara.expects(:content=).with("The Secretary of State was asked - ")
+      NonContributionPara.expects(:find_or_create_by).with(ident: "_000004_p000001").returns(ncpara)
       ncpara.expects(:section=).with(dept_container)
+      
+      question = Question.new
+      Question.any_instance.stubs(:paragraphs).returns([])
+      Question.expects(:find_or_create_by).twice.returns(question)
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).times(11).returns(contribution)
+      
+      @parser.parse
+    end
+    
+    it "should create a Question for each question found" do
+      stub_page("spec/data/commons/debates_and_oral_answers.html")
+      
+      component = Component.new(ident: '2099-01-01_hansard_c_d')
+      Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
+      
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:content=)
+      Preamble.expects(:find_or_create_by).twice.returns(preamble)
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.any_instance.stubs(:content=)
+      NonContributionPara.expects(:find_or_create_by).times(3).returns(ncpara)
+      
+      container = Container.new
+      Container.expects(:find_or_create_by).twice.returns(container)
+      
+      ncpara2 = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).with(ident: "_p000001").returns(ncpara2)
       
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
