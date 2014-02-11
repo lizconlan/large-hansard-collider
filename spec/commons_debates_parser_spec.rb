@@ -377,6 +377,45 @@ describe CommonsDebatesParser do
       @parser.parse
     end
     
+    it "should capture the member and column data for each Question" do
+      stub_page("spec/data/commons/debates_and_oral_answers.html")
+      
+      component = Component.new(ident: '2099-01-01_hansard_c_d')
+      Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d').returns(component)
+      
+      preamble = Preamble.new
+      Preamble.any_instance.stubs(:paragraphs).returns([])
+      preamble.stubs(:content=)
+      Preamble.expects(:find_or_create_by).twice.returns(preamble)
+      
+      ncpara = NonContributionPara.new
+      NonContributionPara.any_instance.stubs(:content=)
+      NonContributionPara.expects(:find_or_create_by).times(4).returns(ncpara)
+      
+      contribution = ContributionPara.new
+      ContributionPara.any_instance.stubs(:content=)
+      ContributionPara.expects(:find_or_create_by).times(11).returns(contribution)
+      
+      container = Container.new
+      Container.expects(:find_or_create_by).twice.returns(container)
+      
+      question1 = Question.new(ident: "2099-01-01_hansard_c_d_000005")
+      Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005").returns(question1)
+      
+      question2 = Question.new(ident: "2099-01-01_hansard_c_d_000006")
+      Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006").returns(question2)
+      
+      @parser.parse
+      
+      question1.members.should eq ["David Hanson", "William Hague", "Philip Hollobone", "Stephen Twigg"]
+      question2.members.should eq ["Paul Flynn", "Alistair Burt"]
+      
+      question1.columns.should eq ["771", "772"]
+      question2.columns.should eq ["772"]
+    end
+    
+    it "should capture the url and column(s) for each paragraph"
+    
     it "should deal with the Topical Questions subsection" do
       stub_page("spec/data/commons/topical_questions.html")
       

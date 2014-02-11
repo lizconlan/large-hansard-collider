@@ -8,6 +8,14 @@ class Section < ActiveRecord::Base
   has_many :sections, :foreign_key => 'parent_section_id', :dependent => :destroy
   belongs_to :parent_section, :class_name => "Section", :foreign_key => 'parent_section_id'
   
+  def append_column(col)
+    if self.columns.nil?
+      self.columns = [col]
+    else
+      self.columns << col unless self.columns.include?(col)
+    end
+  end
+  
   def contributions_by_member(member_name)
     contribs = []
     contrib = []

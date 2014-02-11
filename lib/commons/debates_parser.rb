@@ -200,7 +200,14 @@ class CommonsDebatesParser < CommonsParser
     para.sequence = @para_seq
     para.section = @section
     para.save
+    
     @section.paragraphs << para
+    if @section.members.nil?
+      @section.members = [@member.index_name]
+    else
+      @section.members << @member.index_name unless @section.members.include?(@member.index_name)
+    end
+    @section.append_column(@column)
     
     para
   end
@@ -217,6 +224,7 @@ class CommonsDebatesParser < CommonsParser
     para.section = @section
     para.save
     @section.paragraphs << para
+    @section.append_column(@column)
     para
   end
   
