@@ -66,25 +66,64 @@ describe CommonsParser do
         @parser.link_to_first_page.should eq url
       end
       
-      it "should be able to find the content when asked to parse the page" do
-        url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
-        @hansard_page = HansardPage.new(url)
-        page_html = %Q|<html><head>
-          <meta name="Subject" content="House of Commons Hansard, Volume: 523, Part: 121">
-          <meta name="Columns" content="Columns: 91WS to 96WS"></head>
-          <body><div id="content-small"><table><tr><td><div>content goes here</div></td></tr></table></div></body></html>|
+      context "where content is found when parsing the page" do
+        before(:each) do
+          @url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
+          
+          @page_html = %Q|<html><head>
+            <meta name="Subject" content="House of Commons Hansard, Volume: 523, Part: 121">
+            <meta name="Columns" content="Columns: 91WS to 96WS"></head>
+            <body><div id="content-small"><table><tr><td><div>content goes here</div></td></tr></table></div></body></html>|
+          
+          response = mock("response")
+          response.expects(:body).returns(@page_html)
+          RestClient.expects(:get).with(@url).returns(response)
+          
+          @parser.expects(:link_to_first_page).returns(@url)
+          @parser.expects(:get_sequence).returns(1)
+          @parser.expects(:parse_node)
+        end
         
-        @hansard_page.expects(:doc).times(2).returns(Nokogiri::HTML(page_html))      
-        @parser.expects(:parse_node)
+        it "should be able to find the content" do  
+          @hansard_page = HansardPage.new(@url)
+          HansardPage.expects(:new).returns(@hansard_page)
+          @hansard_page.expects(:doc).times(2).returns(Nokogiri::HTML(@page_html))
+          @hansard_page.expects(:next_url).returns(nil)
+          
+          @parser.parse
+        end
         
-        @parser.parse_page(@hansard_page)
+        it "should correctly set up the DailyPart object" do
+          @hansard_page = HansardPage.new(@url)
+          HansardPage.expects(:new).returns(@hansard_page)
+          @hansard_page.expects(:doc).at_least_once.returns(Nokogiri::HTML(@page_html))
+          @hansard_page.expects(:next_url).returns(nil)
+          
+          daily_part = DailyPart.new
+          DailyPart.expects(:find_or_create_by).returns daily_part
+          daily_part.expects(:volume=).with("523")
+          daily_part.expects(:part=).with("121")
+          daily_part.expects(:house=).with("Commons")
+          
+          @parser.parse
+        end
       end
       
       context "when no data is found" do
-        it "should report that no component data is found" do
+        before(:each) do
           @parser.expects(:link_to_first_page).returns(nil)
+        end
+        
+        it "should report that no component data is found" do
           $stderr.expects(:write).with("No data available for this date")
           $stderr.expects(:write).with("\n")
+          
+          @parser.parse
+        end
+        
+        it "should not create a DailyPart object" do
+          $stderr.stubs(:write)
+          DailyPart.expects(:find_or_create_by).never
           
           @parser.parse
         end

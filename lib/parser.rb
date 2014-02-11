@@ -143,6 +143,9 @@ class Parser
     finish
   end
   
+  
+  private
+  
   def parse_page(page = @page)
     content = page.get_content
     content.children.each do |child|
@@ -151,9 +154,6 @@ class Parser
       end
     end
   end
-  
-  
-  private
   
   def get_page(url)
     begin
@@ -182,7 +182,7 @@ class Parser
   end
   
   def create_component
-    if component_prefix.empty?
+    if !defined?(component_prefix) or component_prefix.empty?
       component_ident = @doc_ident
     else
       component_ident = "#{@doc_ident}_#{component_prefix}"
