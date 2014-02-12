@@ -68,7 +68,7 @@ class LordsDebatesParser < LordsParser
     if fragment_has_text or @preamble[:title]
       if @preamble[:title] == "House of Lords" and
          text.strip =~ /^[A-Z][a-z]+day, \d+ [A-Z][a-z]+ \d{4}/
-        build_preamble(text)
+        create_new_noncontribution_para(text)
       else
         set_new_heading
       end
@@ -97,7 +97,7 @@ class LordsDebatesParser < LordsParser
       else
         @subject = text
         if @preamble[:title]
-          build_preamble(text)
+          create_new_noncontribution_para(text)
         else
           fragment = create_fragment(text)
           @page_fragments << fragment
@@ -113,7 +113,7 @@ class LordsDebatesParser < LordsParser
     else
       @subcomponent = ""
       if text.downcase == "prayers"
-        build_preamble(text)
+        create_new_noncontribution_para(text)
       else
         start_new_section
         setup_new_fragment(text)
@@ -124,7 +124,7 @@ class LordsDebatesParser < LordsParser
   def process_h4(text)
     day_regex = /^[A-Z][a-z]*day \d{1,2} [A-Z][a-z]* \d{4}$/
     if @preamble[:title]
-      build_preamble(text)
+      create_new_noncontribution_para(text)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honourary h3
@@ -417,7 +417,7 @@ class LordsDebatesParser < LordsParser
       check_debate_contributions(text, member_name)
       
       if @preamble[:title]
-        build_preamble(text)
+        create_new_noncontribution_para(text)
       elsif @page_fragment_type != "division"
         fragment = create_fragment(text)
         

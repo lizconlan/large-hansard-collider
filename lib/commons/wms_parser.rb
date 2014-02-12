@@ -45,7 +45,7 @@ class WMSParser < CommonsParser
   
   def process_statement_heading(text)
     if @section.type == "Preamble"
-      build_preamble(text)
+      create_new_noncontribution_para(text)
     else
       if self.state == "setting_heading"
         stop_new_heading
@@ -104,34 +104,13 @@ class WMSParser < CommonsParser
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
-      @para_seq += 1
-      para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-      para = nil
       process_member_contribution(member_name, text)
       
       if @member
-        para = ContributionPara.find_or_create_by(ident: para_ident)
-        para.content = sanitize_text(text)
-        
-        if sanitize_text(text).strip =~ /^#{@member.post} \(#{@member.name}\)/
-          para.speaker_printed_name = "#{@member.post} (#{@member.name})"
-        elsif sanitize_text(text).strip =~ /^#{@member.name} \(#{@member.constituency}\)/
-          para.speaker_printed_name = @member.printed_name
-        else
-          para.speaker_printed_name = @member.search_name
-        end
-        para.member = @member.index_name
-        add_member_to_temp_store(@member)
+        para = create_new_contribution_para(sanitize_text(text), member_name)
       else
-        para = NonContributionPara.find_or_create_by(ident: para_ident)
-        para.content = sanitize_text(text)
+        para = create_new_noncontribution_para(sanitize_text(text))
       end
-      para.column = @column
-      para.url = "#{@page.url}\##{@last_link}"
-      para.sequence = @para_seq
-      para.section = @section
-      para.save
-      @section.paragraphs << para
     end
   end
   

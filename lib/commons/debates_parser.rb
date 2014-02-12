@@ -56,7 +56,7 @@ class CommonsDebatesParser < CommonsParser
       else
         if @section.type == "Preamble"
           #wait, is that even possible?
-          build_preamble(text)
+          create_new_noncontribution_para(text)
         else
           start_new_section
           setup_preamble(text)
@@ -96,7 +96,7 @@ class CommonsDebatesParser < CommonsParser
   
   def process_subheading(text)
     if @section and @section.type == "Preamble"
-      build_preamble(text)
+      create_new_noncontribution_para(text)
     else
       if text.downcase =~ /^back\s?bench business$/
         #treat as honorary h3 / main heading
@@ -175,59 +175,6 @@ class CommonsDebatesParser < CommonsParser
     section.url = "#{@page.url}\##{@last_link}"
     @para_seq = 0
     section
-  end
-  
-  def create_new_contribution_para(text, member_name="", ident=nil)
-    unless ident
-      @para_seq += 1
-      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-    end
-    para = ContributionPara.find_or_create_by(ident: ident)
-    para.content = text
-    
-    if text.strip =~ /^#{@member.post} \(#{@member.name}\)/
-      para.speaker_printed_name = "#{@member.post} (#{@member.name})"
-    elsif text.strip =~  /^#{@member.name} \(#{@member.constituency}\)/
-      para.speaker_printed_name = @member.printed_name
-    elsif member_name != ""
-      para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
-    end
-    para.member = @member.index_name
-    add_member_to_temp_store(@member)
-    
-    para.sequence = @para_seq
-    para.section = @section
-    para.column = @column
-    para.url = "#{@page.url}\##{@last_link}"
-    para.save
-    
-    @section.paragraphs << para
-    if @section.members.nil?
-      @section.members = [@member.index_name]
-    else
-      @section.members << @member.index_name unless @section.members.include?(@member.index_name)
-    end
-    @section.append_column(@column)
-    
-    para
-  end
-  
-  def create_new_noncontribution_para(text, ident=nil)
-    unless ident
-      @para_seq += 1
-      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-    end
-    
-    para = NonContributionPara.find_or_create_by(ident: ident)
-    para.content = text
-    para.sequence = @para_seq
-    para.section = @section
-    para.column = @column
-    para.url = "#{@page.url}\##{@last_link}"
-    para.save
-    @section.paragraphs << para
-    @section.append_column(@column)
-    para
   end
   
   def process_division(text)
@@ -392,7 +339,7 @@ class CommonsDebatesParser < CommonsParser
       process_member_contribution(member_name, text)
       
       if @section.type == "Preamble"
-        build_preamble(text)
+        create_new_noncontribution_para(text)
       elsif @page_fragment_type != "division"
         @para_seq += 1
         para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"

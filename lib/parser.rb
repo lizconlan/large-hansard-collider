@@ -308,18 +308,62 @@ class Parser
     @para_seq = 0
   end
   
-  def build_preamble(text)
-    @para_seq +=1
-    para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
-    para = NonContributionPara.find_or_create_by(ident: para_ident)
-    para.sequence = @para_seq
+  def create_new_contribution_para(text, member_name="", ident=nil)
+    stored_name = ""
+    unless ident
+      @para_seq += 1
+      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    end
+    para = ContributionPara.find_or_create_by(ident: ident)
     para.content = text
-    para.url = "#{@page.url}\##{@last_link}"
+    
+    if text.strip =~ /^#{@member.post} \(#{@member.name}\)/
+      para.speaker_printed_name = "#{@member.post} (#{@member.name})"
+    elsif text.strip =~  /^#{@member.name} \(#{@member.constituency}\)/
+      para.speaker_printed_name = @member.printed_name
+    elsif member_name != ""
+      para.speaker_printed_name = member_name.split("(").first.gsub(":", "").strip
+    end
+    if @member.index_name.split(" ").size < 2
+      stored_name = para.member = @member.printed_name
+    else
+      stored_name = para.member = @member.index_name
+    end
+    add_member_to_temp_store(@member)
+    
+    para.sequence = @para_seq
     para.section = @section
-    @section.columns << @column
     para.column = @column
+    para.url = "#{@page.url}\##{@last_link}"
+    para.save
+    
+    @section.paragraphs << para
+    if @section.members.nil?
+      @section.members = [stored_name]
+    else
+      @section.members << stored_name unless @section.members.include?(stored_name)
+    end
+    @section.append_column(@column)
+    
+    para
+  end
+  
+  def create_new_noncontribution_para(text, ident=nil)
+    unless ident
+      @para_seq += 1
+      ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
+    end
+    
+    para = NonContributionPara.find_or_create_by(ident: ident)
+    para.content = text
+    para.sequence = @para_seq
+    para.section = @section
+    para.column = @column
+    para.url = "#{@page.url}\##{@last_link}"
     para.save
     @section.paragraphs << para
+    @section.append_column(@column)
+    para
   end
   
   def debug()
