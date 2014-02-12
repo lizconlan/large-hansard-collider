@@ -162,7 +162,7 @@ class CommonsDebatesParser < CommonsParser
     if section.number.blank?
       number = get_question_number(text)
       unless number.blank?
-        section.number = get_question_number(text) 
+        section.number = number
       end
     end
     section.asked_by = member.index_name if member

@@ -72,16 +72,8 @@ describe WrittenAnswersParser do
       question = Question.new(:ident => "question")
       
       ContributionPara.expects(:find_or_create_by).at_least_once.returns(contribution)
-      contribution.expects(:section=).at_least_once
-      contribution.expects(:content=).at_least_once
-      contribution.expects(:url=).at_least_once
-      contribution.expects(:sequence=).at_least_once
-      contribution.expects(:column=).at_least_once
-      contribution.expects(:member=).at_least_once
-      contribution.expects(:speaker_printed_name=).at_least_once
       
       Question.expects(:find_or_create_by).at_least_once.returns(question)
-      question.expects(:paragraphs).at_least_once.returns([])
       
       @parser.parse
     end
@@ -106,6 +98,7 @@ describe WrittenAnswersParser do
       question = Question.new(:ident => "2099-01-01_hansard_c_w_000002")
       Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002").returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
+      question.expects(:number=).with("67391")
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002_p000001").returns(contribution)
@@ -129,6 +122,7 @@ describe WrittenAnswersParser do
       question = Question.new(:ident => "2099-01-01_hansard_c_w_000003")
       Question.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_w_000003').returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
+      question.expects(:number=).with("67110")
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000003_p000001").returns(contribution)
@@ -152,6 +146,7 @@ describe WrittenAnswersParser do
       question = Question.new(:ident => '2099-01-01_hansard_c_w_000004')
       Question.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_w_000004').returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
+      question.expects(:number=).with("67046")
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000004_p000001").returns(contribution)

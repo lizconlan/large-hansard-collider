@@ -110,12 +110,27 @@ class WrittenAnswersParser < CommonsParser
     unless text =~ COLUMN_HEADER
       process_member_contribution(member_name, text)
       
+      if @section.type == "Question" and @section.number.nil?
+        number = get_question_number(text)
+        unless number.empty?
+          @section.number = number
+        end
+      end
+      
       if @member
         para = create_new_contribution_para(sanitize_text(text), member_name)
       else
         para = create_new_noncontribution_para(sanitize_text(text))
       end
     end
+  end
+  
+  def get_question_number(text)
+    question = ""
+    if text.strip =~ /\[([^\]]*)\]$/
+      question = $1
+    end
+    question
   end
   
   def create_question
