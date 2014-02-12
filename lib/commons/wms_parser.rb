@@ -39,6 +39,7 @@ class WMSParser < CommonsParser
     @section_seq += 1
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Statement.find_or_create_by(ident: section_ident)
+    @section.component = @hansard_component
     @department = sanitize_text(text)
     @section.url = "#{@page.url}\##{@last_link}"
   end
@@ -54,6 +55,7 @@ class WMSParser < CommonsParser
         @section_seq += 1
         section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
         @section = Statement.find_or_create_by(ident: section_ident)
+        @section.component = @hansard_component
         @section.url = "#{@page.url}\##{@last_link}"
       end
       @section.title = sanitize_text(text)
