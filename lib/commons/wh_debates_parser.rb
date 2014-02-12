@@ -44,6 +44,7 @@ class WHDebatesParser < CommonsParser
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.columns = [@column]
+    @section.component = @hansard_component
     @para_seq = 0
     
     if @chair.length > 1

@@ -125,6 +125,7 @@ describe WHDebatesParser do
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_wh_000002").returns(debate)
       debate.expects(:paragraphs).at_least_once.returns([])
       debate.expects(:chair=).with(["Jim Dobbin"])
+      debate.expects(:component=).with(component)
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_wh_000002_p000001').returns(ncpara)
