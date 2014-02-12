@@ -232,23 +232,16 @@ describe CommonsDebatesParser do
     it "should create a Container for each department" do
       stub_page("spec/data/commons/debates_and_oral_answers.html")
       
-      component = Component.new
-      Component.expects(:find_or_create_by).returns(component)
-      
-      preamble = Preamble.new
-      Preamble.any_instance.stubs(:paragraphs).returns([])
-      Preamble.expects(:find_or_create_by).twice.returns(preamble)
-      
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).times(3).returns(ncpara)
       NonContributionPara.any_instance.stubs(:section=)
       
       container = Container.new(ident: "_000003")
       container.expects(:title=).with("Oral Answers to Questions")
-      Container.expects(:find_or_create_by).with(ident: '_000003').returns(container)
+      Container.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000003').returns(container)
       
       dept_container = Container.new(ident: "_000004")
-      Container.expects(:find_or_create_by).with(ident: "_000004").returns(dept_container)
+      Container.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004").returns(dept_container)
       dept_container.expects(:title=).with("Foreign and Commonwealth Office")
       dept_container.expects(:parent_section=).with(container)
       container.sections.expects(:<<).with(dept_container)
@@ -280,13 +273,13 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.any_instance.stubs(:content=)
-      NonContributionPara.expects(:find_or_create_by).times(3).returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).times(4).returns(ncpara)
       
       container = Container.new
-      Container.expects(:find_or_create_by).twice.returns(container)
+      Container.expects(:find_or_create_by).times(2).returns(container)
       
-      ncpara2 = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).with(ident: "_p000001").returns(ncpara2)
+      para = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).times(11).returns(para)
       
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
@@ -299,59 +292,6 @@ describe CommonsDebatesParser do
       question.expects(:question_type=).with("for oral answer")
       question.expects(:url=).with("#{@url}\#11071988000022")
       
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000001").returns(contribution)
-      contribution.expects(:content=).with("1. Mr David Hanson (Delyn) (Lab): When he next expects to discuss the situation in Syria with his US counterpart. [66855]")
-      contribution.expects(:member=).with("David Hanson")
-      contribution.expects(:speaker_printed_name=).with("Mr David Hanson")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000002").returns(contribution)
-      contribution.expects(:content=).with("The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague): I am in regular contact with Secretary Clinton and I last discussed Syria with her on Friday.")
-      contribution.expects(:member=).with("William Hague")
-      contribution.expects(:speaker_printed_name=).with("The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000003").returns(contribution)
-      contribution.expects(:content=).with("Mr Hanson: I thank the Foreign Secretary for that answer. Given the recent violence, including the reported shooting of unarmed protesters, does he agree with Secretary of State Clinton that the Syrian Government have lost legitimacy? Given the level of violence, particularly the attacks on the US embassy and the French embassy, what steps is he taking to ensure the security of British citizens who work for the United Kingdom and are operating in Syria now?")
-      contribution.expects(:member=).with("David Hanson")
-      contribution.expects(:speaker_printed_name=).with("Mr Hanson")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000004").returns(contribution)
-      contribution.expects(:content=).with("Mr Hague: The right hon. Gentleman raises some important issues in relation to recent events in Syria. We absolutely deplore the continuing violence against protesters. Reports overnight from the city of Homs suggest that between 10 and 14 people were killed, including a 12-year-old child. We have condemned the attacks on the American and French embassies and we called in the Syrian ambassador last Wednesday to deliver our protests and to demand that Syria observes the requirements of the Vienna convention. The US and British Governments are united in saying that President Assad is losing legitimacy and should reform or step aside, and that continues to be our message.")
-      contribution.expects(:member=).with("William Hague")
-      contribution.expects(:speaker_printed_name=).with("Mr Hague")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000005").returns(contribution)
-      contribution.expects(:content=).with("Mr Philip Hollobone (Kettering) (Con): Iran has been involved in training Syrian troops and providing materi\303\251l assistance, including crowd-dispersal equipment. What assessment has the Foreign Secretary made of the dark hand of Iran in fomenting trouble in the middle east and in supporting illegitimate regimes?")
-      contribution.expects(:member=).with("Philip Hollobone")
-      contribution.expects(:speaker_printed_name=).with("Mr Philip Hollobone")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000006").returns(contribution)
-      contribution.expects(:content=).with("Mr Hague: Iran has certainly been involved in the way that my hon. Friend describes, and I set out a few weeks ago that I believed it to be involved in that way. It shows the extraordinary hypocrisy of the Iranian leadership")
-      contribution.expects(:member=).with("William Hague")
-      contribution.expects(:speaker_printed_name=).with("Mr Hague")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000007").returns(contribution)
-      contribution.expects(:content=).with("on this that it has been prepared to encourage protests in Egypt, Tunisia and other countries while it has brutally repressed protest in its own country and is prepared to connive in doing so in Syria.")
-      contribution.expects(:member=).with("William Hague")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000008").returns(contribution)
-      contribution.expects(:content=).with("Stephen Twigg (Liverpool, West Derby) (Lab/Co-op): Does the Foreign Secretary agree that the world has been far too slow in its response to the appalling abuses of human rights in Syria? Surely, after the events of the weekend and the past few days in particular, there is now an urgent need for a clear and strong United Nations Security Council resolution.")
-      contribution.expects(:member=).with("Stephen Twigg")
-      contribution.expects(:speaker_printed_name=).with("Stephen Twigg")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000009").returns(contribution)
-      contribution.expects(:content=).with("Mr Hague: I think the world has been not so much slow as not sufficiently united on this. It has not been possible for the Arab League to arrive at a clear, strong position, which makes the situation entirely different to that in Libya, where the Arab League called on the international community to assist and intervene. There has not been the necessary unity at the United Nations Security Council and at times Russia has threatened to veto any resolution. Our resolution, which was put forward with our EU partners, remains very much on the table and certainly has the support of nine countries. We would like the support of more than nine countries to be able to put it to a vote in the Security Council, but it is very much on the table and we reserve the right at any time to press it to a vote in the United Nations. The hon. Gentleman is quite right to say that recent events add further to the case for doing so.")
-      contribution.expects(:member=).with("William Hague")
-      contribution.expects(:speaker_printed_name=).with("Mr Hague")
-      
       question = Question.new
       Question.any_instance.stubs(:paragraphs).returns([])
       Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006").returns(question)
@@ -361,18 +301,6 @@ describe CommonsDebatesParser do
       question.expects(:number=).with("66858")
       question.expects(:asked_by=).with("Paul Flynn")
       question.expects(:question_type=).with("for oral answer")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006_p000001").returns(contribution)
-      contribution.expects(:content=).with("3. Paul Flynn (Newport West) (Lab): What recent progress his Department has made on nuclear non-proliferation and disarmament. [66858]")
-      contribution.expects(:member=).with("Paul Flynn")
-      contribution.expects(:speaker_printed_name=).with("Paul Flynn")
-      
-      contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006_p000002").returns(contribution)
-      contribution.expects(:content=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt): We continue to work across all three pillars of the non-proliferation treaty to build on the success of last year's review conference in New York. I am particularly proud of the work we have done towards ensuring the first conference of nuclear weapon states, which was held recently in Paris - the P5 conference - in which further progress was made, particularly towards disarmament.")
-      contribution.expects(:member=).with("Alistair Burt")
-      contribution.expects(:speaker_printed_name=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)")
       
       @parser.parse
     end
@@ -414,7 +342,106 @@ describe CommonsDebatesParser do
       question2.columns.should eq ["772"]
     end
     
-    it "should capture the url and column(s) for each paragraph"
+    it "should all the paragraph data" do
+      stub_page("spec/data/commons/debates_and_oral_answers.html")
+      page_url = "http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm110719/debtext/110719-0001.htm"
+      
+      question = Question.new(ident: "2099-01-01_hansard_c_d_000005")
+      Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005").returns(question)
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000001").returns(contribution)
+      contribution.expects(:content=).with("1. Mr David Hanson (Delyn) (Lab): When he next expects to discuss the situation in Syria with his US counterpart. [66855]")
+      contribution.expects(:member=).with("David Hanson")
+      contribution.expects(:speaker_printed_name=).with("Mr David Hanson")
+      contribution.expects(:url=).with("#{page_url}#11071988000793")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000002").returns(contribution)
+      contribution.expects(:content=).with("The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague): I am in regular contact with Secretary Clinton and I last discussed Syria with her on Friday.")
+      contribution.expects(:member=).with("William Hague")
+      contribution.expects(:speaker_printed_name=).with("The Secretary of State for Foreign and Commonwealth Affairs (Mr William Hague)")
+      contribution.expects(:url=).with("#{page_url}#11071988000794")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000003").returns(contribution)
+      contribution.expects(:content=).with("Mr Hanson: I thank the Foreign Secretary for that answer. Given the recent violence, including the reported shooting of unarmed protesters, does he agree with Secretary of State Clinton that the Syrian Government have lost legitimacy? Given the level of violence, particularly the attacks on the US embassy and the French embassy, what steps is he taking to ensure the security of British citizens who work for the United Kingdom and are operating in Syria now?")
+      contribution.expects(:member=).with("David Hanson")
+      contribution.expects(:speaker_printed_name=).with("Mr Hanson")
+      contribution.expects(:url=).with("#{page_url}#11071988000795")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000004").returns(contribution)
+      contribution.expects(:content=).with("Mr Hague: The right hon. Gentleman raises some important issues in relation to recent events in Syria. We absolutely deplore the continuing violence against protesters. Reports overnight from the city of Homs suggest that between 10 and 14 people were killed, including a 12-year-old child. We have condemned the attacks on the American and French embassies and we called in the Syrian ambassador last Wednesday to deliver our protests and to demand that Syria observes the requirements of the Vienna convention. The US and British Governments are united in saying that President Assad is losing legitimacy and should reform or step aside, and that continues to be our message.")
+      contribution.expects(:member=).with("William Hague")
+      contribution.expects(:speaker_printed_name=).with("Mr Hague")
+      contribution.expects(:url=).with("#{page_url}#11071988000796")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000005").returns(contribution)
+      contribution.expects(:content=).with("Mr Philip Hollobone (Kettering) (Con): Iran has been involved in training Syrian troops and providing materi\303\251l assistance, including crowd-dispersal equipment. What assessment has the Foreign Secretary made of the dark hand of Iran in fomenting trouble in the middle east and in supporting illegitimate regimes?")
+      contribution.expects(:member=).with("Philip Hollobone")
+      contribution.expects(:speaker_printed_name=).with("Mr Philip Hollobone")
+      contribution.expects(:url=).with("#{page_url}#11071988000797")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000006").returns(contribution)
+      contribution.expects(:content=).with("Mr Hague: Iran has certainly been involved in the way that my hon. Friend describes, and I set out a few weeks ago that I believed it to be involved in that way. It shows the extraordinary hypocrisy of the Iranian leadership")
+      contribution.expects(:member=).with("William Hague")
+      contribution.expects(:speaker_printed_name=).with("Mr Hague")
+      contribution.expects(:url=).with("#{page_url}#11071988000798")
+      contribution.expects(:column=).with("771")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000007").returns(contribution)
+      contribution.expects(:content=).with("on this that it has been prepared to encourage protests in Egypt, Tunisia and other countries while it has brutally repressed protest in its own country and is prepared to connive in doing so in Syria.")
+      contribution.expects(:member=).with("William Hague")
+      contribution.expects(:url=).with("#{page_url}#11071988000798")
+      contribution.expects(:column=).with("772")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000008").returns(contribution)
+      contribution.expects(:content=).with("Stephen Twigg (Liverpool, West Derby) (Lab/Co-op): Does the Foreign Secretary agree that the world has been far too slow in its response to the appalling abuses of human rights in Syria? Surely, after the events of the weekend and the past few days in particular, there is now an urgent need for a clear and strong United Nations Security Council resolution.")
+      contribution.expects(:member=).with("Stephen Twigg")
+      contribution.expects(:speaker_printed_name=).with("Stephen Twigg")
+      contribution.expects(:url=).with("#{page_url}#11071988000799")
+      contribution.expects(:column=).with("772")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000005_p000009").returns(contribution)
+      contribution.expects(:content=).with("Mr Hague: I think the world has been not so much slow as not sufficiently united on this. It has not been possible for the Arab League to arrive at a clear, strong position, which makes the situation entirely different to that in Libya, where the Arab League called on the international community to assist and intervene. There has not been the necessary unity at the United Nations Security Council and at times Russia has threatened to veto any resolution. Our resolution, which was put forward with our EU partners, remains very much on the table and certainly has the support of nine countries. We would like the support of more than nine countries to be able to put it to a vote in the Security Council, but it is very much on the table and we reserve the right at any time to press it to a vote in the United Nations. The hon. Gentleman is quite right to say that recent events add further to the case for doing so.")
+      contribution.expects(:member=).with("William Hague")
+      contribution.expects(:speaker_printed_name=).with("Mr Hague")
+      contribution.expects(:url=).with("#{page_url}#11071988000800")
+      contribution.expects(:column=).with("772")
+      
+      
+      question = Question.new(ident: "2099-01-01_hansard_c_d_000006")
+      Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006").returns(question)
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006_p000001").returns(contribution)
+      contribution.expects(:content=).with("3. Paul Flynn (Newport West) (Lab): What recent progress his Department has made on nuclear non-proliferation and disarmament. [66858]")
+      contribution.expects(:member=).with("Paul Flynn")
+      contribution.expects(:speaker_printed_name=).with("Paul Flynn")
+      contribution.expects(:url=).with("#{page_url}#11071988000801")
+      contribution.expects(:column=).with("772")
+      
+      contribution = ContributionPara.new
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000006_p000002").returns(contribution)
+      contribution.expects(:content=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt): We continue to work across all three pillars of the non-proliferation treaty to build on the success of last year's review conference in New York. I am particularly proud of the work we have done towards ensuring the first conference of nuclear weapon states, which was held recently in Paris - the P5 conference - in which further progress was made, particularly towards disarmament.")
+      contribution.expects(:member=).with("Alistair Burt")
+      contribution.expects(:speaker_printed_name=).with("The Parliamentary Under-Secretary of State for Foreign and Commonwealth Affairs (Alistair Burt)")
+      contribution.expects(:url=).with("#{page_url}#11071988000802")
+      contribution.expects(:column=).with("772")
+      
+      @parser.parse
+    end
     
     it "should deal with the Topical Questions subsection" do
       stub_page("spec/data/commons/topical_questions.html")

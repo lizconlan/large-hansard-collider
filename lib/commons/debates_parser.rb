@@ -105,8 +105,6 @@ class CommonsDebatesParser < CommonsParser
         @section = create_new_container(text)
       else
         para = create_new_noncontribution_para(sanitize_text(text))
-        para.column = @column
-        para.url = "#{@page.url}\##{@last_link}"
         @subject = sanitize_text(text)
       end
     end
@@ -199,6 +197,8 @@ class CommonsDebatesParser < CommonsParser
     
     para.sequence = @para_seq
     para.section = @section
+    para.column = @column
+    para.url = "#{@page.url}\##{@last_link}"
     para.save
     
     @section.paragraphs << para
@@ -222,6 +222,8 @@ class CommonsDebatesParser < CommonsParser
     para.content = text
     para.sequence = @para_seq
     para.section = @section
+    para.column = @column
+    para.url = "#{@page.url}\##{@last_link}"
     para.save
     @section.paragraphs << para
     @section.append_column(@column)
@@ -232,10 +234,8 @@ class CommonsDebatesParser < CommonsParser
     case text.strip
     when /^The House (having )?divided/, /^Motion/, /^Question/
       para = create_new_noncontribution_para(sanitize_text(text))
-      para.column = @column
     when /^Ayes \d+, Noes \d+./
       para = create_new_noncontribution_para(sanitize_text(text))
-      para.column = @column
     when /^Division No\. ([^\]]*)\]/
       @section.number = $1
     when /\[(\d+\.\d+ (a|p)m)/
@@ -403,8 +403,6 @@ class CommonsDebatesParser < CommonsParser
         else
           para = create_new_noncontribution_para(sanitize_text(text), para_ident)
         end
-        para.column = @column
-        para.url = "#{@page.url}\##{@last_link}"
       end
     end
   end
