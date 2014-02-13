@@ -98,7 +98,8 @@ class CommonsDebatesParser < CommonsParser
     if @section and @section.type == "Preamble"
       create_new_noncontribution_para(text)
     else
-      if text.downcase =~ /^back\s?bench business$/
+      if text.downcase =~ /^back\s?bench business$/ \
+          or text.downcase =~ /^business without debate$/i
         #treat as honorary h3 / main heading
         @subsection_name = "Backbench Business"
         start_subsection
@@ -118,6 +119,7 @@ class CommonsDebatesParser < CommonsParser
     section.url = "#{@page.url}\##{@last_link}"
     section.sequence = @section_seq
     section.columns = [@column]
+    section.component = @hansard_component
     @para_seq = 0
     section
   end
@@ -130,6 +132,7 @@ class CommonsDebatesParser < CommonsParser
     section.noes = []
     section.tellers_ayes = []
     section.tellers_noes = []
+    section.component = @hansard_component
     @para_seq = 0
     section
   end
@@ -146,7 +149,7 @@ class CommonsDebatesParser < CommonsParser
     @para_seq = 0
     if parent
       section.parent_section = parent
-      parent.sections << section
+      parent.sections << section unless parent.sections.include?(section)
       @section_stack << section
     else
       @section_stack = [section]
@@ -366,6 +369,11 @@ class CommonsDebatesParser < CommonsParser
       @section.bill_stage = @bill[:stage]
       @bill = {}
     end
+    
+    if @section.columns.length > 2
+      @section.columns = [@section.columns.first, @section.columns.last]
+    end
+    
     @section.save
   end
 end

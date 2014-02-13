@@ -26,7 +26,7 @@ class WHDebatesParser < CommonsParser
     when "h3"
       create_new_debate(minify_whitespace(node.text))
     when "h4"
-      process_subheading(minify_whitespace(node.text))
+      process_subheading(minify_whitespace(node.text)) if @section
     when "h5"
       process_timestamp(node.text)
     when "p" 
@@ -110,6 +110,9 @@ class WHDebatesParser < CommonsParser
   def save_section
     return false unless @section
     @section.chair = @chair if @chair and @section.type == "Debate"
+    if @section.columns.length > 2
+      @section.columns = [@section.columns.first, @section.columns.last]
+    end
     @section.save
     debug()
   end
