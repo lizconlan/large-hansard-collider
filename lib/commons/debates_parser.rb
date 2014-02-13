@@ -174,6 +174,7 @@ class CommonsDebatesParser < CommonsParser
     else
       section.title = text
     end
+    section.component = @hansard_component
     section.department = @department if @department
     section.url = "#{@page.url}\##{@last_link}"
     @para_seq = 0
