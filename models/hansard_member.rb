@@ -18,7 +18,7 @@ class HansardMember
         @index_name = format_index_name(name).squeeze(" ").strip
       end
     end
-    @name = name.squeeze(" ").strip
+    @name = name.gsub("(", "").gsub(")", "").squeeze(" ").strip
     @constituency = constituency
     @party = party
     @post = post
@@ -35,7 +35,7 @@ class HansardMember
       parts.pop #drop the firstname
       member_name = "#{name} #{parts.reverse.join(" ")}"
     end
-    member_name
+    member_name.gsub("(", "").gsub(")", "")
   end
   
   def format_index_name(member_name)
@@ -43,6 +43,6 @@ class HansardMember
       @title = $1
       member_name = member_name.gsub(@title, "").strip
     end
-    member_name
+    member_name.gsub("(", "").gsub(")", "")
   end
 end
