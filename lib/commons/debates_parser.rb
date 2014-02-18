@@ -128,6 +128,8 @@ class CommonsDebatesParser < CommonsParser
     @section_seq += 1
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Division.find_or_create_by(ident: section_ident)
+    section.title = "Division - #{@section.title}" #borrow the previous section's title, certain assumption there
+    section.url = "#{@page.url}\##{@last_link}"
     section.ayes = []
     section.noes = []
     section.tellers_ayes = []
