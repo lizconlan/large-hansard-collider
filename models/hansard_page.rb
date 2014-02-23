@@ -56,6 +56,14 @@ class HansardPage
         rel_link = doc.xpath("string(//div[@id='content-small']/table/tr/td[1]/p[3]/a[1]/@href)")
       end
       if rel_link.empty?
+        #petitions / ministerial corrections
+        rel_link = doc.xpath("string(//div[@id='content-small']/h1/a[1]/@href)")
+      end
+      if rel_link.empty?
+        #slightly broken ministerial corrections
+        rel_link = doc.xpath("string(//div[@id='content-small']/h3[2]/a[1]/@href)")
+      end
+      if rel_link.empty?
         rel_link = doc.xpath("string(//div[@id='maincontent1']/div/a[1]/@href)")
       end
       "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
