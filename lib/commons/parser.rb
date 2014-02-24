@@ -48,6 +48,19 @@ class CommonsParser < Parser
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
       handle_member_info(@member, member)
+    when /^(([^\(]* [^\(]*)\) \(([^\(]*)\):)/
+      #an MP speaking for the first time in the debate
+      #but with a painful-for-us mistake in the online text
+      name_and_constituency = $2
+      party = $3
+      #if we had a list of Member or Constituency names we could be clever
+      #but we don't so we're going to make a horrible guess
+      #this will go wrong for e.g. Mr Iain Duncan Smith
+      name_words = name_and_constituency.split(" ")
+      name = name_words[0..2].join(" ")
+      constituency = name_and_constituency.gsub(name, "").strip
+      member = HansardMember.new(name, "", constituency, party)
+      handle_member_info(@member, member)
     when /^(([^\(]*) \(([^\(]*)\):)/
       #we has a minister
       post = $2
