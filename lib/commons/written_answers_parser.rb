@@ -24,7 +24,7 @@ class WrittenAnswersParser < CommonsParser
       process_links_and_columns(node)
       determine_fragment_type(node)
     when "h2"
-      setup_preamble(node.content)
+      setup_preamble(node.content) unless @section_seq > 1
     when "h3"
       process_heading(minify_whitespace(node.text))
     when "h4"
@@ -48,8 +48,10 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def process_subheading(text)
-    if self.state == "starting" and text =~ /[A-Z][a-z+]day \d{1,2} [A-Z][a-z] \d{4}/
-      return false
+    if text =~ /[A-Z][a-z+]day \d{1,2} [A-Z][a-z] \d{4}/
+      if self.state == "starting" or @section_seq > 1
+        return false
+      end
     end
     
     if @section.type == "Preamble"
@@ -84,7 +86,7 @@ class WrittenAnswersParser < CommonsParser
         table.member = @member.printed_name
         add_member_to_temp_store(@member)
       end
-      table.column = @column
+      table.column = @column unless @column.empty?
       table.url = "#{@page.url}\##{@last_link}"
       table.sequence = @para_seq
       table.section = @section
