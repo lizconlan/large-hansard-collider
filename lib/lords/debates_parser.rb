@@ -471,6 +471,7 @@ class LordsDebatesParser < LordsParser
     @debate.department = @department
     @debate.asked_by = @asked_by
     @debate.question_type = "for oral answer"
+    @debate.component = @hansard_component
     @asked_by = ""
   end
   

@@ -45,6 +45,9 @@ describe PetitionsParser do
       @parser = PetitionsParser.new("2099-01-01")
       @parser.stubs(:component_prefix).returns("p")
       @parser.expects(:link_to_first_page).returns(@url)
+      
+      @ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(@ncpara)
     end
     
     it "should create a Preamble, 2 Petitions and a PetitionObservation" do
@@ -54,14 +57,11 @@ describe PetitionsParser do
       component = Component.new(:ident => '2099-01-01_hansard_c_p')
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_p').returns(component)
       
-      ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(ncpara)
-      
       preamble = Preamble.new(:ident => "2099-01-01_hansard_c_p_000001")
       Preamble.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000001").returns(preamble)
       preamble.expects(:title=).with("Petitions")
       
-      preamble.expects(:paragraphs).at_least_once.returns([ncpara])
+      preamble.expects(:paragraphs).at_least_once.returns([@ncpara])
       
       petition = Petition.new
       observation = PetitionObservation.new
@@ -79,9 +79,6 @@ describe PetitionsParser do
       component = Component.new(:ident => '2099-01-01_hansard_c_p')
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_p').returns(component)
       
-      ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(ncpara)
-      
       preamble = Preamble.new(:ident => "2099-01-01_hansard_c_p_000001")
       Preamble.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000001").returns(preamble)
       
@@ -90,11 +87,14 @@ describe PetitionsParser do
       
       Petition.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000002").returns(petition)
       petition.expects(:number=).with("P001300")
+      petition.expects(:component=).with(component)
       
       Petition.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000003").returns(petition)
       petition.expects(:number=).with("P001301")
+      petition.expects(:component=).with(component)
       
       PetitionObservation.expects(:find_or_create_by).returns(observation)
+      observation.expects(:component=).with(component)
       
       @parser.parse
     end
@@ -109,6 +109,9 @@ describe PetitionsParser do
       @parser = PetitionsParser.new("2099-01-01")
       @parser.stubs(:component_prefix).returns("p")
       @parser.expects(:link_to_first_page).returns(@url)
+      
+      @ncpara = NonContributionPara.new
+      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(@ncpara)
     end
     
     it "should create a Preamble, 2 Petitions and a PetitionObservation" do
@@ -118,14 +121,10 @@ describe PetitionsParser do
       component = Component.new(:ident => '2099-01-01_hansard_c_p')
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_p').returns(component)
       
-      ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(ncpara)
-      
       preamble = Preamble.new(:ident => "2099-01-01_hansard_c_p_000001")
       Preamble.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000001").returns(preamble)
       preamble.expects(:title=).with("Petitions")
-      
-      preamble.expects(:paragraphs).at_least_once.returns([ncpara])
+      preamble.expects(:paragraphs).at_least_once.returns([@ncpara])
       
       petition = Petition.new
       observation = PetitionObservation.new
@@ -142,9 +141,6 @@ describe PetitionsParser do
       
       component = Component.new(:ident => '2099-01-01_hansard_c_p')
       Component.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_p').returns(component)
-      
-      ncpara = NonContributionPara.new
-      NonContributionPara.expects(:find_or_create_by).at_least_once.returns(ncpara)
       
       preamble = Preamble.new(:ident => "2099-01-01_hansard_c_p_000001")
       Preamble.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_p_000001").returns(preamble)

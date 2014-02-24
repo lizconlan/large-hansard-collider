@@ -99,6 +99,7 @@ describe WrittenAnswersParser do
       Question.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002").returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
       question.expects(:number=).with("67391")
+      question.expects(:component=).with(component)
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000002_p000001").returns(contribution)
@@ -123,6 +124,7 @@ describe WrittenAnswersParser do
       Question.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_w_000003').returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
       question.expects(:number=).with("67110")
+      question.expects(:component=).with(component)
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000003_p000001").returns(contribution)
@@ -147,6 +149,7 @@ describe WrittenAnswersParser do
       Question.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_w_000004').returns(question)
       question.expects(:paragraphs).at_least_once.returns([])
       question.expects(:number=).with("67046")
+      question.expects(:component=).with(component)
       
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_w_000004_p000001").returns(contribution)

@@ -125,11 +125,13 @@ describe MinisterialCorrectionsParser do
       MinisterialCorrection.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_mc_000002").returns(correction)
       correction.expects(:title=).with("Correction - RSPCA")
       correction.expects(:department=).with("Justice")
+      correction.expects(:component=).with(@component)
       
       correction = MinisterialCorrection.new(ident: "2099-01-01_hansard_c_mc_000003")
       MinisterialCorrection.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_mc_000003").returns(correction)
       correction.expects(:title=).with("Correction - Members: Correspondence")
       correction.expects(:department=).with("Transport")
+      correction.expects(:component=).with(@component)
       
       @parser.parse
     end
