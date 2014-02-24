@@ -2,6 +2,7 @@
 
 require 'rest-client'
 require 'nokogiri'
+require 'date'
 
 require './models/hansard_page'
 require './models/hansard_member'
@@ -122,7 +123,12 @@ class Parser
     first_page = link_to_first_page
     
     unless first_page
-      warn "No #{@component} data available for this date".squeeze(' ')
+      if self.respond_to?(:component_name)
+        component = self.component_name
+      else
+        component = ""
+      end
+      warn "No #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
     else
       @page = HansardPage.new(first_page)
       
