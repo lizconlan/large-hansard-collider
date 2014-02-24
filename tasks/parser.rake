@@ -6,6 +6,7 @@ require './lib/commons/wh_debates_parser'
 require './lib/commons/wms_parser'
 require './lib/commons/written_answers_parser'
 require './lib/commons/petitions_parser'
+require './lib/commons/ministerial_corrections_parser'
 
 #persisted models
 require './models/daily_part'
@@ -32,14 +33,14 @@ task :scrape_hansard => :environment do
   Date.parse(date)
 
   #great, go
-  # parser = CommonsDebatesParser.new(date)
-  # parser.parse
-  # 
-  # parser = WHDebatesParser.new(date)
-  # parser.parse
-  # 
-  # parser = WMSParser.new(date)
-  # parser.parse
+  parser = CommonsDebatesParser.new(date)
+  parser.parse
+  
+  parser = WHDebatesParser.new(date)
+  parser.parse
+  
+  parser = WMSParser.new(date)
+  parser.parse
   
   parser = PetitionsParser.new(date)
   parser.parse
@@ -47,5 +48,6 @@ task :scrape_hansard => :environment do
   parser = WrittenAnswersParser.new(date)
   parser.parse
   
-  # TODO: Ministerial Corrections
+  parser = MinisterialCorrectionsParser.new(date)
+  parser.parse
 end

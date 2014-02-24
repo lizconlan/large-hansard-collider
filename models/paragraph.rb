@@ -29,3 +29,6 @@ end
 
 class ContributionTable < Paragraph
 end
+
+class NonContributionTable < Paragraph
+end
