@@ -61,7 +61,7 @@ class HansardPage
       end
       if rel_link.empty?
         #slightly broken ministerial corrections
-        rel_link = doc.xpath("string(//div[@id='content-small']/h3[2]/a[1]/@href)")
+        rel_link = doc.xpath("string(//div[@id='content-small']/h3[3]/a[1]/@href)")
       end
       if rel_link.empty?
         rel_link = doc.xpath("string(//div[@id='maincontent1']/div/a[1]/@href)")
