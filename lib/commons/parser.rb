@@ -32,7 +32,7 @@ class CommonsParser < Parser
           @column = $1
           column_desc = bold.text
         else 
-          member_name = bold.text.strip
+          member_name = bold.text.strip.squeeze(" ")
           process_member_contribution(member_name, node.text) if process_contribution
         end
       end

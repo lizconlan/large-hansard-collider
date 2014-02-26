@@ -171,11 +171,12 @@ class CommonsDebatesParser < CommonsParser
       end
     end
     section.asked_by = member.index_name if member
-    if text =~ /^\s?(T\d+). /
+    if text =~ /^\s?(T\d+).(?: |\[)/
       section.title = "Topical Questions - #{$1}"
     else
       section.title = text
     end
+    section.sequence = @section_seq
     section.component = @hansard_component
     section.department = @department if @department
     section.url = "#{@page.url}\##{@last_link}"
@@ -376,6 +377,8 @@ class CommonsDebatesParser < CommonsParser
     if @section.columns.length > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end
+    
+    @page_fragment_type = "" if @section.type == "Division"
     
     @section.save
   end
