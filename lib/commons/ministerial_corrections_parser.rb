@@ -116,6 +116,7 @@ class MinisterialCorrectionsParser < CommonsParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = MinisterialCorrection.find_or_create_by(ident: section_ident)
     @section.url = "#{@page.url}\##{@last_link}"
+    @section.columns = [@column]
     @section.sequence = @section_seq
     @section.component = @hansard_component
     @para_seq = 0

@@ -153,6 +153,8 @@ class CommonsDebatesParser < CommonsParser
     section.tellers_ayes = []
     section.tellers_noes = []
     section.component = @hansard_component
+    section.columns = [@column]
+    section.sequence = @section_seq
     section.members = []
     @para_seq = 0
     section
@@ -166,7 +168,7 @@ class CommonsDebatesParser < CommonsParser
     section.component = @hansard_component
     section.title = title
     section.sequence = @section_seq
-    section.columns = []
+    section.columns = [@column]
     @para_seq = 0
     if parent
       section.parent_section = parent
@@ -198,6 +200,7 @@ class CommonsDebatesParser < CommonsParser
       section.title = text
     end
     section.sequence = @section_seq
+    section.columns = [@column]
     section.component = @hansard_component
     section.department = @department if @department
     section.url = "#{@page.url}\##{@last_link}"

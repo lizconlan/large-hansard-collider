@@ -135,6 +135,7 @@ class PetitionsParser < CommonsParser
     @section.title = @subject
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
+    @section.columns = [@column]
     @section.component = @hansard_component
     @para_seq = 0
   end
@@ -148,6 +149,7 @@ class PetitionsParser < CommonsParser
     @section.title = @subject
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
+    @section.columns = [@column]
     @section.component = @hansard_component
     @para_seq = 0
   end

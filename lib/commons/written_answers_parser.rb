@@ -97,6 +97,7 @@ class WrittenAnswersParser < CommonsParser
   
   def process_para(node)
     if node.xpath("a") and node.xpath("a").length > 0
+      process_links_and_columns(node)
       @last_link = node.xpath("a").last.attr("name")
       determine_fragment_type(node.xpath("a"))
       if @page_fragment_type == "question"
@@ -146,6 +147,7 @@ class WrittenAnswersParser < CommonsParser
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.component = @hansard_component
+    @section.columns = [@column]
     @para_seq = 0
   end
   
