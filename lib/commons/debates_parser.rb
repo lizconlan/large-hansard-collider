@@ -222,10 +222,12 @@ class CommonsDebatesParser < CommonsParser
           aye = @section.ayes.pop
           aye = "#{aye} #{text.strip}"
           @section.ayes << aye
-        else
+        elsif @current_list == "noes"
           noe = @section.noes.pop
           noe = "#{noe} #{text.strip}"
           @section.noes << noe
+        else
+          para = create_new_noncontribution_para(sanitize_text(text))
         end
       end
     end

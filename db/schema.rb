@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140213002652) do
+ActiveRecord::Schema.define(version: 20140227014413) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -70,8 +70,8 @@ ActiveRecord::Schema.define(version: 20140213002652) do
     t.string  "division_number"
     t.string  "tellers_ayes",      limit: 1000,                 array: true
     t.string  "tellers_noes",      limit: 1000,                 array: true
-    t.string  "ayes",                                           array: true
-    t.string  "noes",                                           array: true
+    t.string  "ayes",              limit: 1000,                 array: true
+    t.string  "noes",              limit: 1000,                 array: true
     t.boolean "indexed",                        default: false
   end
 
