@@ -67,7 +67,8 @@ class CommonsParser < Parser
       name = $3
       member = HansardMember.new(name, "", "", "", post)
       handle_member_info(@member, member)
-    when /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
+    when /^(([^\(]*) \(([^\(]*)\)\s?\) \(([^\(]*)\):)/,
+         /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
       #an MP speaking for the first time in the debate
       name = $2
       constituency = $3
