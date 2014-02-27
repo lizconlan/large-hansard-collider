@@ -33,8 +33,15 @@ class CommonsDebatesParser < CommonsParser
       process_subheading(sanitize_text(minify_whitespace(node.text)))
     when "h5"
       process_timestamp(minify_whitespace(node.text))
-    when "p", "center"
+    when "p"
       process_para(node)
+    when "center"
+      if @section_stack.last and @section_stack.last.title =~ /deferred division(?:s?)/i and !(node.text =~ /^Division No/)
+        start_new_section
+        @section = create_new_division(node.text)
+      else
+        process_para(node)
+      end
     end
   end
   
@@ -89,7 +96,11 @@ class CommonsDebatesParser < CommonsParser
         setup_preamble(text)
       else
         start_new_section
-        @section = create_new_debate(sanitize_text(text))
+        if text =~ /deferred division(?:s?)/i
+          @section = create_new_container(text, @section_stack.last)
+        else
+          @section = create_new_debate(sanitize_text(text))
+        end
       end
     end
   end
@@ -124,17 +135,25 @@ class CommonsDebatesParser < CommonsParser
     section
   end
   
-  def create_new_division
+  def create_new_division(title=nil)
+    @tellers = false
+    @current_list = ""
+    
     @section_seq += 1
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Division.find_or_create_by(ident: section_ident)
-    section.title = "Division - #{@section.title}" #borrow the previous section's title, certain assumption there
+    if title
+      section.title = "Division - #{title}"
+    else
+      section.title = "Division - #{@section.title}" #borrow the previous section's title, certain assumption there
+    end
     section.url = "#{@page.url}\##{@last_link}"
     section.ayes = []
     section.noes = []
     section.tellers_ayes = []
     section.tellers_noes = []
     section.component = @hansard_component
+    section.members = []
     @para_seq = 0
     section
   end
@@ -290,16 +309,6 @@ class CommonsDebatesParser < CommonsParser
     question
   end
   
-  # def get_question_title(text, number)
-  #   title = ""
-  #   if text =~ /\- (?:T|Q)\d+/
-  #     title = "#{text.gsub(/\- (?:T|Q)\d+/, "- #{number}")}"
-  #   else
-  #     title = "#{text} - #{number}"
-  #   end
-  #   title
-  # end
-  
   def process_para(node)
     column_desc = ""
     member_name = ""
@@ -318,7 +327,6 @@ class CommonsDebatesParser < CommonsParser
     end
     
     member_name, column_desc = get_member_and_column(node, true)
-    
     text = scrub_whitespace_and_column_refs(node.content, column_desc)
     
     if @page_fragment_type == "question"
@@ -333,11 +341,18 @@ class CommonsDebatesParser < CommonsParser
         @section = create_new_question(text, @member)
       end
     elsif @page_fragment_type == "division"
-      unless @section.type == "Division"
-        start_new_section
-        @section = create_new_division
+      @member = nil
+      unless @section.type == "Division" or (@section.type == "Container" and @section.title =~ /deferred division/i)
+        if text =~ /deferred division(?:s?)/i
+          start_new_section
+          @section = create_new_container(text, @section_stack.last)
+        else
+          start_new_section
+          @section = create_new_division
+        end
+      else
+        process_division(text)
       end
-      process_division(text)
     end
     if @subsection_name == "Petition" and text =~ /\[(P[^\]]*)\]/
       @petitions << $1
@@ -379,8 +394,6 @@ class CommonsDebatesParser < CommonsParser
     if @section.columns.length > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end
-    
-    @page_fragment_type = "" if @section.type == "Division"
     
     @section.save
   end
