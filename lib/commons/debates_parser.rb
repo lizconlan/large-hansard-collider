@@ -192,6 +192,8 @@ class CommonsDebatesParser < CommonsParser
     section.asked_by = member.index_name if member
     if text =~ /^\s?(T\d+).(?: |\[)/
       section.title = "Topical Questions - #{$1}"
+    elsif text =~ /^\s?(\d+).(?: |\[)/ #rare, weird format
+      section.title = "Question - #{$1}"
     else
       section.title = text
     end
