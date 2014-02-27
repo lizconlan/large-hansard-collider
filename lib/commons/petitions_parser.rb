@@ -155,7 +155,7 @@ class PetitionsParser < CommonsParser
   def save_section
     return false unless @section
     @section.department = @department if @department
-    if @section.columns.length > 2
+    if @section.columns and @section.columns.length > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end
     @section.save

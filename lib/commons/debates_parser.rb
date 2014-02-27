@@ -393,7 +393,7 @@ class CommonsDebatesParser < CommonsParser
       @bill = {}
     end
     
-    if @section.columns.length > 2
+    if @section.columns and @section.columns.length > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end
     
