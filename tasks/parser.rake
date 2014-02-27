@@ -21,6 +21,7 @@ require './models/hansard_page'
 desc "scrape a day's worth of hansard"
 task :scrape_hansard => :environment do
   date = ENV['date']
+  go = true
   
   #make sure date has been supplied and is valid
   unless date
@@ -30,24 +31,30 @@ task :scrape_hansard => :environment do
       raise 'need to specify date=yyyy-mm-dd'
     end
   end
-  Date.parse(date)
-
-  #great, go
-  parser = CommonsDebatesParser.new(date)
-  parser.parse
+  begin
+    Date.parse(date)
+  rescue
+    warn "invalid date #{date}"
+    go = false
+  end
   
-  parser = WHDebatesParser.new(date)
-  parser.parse
+  if go #great, go
+    parser = CommonsDebatesParser.new(date)
+    parser.parse
   
-  parser = WMSParser.new(date)
-  parser.parse
+    parser = WHDebatesParser.new(date)
+    parser.parse
   
-  parser = PetitionsParser.new(date)
-  parser.parse
+    parser = WMSParser.new(date)
+    parser.parse
   
-  parser = WrittenAnswersParser.new(date)
-  parser.parse
+    parser = PetitionsParser.new(date)
+    parser.parse
   
-  parser = MinisterialCorrectionsParser.new(date)
-  parser.parse
+    parser = WrittenAnswersParser.new(date)
+    parser.parse
+  
+    parser = MinisterialCorrectionsParser.new(date)
+    parser.parse
+  end
 end
