@@ -210,9 +210,11 @@ class CommonsDebatesParser < CommonsParser
   
   def process_division(text)
     case text.strip
-    when /^The House (having )?divided/, /^Motion/, /^Question/
+    when /^The House (having )?divided/, /^Motion/, /^Question/, /^Bill accordingly/
+      @current_list = ""
+      @tellers = false
       para = create_new_noncontribution_para(sanitize_text(text))
-    when /^Ayes \d+, Noes \d+./
+    when /^Ayes\s\d+,\s?Noes\s\d+/
       para = create_new_noncontribution_para(sanitize_text(text))
     when /^Division No\. ([^\]]*)\]/
       @section.number = $1
@@ -354,6 +356,7 @@ class CommonsDebatesParser < CommonsParser
         else
           start_new_section
           @section = create_new_division
+          process_division(text)
         end
       else
         process_division(text)

@@ -648,7 +648,7 @@ describe CommonsDebatesParser do
       @parser.expects(:link_to_first_page).returns(@url)
     end
     
-    it "should not handle store the Division with Ayes and Noes" do
+    it "should store the Division with Ayes and Noes" do
       stub_page("spec/data/commons/debate_with_division.html")
       
       component = Component.new
@@ -669,7 +669,7 @@ describe CommonsDebatesParser do
       
       NonContributionPara.expects(:find_or_create_by).with(ident: 'preamble2_p000001').returns(ncpara)
       
-      debate = Debate.new(ident: "2099-01-01_hansard_c_d_000003")
+      debate = Debate.new(ident: "2099-01-01_hansard_c_d_000003", title: "Public Bodies Bill [Lords]")
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000003").returns(debate)
       debate.stubs(:paragraphs).returns([])
       debate.expects(:title=).with("Public Bodies Bill [Lords]")
@@ -697,6 +697,7 @@ describe CommonsDebatesParser do
       division = Division.new(ident: "2099-01-01_hansard_c_d_000004", ayes: [], noes: [], tellers_ayes: [], tellers_noes: [])
       Division.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004').returns(division)
       division.expects(:number=).with('321')
+      division.expects(:title=).with("Division - Public Bodies Bill [Lords]")
       division.expects(:ayes=).with([])
       division.expects(:noes=).with([])
       division.expects(:tellers_ayes=).with([])
@@ -727,10 +728,6 @@ describe CommonsDebatesParser do
       
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004_p000002").returns(ncpara)
       ncpara.expects(:content=).with("Ayes 231, Noes 307.")
-      
-      timestamp = Timestamp.new(ident: "2099-01-01_hansard_c_d_000004_p000003")
-      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004_p000003").returns(timestamp)
-      timestamp.expects(:content=).with("9.59 pm")
       
       NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000004').returns(ncpara)
       ncpara.expects(:content=).with("Question accordingly negatived.")
