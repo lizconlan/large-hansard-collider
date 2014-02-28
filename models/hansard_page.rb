@@ -51,20 +51,9 @@ class HansardPage
   
   def self.get_starting_link(doc, house, start_url)
     if house.downcase == "commons"
-      rel_link = doc.xpath("string(//div[@id='content-small']/p[3]/a/@href)")
+      rel_link = doc.xpath("//div[@id='content-small']//a[contains(@href,'.htm')]/@href")[0].to_s
       if rel_link.empty?
-        rel_link = doc.xpath("string(//div[@id='content-small']/table/tr/td[1]/p[3]/a[1]/@href)")
-      end
-      if rel_link.empty?
-        #petitions / ministerial corrections
-        rel_link = doc.xpath("string(//div[@id='content-small']/h1/a[1]/@href)")
-      end
-      if rel_link.empty?
-        #slightly broken ministerial corrections
-        rel_link = doc.xpath("string(//div[@id='content-small']/h3[3]/a[1]/@href)")
-      end
-      if rel_link.empty?
-        rel_link = doc.xpath("string(//div[@id='maincontent1']/div/a[1]/@href)")
+        rel_link = doc.xpath("//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
       end
       "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
     else
