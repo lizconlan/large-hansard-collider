@@ -112,7 +112,6 @@ class Parser
     end
     html = get_component_index
     return nil unless html
-    
     doc = Nokogiri::HTML(html)
     HansardPage.get_starting_link(doc, house, @start_url)
   end
@@ -249,7 +248,11 @@ class Parser
   end
   
   def add_member_to_temp_store(member)
-    unless @members.keys.include?(member.search_name)
+    if @members.keys.include?(member.search_name)
+      if @members[member.search_name].name == member.search_name and member.name.length > @members[member.search_name].name.length
+        @members[member.search_name] = member
+      end
+    else
       @members[member.search_name] = member
     end
   end

@@ -129,4 +129,33 @@ describe CommonsParser do
       @parser.parse
     end
   end
+  
+  context "when dealing with member names" do
+    it "should not allow the same name to be added twice" do
+      member = HansardMember.new("Mr John Smith")
+      @parser.init_vars
+      @parser.send(:add_member_to_temp_store, member)
+      @parser.send(:add_member_to_temp_store, member)
+      @parser.send(:instance_values)["members"].keys.count.should eq(1)
+    end
+    
+    it "should treat 'Mr Smith' and 'Mr John Smith' as the same person" do
+      member1 = HansardMember.new("Mr John Smith")
+      member2 = HansardMember.new("Mr Smith")
+      @parser.init_vars
+      @parser.send(:add_member_to_temp_store, member1)
+      @parser.send(:add_member_to_temp_store, member2)
+      @parser.send(:instance_values)["members"].keys.count.should eq(1)
+    end
+    
+    it "should replace the short version of the name with the longer one" do
+      member1 = HansardMember.new("Mr John Smith")
+      member2 = HansardMember.new("Mr Smith")
+      @parser.init_vars
+      @parser.send(:add_member_to_temp_store, member2)
+      @parser.send(:instance_values)["members"]["Mr Smith"].name.should eq("Mr Smith")
+      @parser.send(:add_member_to_temp_store, member1)
+      @parser.send(:instance_values)["members"]["Mr Smith"].name.should eq("Mr John Smith")
+    end
+  end
 end

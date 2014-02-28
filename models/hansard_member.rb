@@ -31,9 +31,11 @@ class HansardMember
     if member_name =~ TITLES
       @title = $1
       parts = member_name.split(" ").reverse
-      name = parts.pop
-      parts.pop #drop the firstname
-      member_name = "#{name} #{parts.reverse.join(" ")}"
+      if parts.length > 2
+        name = parts.pop
+        parts.pop #drop the firstname
+        member_name = "#{name} #{parts.reverse.join(" ")}"
+      end
     end
     member_name.gsub("(", "").gsub(")", "")
   end
