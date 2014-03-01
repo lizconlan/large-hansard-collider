@@ -35,6 +35,11 @@ class HansardPage
     content = doc.xpath("//div[@id='content-small']")
     if content.empty?
       content = doc.xpath("//div[@id='maincontent1']")
+      if content.empty?
+        # at this point we're assuming that the template isn't loaded, see
+        # http://www.publications.parliament.uk/pa/cm200910/cmhansrd/cm100204/text/100204w0001.htm
+        content = doc.xpath("//body")
+      end
     elsif content.children.size < 10
       content = doc.xpath("//div[@id='content-small']/table/tr/td[1]")
     end
@@ -50,10 +55,19 @@ class HansardPage
   end
   
   def self.get_starting_link(doc, house, start_url)
+    #p start_url
     if house.downcase == "commons"
       rel_link = doc.xpath("//div[@id='content-small']//a[contains(@href,'.htm')]/@href")[0].to_s
       if rel_link.empty?
         rel_link = doc.xpath("//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
+      end
+      if rel_link.empty? or rel_link =~ /^http/
+        #to deal with a glitch on http://www.publications.parliament.uk/pa/cm200910/cmhansrd/cm100127/debindx/100127-x.htm
+        rel_link = doc.xpath("//div[@id='maincontent1']//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
+      end
+      if rel_link.empty?
+        #...and the opposite problem with http://www.publications.parliament.uk/pa/cm200910/cmhansrd/cm100204/index/100204-x.htm
+        rel_link = doc.xpath("//a[contains(@href,'.htm')]/@href")[0].to_s
       end
       "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
     else
