@@ -83,10 +83,12 @@ class PetitionsParser < CommonsParser
       
       if @member
         table = ContributionTable.find_or_create_by(ident: para_ident)
-        table.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
         table.member = @member.printed_name
         add_member_to_temp_store(@member)
+      else
+        table = NonContributionTable.find_or_create_by(ident: para_ident)
       end
+      table.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
       table.column = @column
       table.url = "#{@page.url}\##{@last_link}"
       table.sequence = @para_seq
@@ -103,11 +105,11 @@ class PetitionsParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
-    return false if text.empty?
-    
     #ignore column heading text
-    unless text =~ COLUMN_HEADER
+    unless node.text =~ COLUMN_HEADER
+      text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+      return false if text.empty?
+      
       if text =~ /^The Petition of/
         create_petition
       end

@@ -71,7 +71,9 @@ class WrittenAnswersParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    #make sure it's actually UTF-8
+    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
@@ -82,7 +84,9 @@ class WrittenAnswersParser < CommonsParser
       
       if @member
         table = ContributionTable.find_or_create_by(ident: para_ident)
-        table.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
+        #make sure it's actually UTF-8
+        content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+        table.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
         table.member = @member.printed_name
         add_member_to_temp_store(@member)
       end
@@ -107,10 +111,12 @@ class WrittenAnswersParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    #make sure it's actually UTF-8
+    text = node.content.force_encoding("iso-8859-1").encode!("UTF-8")
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
+      text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       process_member_contribution(member_name, text)
       
       if @section.type == "Question" and @section.number.nil?
@@ -143,7 +149,7 @@ class WrittenAnswersParser < CommonsParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Question.find_or_create_by(ident: section_ident)
     @section.question_type = "for written answer"
-    @section.title = @subject
+    @section.title = @subject.force_encoding("iso-8859-1").encode!("UTF-8")
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.component = @hansard_component

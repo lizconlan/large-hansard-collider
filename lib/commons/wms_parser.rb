@@ -82,11 +82,13 @@ class WMSParser < CommonsParser
     
     if @member
       para = ContributionTable.find_or_create_by(ident: para_ident)
-      para.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
       para.member = @member.index_name
       add_member_to_temp_store(@member)
+    else
+      para = NonContributionTable.find_or_create_by(ident: para_ident)
     end
-    para.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
+    content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+    para.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
     para.column = @column
     para.url = "#{@page.url}\##{@last_link}"
     para.section = @section
@@ -106,10 +108,11 @@ class WMSParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
+      text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       process_member_contribution(member_name, text)
       
       if @member

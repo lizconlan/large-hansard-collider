@@ -71,17 +71,21 @@ class MinisterialCorrectionsParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    #make sure it's actually UTF-8
+    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
+    
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
+      text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       @para_seq += 1
       para_ident = "#{@section.ident}_p#{@para_seq.to_s.rjust(6, "0")}"
       para = nil
       process_member_contribution(member_name, text)
       
       table = NonContributionTable.find_or_create_by(ident: para_ident)
-      table.content = node.to_html.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
+      content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+      table.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
       table.column = @column
       table.url = "#{@page.url}\##{@last_link}"
       table.sequence = @para_seq

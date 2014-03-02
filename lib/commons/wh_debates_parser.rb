@@ -82,7 +82,8 @@ class WHDebatesParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.content.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
+    #make sure it's actually UTF-8
+    text = node.content.force_encoding("iso-8859-1").encode!("UTF-8")
     if node.xpath("i").first
       italic_text = node.xpath("i").first.content
     else
@@ -93,10 +94,10 @@ class WHDebatesParser < CommonsParser
       @chair = text[1..text.length-15]
     end
     
-    text = node.text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
+      text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       process_member_contribution(member_name, sanitize_text(text))
       
       if @member

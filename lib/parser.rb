@@ -174,6 +174,8 @@ class Parser
   end
   
   def scrub_whitespace_and_column_refs(text, column_ref)
+    #make sure it's actually UTF-8
+    text = text.force_encoding("iso-8859-1").encode!("UTF-8")
     text.gsub("\n", " ").gsub("\r", "").gsub(column_ref, "").squeeze(" ").strip
   end
   
