@@ -16,7 +16,12 @@ class HansardPage
     @doc = Nokogiri::HTML(@html)
     next_link = []
     if @doc.xpath("//div[@class='navLinks']").empty?
-      next_link = @doc.xpath("//table").last.xpath("tr/td/a[text()='Next Section']")
+      tables = @doc.xpath("//table")
+      if tables.last
+        next_link = tables.last.xpath("tr/td/a[text()='Next Section']")
+      else
+        next_link = ""
+      end
     elsif @doc.xpath("//div[@class='navLinks'][2]").empty?
       next_link = @doc.xpath("//div[@class='navLinks'][1]/div[@class='navLeft']/a")
     else
@@ -55,7 +60,6 @@ class HansardPage
   end
   
   def self.get_starting_link(doc, house, start_url)
-    #p start_url
     if house.downcase == "commons"
       rel_link = doc.xpath("//div[@id='content-small']//a[contains(@href,'.htm')]/@href")[0].to_s
       if rel_link.empty?
@@ -64,11 +68,21 @@ class HansardPage
       if rel_link.empty? or rel_link =~ /^http/
         #to deal with a glitch on http://www.publications.parliament.uk/pa/cm200910/cmhansrd/cm100127/debindx/100127-x.htm
         rel_link = doc.xpath("//div[@id='maincontent1']//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
+        if rel_link.empty? or rel_link =~ /^http/
+          #argh - http://www.publications.parliament.uk/pa/cm200809/cmhansrd/cm090226/index/90226-x.htm
+          rel_link = doc.xpath("//div[@id='maincontent1']//div[@id='maincontent1']//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
+        end
       end
       if rel_link.empty?
         #...and the opposite problem with http://www.publications.parliament.uk/pa/cm200910/cmhansrd/cm100204/index/100204-x.htm
         rel_link = doc.xpath("//a[contains(@href,'.htm')]/@href")[0].to_s
       end
+      # correct a petition link if it goes to written answers
+      # (no, really - see http://www.publications.parliament.uk/pa/cm201011/cmhansrd/cm100726/petnindx/100726-x.htm)
+      if start_url =~ /petnindx/ and rel_link =~ /(.*)\/text\/(\d+)w(.*)/
+        rel_link = "#{$1}/petntext/#{$2}p0001.htm\#fake"
+      end
+      rel_link.gsub!("\n", "")
       "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
     else
       anchor_name = start_url.split("#").last
