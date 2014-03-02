@@ -28,7 +28,11 @@ class CommonsDebatesParser < CommonsParser
     when "h2"
       process_top_level_heading(minify_whitespace(node.text), node.content)
     when "h3"
-      process_heading(minify_whitespace(node.text))
+      if node.text =~ /^That this House takes note/
+        process_para(node)
+      else
+        process_heading(minify_whitespace(node.text))
+      end
     when "h4"
       process_subheading(sanitize_text(minify_whitespace(node.text)))
     when "h5"
@@ -192,7 +196,7 @@ class CommonsDebatesParser < CommonsParser
       end
     end
     section.asked_by = member.index_name if member
-    if text =~ /^\s?(T\d+).(?: |\[)/
+    if text =~ /^\s?(T\d+)\s?.(?: |\[)/
       section.title = "Topical Questions - #{$1}"
     elsif text =~ /^\s?(\d+).(?: |\[)/ #rare, weird format
       section.title = "Question - #{$1}"
