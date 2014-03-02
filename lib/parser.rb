@@ -170,6 +170,8 @@ class Parser
   end
   
   def minify_whitespace(text)
+    text = #make sure it's actually UTF-8
+    text = text.force_encoding("iso-8859-1").encode!("UTF-8")
     text.gsub("\n", "").squeeze(" ").strip
   end
   
