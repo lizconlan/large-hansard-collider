@@ -72,7 +72,7 @@ class MinisterialCorrectionsParser < CommonsParser
     member_name, column_desc = get_member_and_column(node)
     
     #make sure it's actually UTF-8
-    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(node.text)
     
     return false if text.empty?
     #ignore column heading text
@@ -84,7 +84,7 @@ class MinisterialCorrectionsParser < CommonsParser
       process_member_contribution(member_name, text)
       
       table = NonContributionTable.find_or_create_by(ident: para_ident)
-      content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+      content = sanitize_text(node.to_html)
       table.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
       table.column = @column
       table.url = "#{@page.url}\##{@last_link}"

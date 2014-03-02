@@ -72,7 +72,7 @@ class WrittenAnswersParser < CommonsParser
     member_name, column_desc = get_member_and_column(node)
     
     #make sure it's actually UTF-8
-    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(node.text)
     text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
     return false if text.empty?
     #ignore column heading text
@@ -85,7 +85,7 @@ class WrittenAnswersParser < CommonsParser
       if @member
         table = ContributionTable.find_or_create_by(ident: para_ident)
         #make sure it's actually UTF-8
-        content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+        content = sanitize_text(node.to_html)
         table.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
         table.member = @member.printed_name
         add_member_to_temp_store(@member)
@@ -112,7 +112,7 @@ class WrittenAnswersParser < CommonsParser
     member_name, column_desc = get_member_and_column(node)
     
     #make sure it's actually UTF-8
-    text = node.content.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(node.content)
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER
@@ -149,7 +149,7 @@ class WrittenAnswersParser < CommonsParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     @section = Question.find_or_create_by(ident: section_ident)
     @section.question_type = "for written answer"
-    @section.title = @subject.force_encoding("iso-8859-1").encode!("UTF-8")
+    @section.title = sanitize_text(@subject)
     @section.url = "#{@page.url}\##{@last_link}"
     @section.sequence = @section_seq
     @section.component = @hansard_component

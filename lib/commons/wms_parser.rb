@@ -87,7 +87,7 @@ class WMSParser < CommonsParser
     else
       para = NonContributionTable.find_or_create_by(ident: para_ident)
     end
-    content = node.to_html.force_encoding("iso-8859-1").encode!("UTF-8")
+    content = sanitize_text(node.to_html)
     para.content = content.gsub(/<a class="[^"]*" name="[^"]*">\s?<\/a>/, "")
     para.column = @column
     para.url = "#{@page.url}\##{@last_link}"
@@ -108,7 +108,7 @@ class WMSParser < CommonsParser
     
     member_name, column_desc = get_member_and_column(node)
     
-    text = node.text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(node.text)
     return false if text.empty?
     #ignore column heading text
     unless text =~ COLUMN_HEADER

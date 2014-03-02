@@ -2,6 +2,7 @@
 
 require 'rest-client'
 require 'nokogiri'
+require 'htmlentities'
 require 'date'
 
 require './models/hansard_page'
@@ -170,14 +171,12 @@ class Parser
   end
   
   def minify_whitespace(text)
-    text = #make sure it's actually UTF-8
-    text = text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(text)
     text.gsub("\n", "").squeeze(" ").strip
   end
   
   def scrub_whitespace_and_column_refs(text, column_ref)
-    #make sure it's actually UTF-8
-    text = text.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(text)
     text.gsub("\n", " ").gsub("\r", "").gsub(column_ref, "").squeeze(" ").strip
   end
   
@@ -271,11 +270,29 @@ class Parser
   end
   
   def sanitize_text(text)
-    text.force_encoding("utf-8")
+    begin
+      text = HTMLEntities.new.decode(text)
+    rescue ArgumentError => e
+      # a bit of a punt but seems the most likely/problematic encoding
+      text.force_encoding("Windows-1252").encode!("UTF-8")
+      text = HTMLEntities.new.decode(text)
+    end
+    
+    text = text.gsub("vis-Ã -vis", "vis-à-vis")
+    text = text.gsub("Ã1/4", "ü") #fix badly ASCII folded encoding, should be Ã¼
+    text = text.gsub("\u0092", "'")
     text = text.gsub("’", "'")
+    
+    text = text.gsub("\u0091", "'")
     text = text.gsub("‘", "'")
+    
+    text = text.gsub("\u0093", '"')
     text = text.gsub("“", '"')
+    
+    text = text.gsub("\u0094", '"')
     text = text.gsub("”", '"')
+    
+    text = text.gsub("\u0097", " - ")
     text = text.gsub("—", " - ")
     # text = text.gsub("\302\243", "£")
     text

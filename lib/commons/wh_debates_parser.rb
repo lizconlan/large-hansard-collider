@@ -83,7 +83,7 @@ class WHDebatesParser < CommonsParser
     member_name, column_desc = get_member_and_column(node)
     
     #make sure it's actually UTF-8
-    text = node.content.force_encoding("iso-8859-1").encode!("UTF-8")
+    text = sanitize_text(node.content)
     if node.xpath("i").first
       italic_text = node.xpath("i").first.content
     else

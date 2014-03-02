@@ -6,6 +6,7 @@ gem 'rest-client', '1.6.7'
 gem 'activerecord', '4.0.2'
 gem 'rake'
 gem 'state_machine'
+gem 'htmlentities'
 
 group :test do
   gem 'rspec'
