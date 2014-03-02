@@ -5,7 +5,7 @@ require "./lib/parser.rb"
 class CommonsParser < Parser
   attr_reader :date, :doc_id, :house
   
-  COLUMN_HEADER = /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:-continued)?$/
+  COLUMN_HEADER = /^\d+ [A-Z][a-z]+ \d{4} : Column (\d+(?:WH)?(?:WS)?(?:P)?(?:W)?)(?:\s?.continued)?$/
   
   def initialize(date)
     super(date, "Commons")
@@ -41,6 +41,9 @@ class CommonsParser < Parser
   end
   
   def process_member_contribution(member_name, text, seq=nil, italic_text=nil)
+    if member_name[0] == "["
+      member_name = member_name[1..member_name.length]
+    end
     case member_name
     when /^(([^\(]*) \(in the Chair\):)/
       #the Chair
