@@ -2,3 +2,4 @@
 ~*
 coverage
 config/*.yml
+xml
