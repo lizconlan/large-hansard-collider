@@ -110,7 +110,8 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def process_subheading(text)
-    if @section and @section.type == "Preamble"
+    return false unless @section
+    if @section.type == "Preamble"
       create_new_noncontribution_para(text)
     else
       if text.downcase =~ /^back\s?bench business$/ \

@@ -31,8 +31,16 @@ class CommonsParser < Parser
         if bold.text =~ COLUMN_HEADER #older page format
           @column = $1
           column_desc = bold.text
-        else 
+        else
           member_name = bold.text.strip.squeeze(" ")
+          # welcome to 2006!
+          if member_name.strip[-1] != ":"
+            remaining_text = sanitize_text(node.text).gsub(/(?:\d+\.\s*)?#{Regexp.escape(bold.text)}/, "").strip
+            if remaining_text.index(":")
+              append = remaining_text[0..remaining_text.index(":")]
+              member_name = "#{member_name} #{append}".squeeze(" ")
+            end
+          end
           process_member_contribution(member_name, node.text) if process_contribution
         end
       end
@@ -45,13 +53,13 @@ class CommonsParser < Parser
       member_name = member_name[1..member_name.length]
     end
     case member_name
-    when /^(([^\(]*) \(in the Chair\):)/
+    when /^(([^\(]*) \(in the Chair\):?)/
       #the Chair
       name = $2
       post = "Debate Chair"
       member = HansardMember.new(name, name, "", "", post)
       handle_member_info(@member, member)
-    when /^(([^\(]* [^\(]*)\) \(([^\(]*)\):)/
+    when /^(([^\(]* [^\(]*)\) \(([^\(]*)\):?)/
       #an MP speaking for the first time in the debate
       #but with a painful-for-us mistake in the online text
       name_and_constituency = $2
@@ -70,15 +78,15 @@ class CommonsParser < Parser
       name = $3
       member = HansardMember.new(name, "", "", "", post)
       handle_member_info(@member, member)
-    when /^(([^\(]*) \(([^\(]*)\)\s?\) \(([^\(]*)\):)/,
-         /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):)/
+    when /^(([^\(]*) \(([^\(]*)\)\s?\) \(([^\(]*)\):?)/,
+         /^(([^\(]*) \(([^\(]*)\) \(([^\(]*)\):?)/
       #an MP speaking for the first time in the debate
       name = $2
       constituency = $3
       party = $4
       member = HansardMember.new(name, "", constituency, party)
       handle_member_info(@member, member)
-    when /^(([^\(]*):)/
+    when /^(([^\(]*):?)/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)

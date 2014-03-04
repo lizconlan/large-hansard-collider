@@ -39,6 +39,9 @@ class HansardPage
   def get_content
     content = doc.xpath("//div[@id='content-small']")
     if content.empty?
+      content = doc.xpath("//div[@id='maincontent']") #2006
+    end
+    if content.empty?
       content = doc.xpath("//div[@id='maincontent1']")
       if content.empty?
         # at this point we're assuming that the template isn't loaded, see
@@ -63,6 +66,9 @@ class HansardPage
     if house.downcase == "commons"
       rel_link = doc.xpath("//div[@id='content-small']//a[contains(@href,'.htm')]/@href")[0].to_s
       if rel_link.empty?
+        rel_link = doc.xpath("//div[@id='maincontent']//a[contains(@href,'.htm')]/@href")[0].to_s
+      end
+      if rel_link.empty?
         rel_link = doc.xpath("//div[@id='maincontent1']//a[contains(@href,'.htm')]/@href")[0].to_s
       end
       if rel_link.empty? or rel_link =~ /^http/
@@ -83,7 +89,14 @@ class HansardPage
         rel_link = "#{$1}/petntext/#{$2}p0001.htm\#fake"
       end
       rel_link.gsub!("\n", "")
-      "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
+      if rel_link[0..2] == "../"
+        url_parts = start_url.split("/")
+        url_parts.pop #dump the filename
+        url_parts.pop #go up one level
+        "#{url_parts.join("/")}#{rel_link[2..rel_link.rindex("#")-1]}"
+      else
+        "http://www.publications.parliament.uk#{rel_link[0..rel_link.rindex("#")-1]}"
+      end
     else
       anchor_name = start_url.split("#").last
       anchor_test = anchor_name.empty? ? "" : "='#{anchor_name}'"
@@ -94,6 +107,9 @@ class HansardPage
   private
     def scrape_metadata
       subject = doc.xpath("//meta[@name='Subject']").attr("content").value.to_s
+      unless subject.include?("Volume")
+        subject = doc.xpath("//meta[@name='Source']").attr("content").value.to_s
+      end
       @volume = subject[subject.index("Volume:")+8..subject.rindex(",")-1]
       @part = subject[subject.index("Part:")+5..subject.length].gsub("\302\240", "").strip
       @title = doc.xpath("//head/title").text.strip
