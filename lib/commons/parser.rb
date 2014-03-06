@@ -86,7 +86,7 @@ class CommonsParser < Parser
       party = $4
       member = HansardMember.new(name, "", constituency, party)
       handle_member_info(@member, member)
-    when /^(([^\(]*):?)/
+    when /^(([^\(]*)):/
       #an MP who's spoken before
       name = $2
       member = HansardMember.new(name, name)
