@@ -111,7 +111,7 @@ class WMSParser < CommonsParser
     text = sanitize_text(node.text)
     return false if text.empty?
     #ignore column heading text
-    unless text =~ COLUMN_HEADER
+    unless text.strip =~ COLUMN_HEADER
       text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       process_member_contribution(member_name, text)
       

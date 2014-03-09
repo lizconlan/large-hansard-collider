@@ -24,7 +24,7 @@ class WrittenAnswersParser < CommonsParser
       process_links_and_columns(node)
       determine_fragment_type(node)
     when "h2"
-      setup_preamble(node.content) unless @section_seq > 1
+      setup_preamble(sanitize_text(node.content)) unless @section_seq > 1
     when "h3"
       process_heading(minify_whitespace(node.text))
     when "h4"
@@ -61,6 +61,7 @@ class WrittenAnswersParser < CommonsParser
   end
   
   def process_table(node)
+    return false unless @section
     if self.state == "starting"
       return false
     end
@@ -105,7 +106,9 @@ class WrittenAnswersParser < CommonsParser
       @last_link = node.xpath("a").last.attr("name")
       determine_fragment_type(node.xpath("a"))
       if @page_fragment_type == "question"
-        create_question if @page_fragment_type == "question"
+        create_question
+      else
+        return false unless @section
       end
     end
     
@@ -115,7 +118,7 @@ class WrittenAnswersParser < CommonsParser
     text = sanitize_text(node.content)
     return false if text.empty?
     #ignore column heading text
-    unless text =~ COLUMN_HEADER
+    unless text.strip =~ COLUMN_HEADER
       text = text.gsub("\n", "").gsub(column_desc, "").squeeze(" ").strip
       process_member_contribution(member_name, text)
       
