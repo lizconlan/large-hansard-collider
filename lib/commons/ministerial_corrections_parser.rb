@@ -39,7 +39,6 @@ class MinisterialCorrectionsParser < CommonsParser
   def process_heading(text)
     case @page_fragment_type
     when "department heading"
-      p
       create_ministerial_correction
       @department = sanitize_text(text)
       @subject = nil
