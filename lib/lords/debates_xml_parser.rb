@@ -47,7 +47,12 @@ class LordsDebatesXMLParser < XMLParser
     @column = node.attributes["colnum"].value
     start_new_section
     
-    @section = create_new_debate(node.text.strip)
+    text = strip_text(node.text)
+    if text =~ /Question$/
+      @section = create_new_question(text)
+    else
+      @section = create_new_debate(text)
+    end
     @section.url = url
   end
   
@@ -133,14 +138,24 @@ class LordsDebatesXMLParser < XMLParser
     section = Debate.find_or_create_by(ident: section_ident)
     section.members = []
     section.sequence = @section_seq
-    section.title = title.gsub("\n", " ").gsub("\t", " ").squeeze(" ") if title
+    section.title = title if title
+    section.component = @hansard_component
+    section
+  end
+  
+  def create_new_question(title=nil)
+    @section_seq +=1
+    section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    section = Question.find_or_create_by(ident: section_ident)
+    section.members = []
+    section.sequence = @section_seq
+    section.title = title if title
     section.component = @hansard_component
     section
   end
   
   def save_section
     return false unless @section
-    @section.append_column(@column)
     if @section.columns.count > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end

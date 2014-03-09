@@ -53,6 +53,10 @@ class XMLParser
   
   private
   
+  def strip_text(text)
+    text.gsub("\n", " ").gsub("\t", " ").squeeze(" ").strip
+  end
+  
   def scrape_metadata(url)
     response = RestClient.get(url)
     html = response.body
