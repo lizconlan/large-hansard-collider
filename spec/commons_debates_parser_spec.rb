@@ -8,7 +8,6 @@ describe CommonsDebatesParser do
     Preamble.any_instance.stubs(:save)
     NonContributionPara.any_instance.stubs(:save)
     ContributionPara.any_instance.stubs(:save)
-    Timestamp.any_instance.stubs(:save)
     Component.any_instance.stubs(:save)
     DailyPart.any_instance.stubs(:save)
     Debate.any_instance.stubs(:save)
@@ -56,43 +55,6 @@ describe CommonsDebatesParser do
       @parser = CommonsDebatesParser.new("2099-01-01")
       @parser.expects(:component_prefix).times(2).returns("d")
       @parser.expects(:link_to_first_page).returns(@url)
-    end
-    
-    it "should pick out the timestamps" do
-      stub_page("spec/data/commons/backbench_business_excerpt.html")
-      
-      preamble = Preamble.new
-      preamble.stubs(:paragraphs).returns([])
-      Preamble.stubs(:find_or_create_by).returns(preamble)
-      
-      paragraph = Paragraph.new
-      paragraph.stubs(:member=)
-      paragraph.stubs(:member).returns("test")
-      
-      nc = NonContributionPara.new
-      nc.stubs(:section=)
-      NonContributionPara.stubs(:find_or_create_by).returns(nc)
-      
-      cp = ContributionPara.new
-      cp.stubs(:section=)
-      ContributionPara.stubs(:find_or_create_by).returns(cp)
-      
-      div = Division.new
-      div.stubs(:section=)
-      Division.stubs(:find_or_create_by).returns(div)
-      
-      ts = Timestamp.new
-      ts.stubs(:section=)
-      Timestamp.stubs(:find_or_create_by).returns(ts)
-      
-      debate = Debate.new
-      Debate.expects(:find_or_create_by).at_least_once.returns(debate)
-      debate.expects(:paragraphs).at_least_once.returns([paragraph])
-      
-      ts.expects(:content=).with("2.44 pm")
-      ts.expects(:content=).with("2.45 pm")
-      
-      @parser.parse
     end
   end
     
@@ -156,9 +118,6 @@ describe CommonsDebatesParser do
       debate.expects(:parent_section=).with(container)
       container.sections.expects(:<<).with(debate)
       
-      timestamp = Timestamp.new
-      Timestamp.expects(:find_or_create_by).returns(timestamp)
-      
       contribution = ContributionPara.new
       ContributionPara.expects(:find_or_create_by).times(4).returns(contribution)
       
@@ -169,9 +128,6 @@ describe CommonsDebatesParser do
       debate.expects(:ident).at_least_once.returns('2099-01-01_hansard_c_d_000003')
       debate.expects(:parent_section=).with(container)
       container.sections.expects(:<<).with(debate)
-      
-      timestamp = Timestamp.new
-      Timestamp.expects(:find_or_create_by).returns(timestamp)
       
       ContributionPara.expects(:find_or_create_by).twice.returns(contribution)
       
@@ -478,7 +434,7 @@ describe CommonsDebatesParser do
       
       ncpara = NonContributionPara.new
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004_p000001").returns(ncpara)
-      ncpara.expects(:content=).with("The Secretary of State was asked - ")
+      ncpara.expects(:content=).with("The Secretary of State was asked -")
       ncpara.expects(:section=).with(dept_container)
       
       question = Question.new(ident: "2099-01-01_hansard_c_d_000005")
@@ -624,12 +580,8 @@ describe CommonsDebatesParser do
       Debate.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000007").returns(debate)
       debate.stubs(:paragraphs).returns([])
       
-      timestamp = Timestamp.new
-      Timestamp.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000007_p000001").returns(timestamp)
-      timestamp.expects(:content=).with("12.34 pm")
-      
       contribution = ContributionPara.new
-      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000007_p000002").returns(contribution)
+      ContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000007_p000001").returns(contribution)
       contribution.expects(:content=)
       contribution.expects(:member=).with("Hilary Benn")
       contribution.expects(:speaker_printed_name=).with("Hilary Benn")
@@ -729,16 +681,16 @@ describe CommonsDebatesParser do
       NonContributionPara.expects(:find_or_create_by).with(ident: "2099-01-01_hansard_c_d_000004_p000002").returns(ncpara)
       ncpara.expects(:content=).with("Ayes 231, Noes 307.")
       
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000004').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000003').returns(ncpara)
       ncpara.expects(:content=).with("Question accordingly negatived.")
       
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000005').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000004').returns(ncpara)
       ncpara.expects(:content=).with("Question put forthwith (Standing Order No. 62(2)), That the Bill be now read a Second Time.")
       
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000006').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000005').returns(ncpara)
       ncpara.expects(:content=).with("Question agreed to .")
       
-      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000007').returns(ncpara)
+      NonContributionPara.expects(:find_or_create_by).with(ident: '2099-01-01_hansard_c_d_000004_p000006').returns(ncpara)
       ncpara.expects(:content=).with("Bill accordingly read a Second time.")
       
       @parser.parse

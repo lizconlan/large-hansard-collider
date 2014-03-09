@@ -35,8 +35,6 @@ class CommonsDebatesParser < CommonsParser
       end
     when "h4"
       process_subheading(sanitize_text(minify_whitespace(node.text)))
-    when "h5"
-      process_timestamp(minify_whitespace(node.text))
     when "p"
       process_para(node)
     when "center"
@@ -110,12 +108,11 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def process_subheading(text)
-    return false unless @section
-    if @section.type == "Preamble"
+    if @section and @section.type == "Preamble"
       create_new_noncontribution_para(text)
     else
-      if text.downcase =~ /^back\s?bench business$/ \
-          or text.downcase =~ /^business without debate$/i
+      if text.downcase.strip =~ /^back\s?bench business$/i \
+          or text.downcase.strip =~ /^business without debate$/i
         #treat as honorary h3 / main heading
         @subsection_name = "Backbench Business"
         start_subsection
@@ -224,7 +221,7 @@ class CommonsDebatesParser < CommonsParser
     when /^Division No\. ([^\]]*)\]/
       @section.number = $1
     when /\[(\d+\.\d+ (a|p)m)/
-      process_timestamp($1)
+      #ignore timestamp
     when "AYES"
       @current_list = "ayes"
       @tellers = false
@@ -322,6 +319,7 @@ class CommonsDebatesParser < CommonsParser
   end
   
   def process_para(node)
+    return false unless @section
     column_desc = ""
     member_name = ""
     
@@ -372,7 +370,7 @@ class CommonsDebatesParser < CommonsParser
     end
     
     #ignore column heading text
-    unless (text =~ COLUMN_HEADER) or text == ""
+    unless (text.strip =~ COLUMN_HEADER) or text.strip == ""
       process_member_contribution(member_name, text)
       
       if @section.type == "Preamble"
