@@ -19,6 +19,7 @@ class LordsDebatesXMLParser < XMLParser
     @hansard_component = nil
     @in_major_section = false
     @parent = nil
+    @wrapper = nil
   end
   
   def parse
@@ -27,9 +28,23 @@ class LordsDebatesXMLParser < XMLParser
     @doc.root.element_children.each do |node|
       case node.name
       when "major-heading"
-        parse_major_heading(node)
+        if (@in_major_section and @section and @section.paragraphs.empty?) \
+            and (@wrapper.nil? or (@wrapper and @wrapper.paragraphs.empty?))
+          #I appear to have a section immediately followed by another
+          #let's assume it's a group
+          unless @wrapper
+            @wrapper = wrap_current_section(@section)
+          end
+          parse_major_heading(node)
+          @section.parent_section = @wrapper
+          @section.save
+          @wrapper.save
+        else
+          parse_major_heading(node)
+          @parent = nil
+          @wrapper = nil
+        end
         @in_major_section = true
-        @parent = nil
       when "minor-heading"
         parse_minor_heading(node)
       when "speech"
@@ -95,6 +110,31 @@ class LordsDebatesXMLParser < XMLParser
     paragraphs.each do |para|
       handle_para(para, speaker)
     end
+  end
+  
+  def wrap_current_section(current_section)
+    wrapper_ident = current_section.ident
+    wrapper_sequence = current_section.sequence
+    
+    @section_seq +=1
+    current_section.ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+    current_section.sequence = @section_seq
+    current_section.save
+    
+    wrapper = AmendmentGroup.find_or_create_by(ident: wrapper_ident)
+    wrapper.sequence = wrapper_sequence
+    wrapper.save
+    
+    current_section.parent_section = wrapper
+    current_section.save
+    
+    wrapper.sections << current_section
+    
+    wrapper.members = []
+    wrapper.columns = []
+    wrapper.title = "Grouped Amendments"
+    wrapper.component = @hansard_component
+    wrapper
   end
   
   def handle_para(node, member_name=nil)
@@ -202,19 +242,35 @@ class LordsDebatesXMLParser < XMLParser
     para.content = text.gsub("\n", " ").gsub("\t", " ").squeeze(" ")
     para.speaker_printed_name = member_name
     para.sequence = @para_seq
-    para.section = @section
+    if @wrapper
+      para.section = @wrapper
+    else
+      para.section = @section
+    end
     para.column = @column
     para.save
     
-    @section.paragraphs << para
-    unless member_name == "Noble Lords"
-      if @section.members.nil?
-        @section.members = [member_name]
-      else
-        @section.members << member_name unless @section.members.include?(member_name)
+    if @wrapper
+      @wrapper.paragraphs << para
+      unless member_name == "Noble Lords"
+        if @wrapper.members.nil?
+          @wrapper.members = [member_name]
+        else
+          @wrapper.members << member_name unless @wrapper.members.include?(member_name)
+        end
       end
+      @wrapper.append_column(@column)
+    else
+      @section.paragraphs << para
+      unless member_name == "Noble Lords"
+        if @section.members.nil?
+          @section.members = [member_name]
+        else
+          @section.members << member_name unless @section.members.include?(member_name)
+        end
+      end
+      @section.append_column(@column)
     end
-    @section.append_column(@column)
     
     para
   end
@@ -228,11 +284,21 @@ class LordsDebatesXMLParser < XMLParser
     para = NonContributionPara.find_or_create_by(ident: ident)
     para.content = text.gsub("\n", " ").gsub("\t", " ").squeeze(" ")
     para.sequence = @para_seq
-    para.section = @section
+    if @wrapper
+      para.section = @wrapper
+    else
+      para.section = @section
+    end
     para.column = @column
     para.save
-    @section.paragraphs << para
-    @section.append_column(@column)
+    
+    if @wrapper
+      @wrapper.paragraphs << para
+      @wrapper.append_column(@column)
+    else
+      @section.paragraphs << para
+      @section.append_column(@column)
+    end
     para
   end
   

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+<!DOCTYPE publicwhip
+[
+<!ENTITY ndash   "&#8211;">
+<!ENTITY mdash   "&#8212;">
+<!ENTITY iexcl   "&#161;">
+<!ENTITY divide  "&#247;">
+<!ENTITY euro    "&#8364;">
+<!ENTITY trade   "&#8482;">
+<!ENTITY bull    "&#8226;">
+<!ENTITY lsquo   "&#8216;">
+<!ENTITY rsquo   "&#8217;">
+<!ENTITY sbquo   "&#8218;">
+<!ENTITY ldquo   "&#8220;">
+<!ENTITY rdquo   "&#8221;">
+<!ENTITY bdquo   "&#8222;">
+<!ENTITY dagger  "&#8224;">
+
+<!ENTITY Ouml   "&#214;" >
+<!ENTITY szlig  "&#223;" >
+<!ENTITY agrave "&#224;" >
+<!ENTITY aacute "&#225;" >
+<!ENTITY acirc  "&#226;" >
+<!ENTITY atilde "&#227;" >
+<!ENTITY auml   "&#228;" >
+<!ENTITY ccedil "&#231;" >
+<!ENTITY egrave "&#232;" >
+<!ENTITY eacute "&#233;" >
+<!ENTITY ecirc  "&#234;" >
+<!ENTITY euml   "&#235;" >
+<!ENTITY iacute "&#237;" >
+<!ENTITY icirc  "&#238;" >
+<!ENTITY iuml	"&#239;" >
+<!ENTITY ntilde "&#241;" >
+<!ENTITY nbsp   "&#160;" >
+<!ENTITY oacute "&#243;" >
+<!ENTITY ocirc  "&#244;" >
+<!ENTITY ouml   "&#246;" >
+<!ENTITY oslash "&#248;" >
+<!ENTITY uacute "&#250;" >
+<!ENTITY uuml   "&#252;" >
+<!ENTITY thorn  "&#254;" >
+
+<!ENTITY pound  "&#163;" >
+<!ENTITY sect   "&#167;" >
+<!ENTITY copy   "&#169;" >
+<!ENTITY reg    "&#174;" >
+<!ENTITY deg    "&#176;" >
+<!ENTITY plusmn "&#177;" >
+<!ENTITY sup2   "&#178;" >
+<!ENTITY micro  "&#181;" >
+<!ENTITY para   "&#182;" >
+<!ENTITY middot "&#183;" >
+<!ENTITY ordm   "&#186;" >
+<!ENTITY frac14 "&#188;" >
+<!ENTITY frac12 "&#189;" >
+<!ENTITY frac34 "&#190;" >
+<!ENTITY oelig "&#339;" >
+<!ENTITY aelig  "&#230;" >
+
+]>
+
+<publicwhip scrapeversion="a" latest="yes">
+
+  <major-heading id="uk.org.publicwhip/lords/2014-02-26a.930.0" nospeaker="true" colnum="930"  time="015:38:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140226-0001.htm#140226105000818">
+  	Industrial Training Levy (Engineering Construction Industry Training Board) Order 2014
+  </major-heading>
+
+  <major-heading id="uk.org.publicwhip/lords/2014-02-26a.930.1" nospeaker="true" colnum="930"  time="015:38:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140226-0001.htm#140226105000819">
+  	National Minimum Wage (Amendment) Regulations 2014
+  </major-heading>
+
+  <major-heading id="uk.org.publicwhip/lords/2014-02-26a.930.2" nospeaker="true" colnum="930"  time="015:38:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140226-0001.htm#140226105000820">
+  	National Minimum Wage (Variation of Financial Penalty) Regulations 2014
+  	 &mdash; 
+  	<i>Motions to Approve</i>
+  </major-heading>
+
+  <speech id="uk.org.publicwhip/lords/2014-02-26a.930.3" nospeaker="true" colnum="930"  time="015:38:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140226-0001.htm">
+  	<p pid="a.930.3/1" class="italic" pwmotiontext="unrecognized"> Moved by Viscount Younger of Leckie</p>
+  	<p pid="a.930.3/2" pwmotiontext="unrecognized">That the draft order and regulations laid before the House on <phrase class="date" code="2013-12-18">18 December 2013</phrase> and <phrase class="date" code="2014-01-14">14 January</phrase> be approved.</p>
+  	<p pid="a.930.3/3" class="italic" pwmotiontext="unrecognized">Relevant document: 19th Report from the Joint Committee on Statutory Instrument<i>s</i><i>.</i><i>C</i>onsidered in Grand Committee on <phrase class="date" code="2014-02-24">24 February</phrase>.</p>
+  	<p pid="a.930.3/4" class="italic" pwmotiontext="unrecognized">Motions agreed.</p>
+  </speech>
+  
+  <major-heading colnum="931" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140226-0001.htm">
+    Unrelated
+  </major-heading>
+</publicwhip>

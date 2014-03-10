@@ -69,16 +69,19 @@ describe LordsDebatesXMLParser do
     end
     
     it "should assign the expected number of paragraphs to each section" do
-      debate = Debate.new
+      debate1 = Debate.new
+      debate1.stubs(:paragraphs).returns(["fake para"])
+      debate2 = Debate.new
+      debate2.stubs(:paragraphs).returns(["fake para"])
       question = Question.new
       
-      Debate.expects(:find_or_create_by).returns(debate)
-      debate.paragraphs.expects(:<<).times(1)
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(debate1)
+      debate1.paragraphs.expects(:<<).times(1)
       
-      Debate.expects(:find_or_create_by).returns(debate)
-      debate.paragraphs.expects(:<<).times(22)
-      
-      Question.expects(:find_or_create_by).returns(question)
+      Debate.expects(:find_or_create_by).with(ident: "_000002").returns(debate2)
+      debate2.paragraphs.expects(:<<).times(22)
+       
+      Question.expects(:find_or_create_by).with(ident: "_000003").returns(question)
       question.paragraphs.expects(:<<).times(16)
       @parser.parse
     end
@@ -114,7 +117,7 @@ describe LordsDebatesXMLParser do
     end
   end
   
-  context "when given a day's worth of debates that uses nested headings" do
+  context "when given a day's worth of debates that includes grouped amendments" do
     before(:each) do
       @component = Component.new
       
@@ -149,6 +152,80 @@ describe LordsDebatesXMLParser do
       Debate.expects(:find_or_create_by).with(ident: "_000002").returns(debate)
       debate.expects(:title=).with("Report (1st Day)")
       debate.paragraphs.expects(:<<).times(10)
+      @parser.parse
+    end
+  end
+  
+  context "when given a day's worth of that includes grouped amendments" do
+    before(:each) do
+      @component = Component.new
+      
+      response = mock("Response")
+      response.stubs(:body).returns(%Q|<html><head><meta name="Source" content="House of Lords Hansard, Volume: 752, Part: 119 "></head></html>|)
+      RestClient.expects(:get).returns(response)
+      
+      data = File.read("./spec/data/lords/debates/grouped-amendments.xml")
+      Dir.expects(:"[]").returns(["./xml/lords/debates/daylord2009-01-01a.xml"])
+      File.expects(:read).with("./xml/lords/debates/daylord2009-01-01a.xml").returns(data)
+      @parser = LordsDebatesXMLParser.new("2099-01-01")
+      stub_part("lords", "2099-01-01", "119", "752")
+      Component.expects(:find_or_create_by).returns(@component)
+    end
+    
+    it "should create an AmendmentGroup as a wrapper for the contained Sections" do
+      amendment1 = Debate.new(ident: "_000001", sequence: 1)
+      amendment2 = Section.new(ident: "_000003", sequence: 3)
+      amendment3 = Section.new(ident: "_000004", sequence: 4)
+      unrelated = Section.new()
+      wrapper = AmendmentGroup.new
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
+      amendment1.expects(:ident=).with("_000002")
+      amendment1.expects(:sequence=).with(1)
+      amendment1.expects(:sequence=).with(2)
+      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      wrapper.expects(:sequence=).with(1)
+      Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
+      amendment2.expects(:sequence=).with(3)
+      Debate.expects(:find_or_create_by).with(ident: "_000004").returns(amendment3)
+      Debate.expects(:find_or_create_by).with(ident: "_000005").returns(unrelated)
+      @parser.parse
+    end
+    
+    it "should not include subsequent sections to the AmendmentGroup" do
+      amendment1 = Debate.new(ident: "_000001", sequence: 1)
+      amendment2 = Section.new(ident: "_000003", sequence: 3)
+      amendment3 = Section.new(ident: "_000004", sequence: 4)
+      unrelated = Section.new()
+      wrapper = AmendmentGroup.new
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
+      amendment1.expects(:ident=).with("_000002")
+      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
+      Debate.expects(:find_or_create_by).with(ident: "_000004").returns(amendment3)
+      Debate.expects(:find_or_create_by).with(ident: "_000005").returns(unrelated)
+      @parser.parse
+      
+      sections = wrapper.sections.to_a.should_not include("_000005")
+      unrelated.parent_section.should be_nil
+    end
+    
+    it "should assign the titles to the relevant Sections and expected number of paragraphs to the AmendmentGroup" do
+      amendment1 = Debate.new(ident: "_000001", sequence: 1)
+      amendment2 = Section.new(ident: "_000003", sequence: 3)
+      amendment3 = Section.new(ident: "_000004", sequence: 4)
+      unrelated = Section.new()
+      wrapper = AmendmentGroup.new
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
+      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
+      Debate.expects(:find_or_create_by).with(ident: "_000004").returns(amendment3)
+      Debate.expects(:find_or_create_by).with(ident: "_000005").returns(unrelated)
+      
+      wrapper.paragraphs.expects(:<<).times(4)
+      amendment1.expects(:title=).with("Industrial Training Levy (Engineering Construction Industry Training Board) Order 2014")
+      amendment2.expects(:title=).with("National Minimum Wage (Amendment) Regulations 2014")
+      amendment3.expects(:title=).with("National Minimum Wage (Variation of Financial Penalty) Regulations 2014 — Motions to Approve")
+      
       @parser.parse
     end
   end
