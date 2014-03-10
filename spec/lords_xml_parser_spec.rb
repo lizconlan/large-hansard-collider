@@ -138,8 +138,8 @@ describe LordsDebatesXMLParser do
       @parser.parse
       
       container.paragraphs.should eq []
-      debate.type.should eq "Container"
-      container.sections.should eq [debate]
+      container.type.should eq "Container"
+      debate.parent_section_id.should eq container.parent_section_id
     end
     
     it "should assign the title and expected number of paragraphs to the Debate" do
