@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+<!DOCTYPE publicwhip
+[
+<!ENTITY ndash   "&#8211;">
+<!ENTITY mdash   "&#8212;">
+<!ENTITY iexcl   "&#161;">
+<!ENTITY divide  "&#247;">
+<!ENTITY euro    "&#8364;">
+<!ENTITY trade   "&#8482;">
+<!ENTITY bull    "&#8226;">
+<!ENTITY lsquo   "&#8216;">
+<!ENTITY rsquo   "&#8217;">
+<!ENTITY sbquo   "&#8218;">
+<!ENTITY ldquo   "&#8220;">
+<!ENTITY rdquo   "&#8221;">
+<!ENTITY bdquo   "&#8222;">
+<!ENTITY dagger  "&#8224;">
+
+<!ENTITY Ouml   "&#214;" >
+<!ENTITY szlig  "&#223;" >
+<!ENTITY agrave "&#224;" >
+<!ENTITY aacute "&#225;" >
+<!ENTITY acirc  "&#226;" >
+<!ENTITY atilde "&#227;" >
+<!ENTITY auml   "&#228;" >
+<!ENTITY ccedil "&#231;" >
+<!ENTITY egrave "&#232;" >
+<!ENTITY eacute "&#233;" >
+<!ENTITY ecirc  "&#234;" >
+<!ENTITY euml   "&#235;" >
+<!ENTITY iacute "&#237;" >
+<!ENTITY icirc  "&#238;" >
+<!ENTITY iuml	"&#239;" >
+<!ENTITY ntilde "&#241;" >
+<!ENTITY nbsp   "&#160;" >
+<!ENTITY oacute "&#243;" >
+<!ENTITY ocirc  "&#244;" >
+<!ENTITY ouml   "&#246;" >
+<!ENTITY oslash "&#248;" >
+<!ENTITY uacute "&#250;" >
+<!ENTITY uuml   "&#252;" >
+<!ENTITY thorn  "&#254;" >
+
+<!ENTITY pound  "&#163;" >
+<!ENTITY sect   "&#167;" >
+<!ENTITY copy   "&#169;" >
+<!ENTITY reg    "&#174;" >
+<!ENTITY deg    "&#176;" >
+<!ENTITY plusmn "&#177;" >
+<!ENTITY sup2   "&#178;" >
+<!ENTITY micro  "&#181;" >
+<!ENTITY para   "&#182;" >
+<!ENTITY middot "&#183;" >
+<!ENTITY ordm   "&#186;" >
+<!ENTITY frac14 "&#188;" >
+<!ENTITY frac12 "&#189;" >
+<!ENTITY frac34 "&#190;" >
+<!ENTITY oelig "&#339;" >
+<!ENTITY aelig  "&#230;" >
+
+]>
+
+<publicwhip scrapeversion="a" latest="yes">
+
+  <major-heading id="uk.org.publicwhip/lords/2014-02-24a.710.6" nospeaker="true" colnum="710"  time="015:00:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140224-0001.htm#1402245000766">
+  	Pensions Bill
+  </major-heading>
+
+  <speech id="uk.org.publicwhip/lords/2014-02-24a.710.7" nospeaker="true" colnum="710"  time="015:00:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140224-0001.htm#1402245000766">
+  	<p pid="a.710.7/1" pwmotiontext="unrecognized"><a href="http://services.parliament.uk/bills/2013-14/pensions.html">Pensions Bill</a></p>
+  </speech>
+
+  <minor-heading id="uk.org.publicwhip/lords/2014-02-24a.710.8" nospeaker="true" colnum="710"  time="015:00:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140224-0001.htm">
+  	<i>Report (1st Day)</i>
+  </minor-heading>
+
+  <speech id="uk.org.publicwhip/lords/2014-02-24a.710.9" nospeaker="true" colnum="710"  time="015:00:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140224-0001.htm">
+  	<p pid="a.710.9/1" pwmotiontext="unrecognized"><b><i>Clause 2: Entitlement to state pension at full or reduced rate</i></b></p>
+  	<p pid="a.710.9/2" class="italic" pwmotiontext="unrecognized">Amendment 1</p>
+  	<p pid="a.710.9/3" class="italic" pwmotiontext="unrecognized"> Moved by Baroness Hollis of Heigham</p>
+  	<p pid="a.710.9/4" pwmotiontext="unrecognized"><b>1:</b> Clause 2, page 2, line 7, at end insert&#8212;</p>
+  	<p pid="a.710.9/5" pwmotiontext="unrecognized">&#8220;( ) Regulations may provide for circumstances in which a person may opt to have a year treated as a qualifying year if by aggregating income from two or more jobs, that person&#8217;s earnings are equal to or greater than the lower earnings level for that year.&#8221;</p>
+  </speech>
+
+  <speech id="uk.org.publicwhip/lords/2014-02-24a.711.0" speakerid="uk.org.publicwhip/lord/100298" speakername="Baroness Hollis of Heigham" colon=":" colnum="711"  time="015:07:00" url="http://www.publications.parliament.uk/pa/ld201314/ldhansrd/text/140224-0001.htm#st_66">
+  	<p pid="a.711.0/1">I am grateful for the tolerance of the House in allowing me to delay speaking for a moment or two while noble Lords are leaving the Chamber. They are clearly underwhelmed by the issue that we are about to debate.</p>
+  	<p pid="a.711.0/2">I strongly welcome the new state pension. Pensions are attached to the waged labour market. Only one job in four created since 2008 is, according to the Work Foundation, permanent; 1 million or more are zero-hours contracts with no certainty of any work at all. Hundreds of thousands of others are short-hours contracts and, along with other non-standard employment patterns such as term-time working, job sharing and so on, comprise 40% of all jobs&#8212;I repeat, 40%&#8212;as employers seek to match a flexible and irregular labour force to flexible and irregular demand.</p>
+  	<p pid="a.711.0/3">Part-time work and flexible work may suit, and does suit, many women, students or older people on a pension. Those jobs are in cleaning, catering, domiciliary care&#8212;involving 150,000 people&#8212;hotel and retail, and are usually paid at around minimum wage level. Very many of those people will not be building a state pension. Our pension structure, both state and private, has not yet caught up. It is 10 or 15 years behind as the plates shift in the labour market.</p>
+  	<p pid="a.711.0/4">This amendment, which is permissive, seeks to put a pension floor under workers who may work in several mini-jobs and put in quite long hours&#8212;30 or so a week&#8212;but who cannot, under rules set out decades ago, build themselves a new state pension. If they are in one job with sufficient pay they will build a state pension, but if they are in several jobs with identical pay they do not. If your Lordships agree today we can begin to do something about it.</p>
+  	<p pid="a.711.0/5">Under Governments of both parties we have sought to credit people into the national insurance system for a state pension where, for good reason, people are not in waged work. They include mothers of young children, disabled people and carers. Universal credit, which I strongly support, will credit another 0.8 million people into national insurance, I understand.</p>
+</publicwhip>

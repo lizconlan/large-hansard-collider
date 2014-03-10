@@ -17,6 +17,8 @@ class LordsDebatesXMLParser < XMLParser
     @para_seq = 0
     @daily_part = nil 
     @hansard_component = nil
+    @in_major_section = false
+    @parent = nil
   end
   
   def parse
@@ -24,10 +26,10 @@ class LordsDebatesXMLParser < XMLParser
     @doc.root.element_children.each do |node|
       case node.name
       when "major-heading"
-        # p "major heading: #{node.text.strip}"
         parse_major_heading(node)
+        @in_major_section = true
+        @parent = nil
       when "minor-heading"
-        # p "minor heading: #{node.text.strip}"
         parse_minor_heading(node)
       when "speech"
         parse_speech(node)
@@ -57,14 +59,21 @@ class LordsDebatesXMLParser < XMLParser
   end
   
   def parse_minor_heading(node)
-    url = node.attributes["url"].value
-    do_setup(url) unless @part
-    
-    @column = node.attributes["colnum"].value
-    start_new_section
-    
-    @section = create_new_debate(node.text.strip)
-    @section.url = url
+    if @in_major_section
+      unless @parent
+        @section = @section.becomes(Container)
+        @section.type = "Container"
+        @section.columns = []
+        @parent = @section
+      end
+      @section = nil
+      parse_major_heading(node)
+      @section.parent_section = @parent
+      @parent.sections << @section
+      @parent.save
+    else
+      parse_major_heading(node)
+    end
   end
   
   def parse_division(node)
@@ -101,6 +110,9 @@ class LordsDebatesXMLParser < XMLParser
     # else
     #   type = "speech"
     # end
+    if @section.title == strip_text(node.text)
+      return false
+    end
     if member_name
       para = create_new_contribution_para(node.text, member_name)
     else

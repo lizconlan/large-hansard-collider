@@ -33,8 +33,8 @@ describe LordsDebatesXMLParser do
     before(:each) do
       @component = Component.new
       
-     response = mock("Response")
-     response.stubs(:body).returns(%Q|<html><head><meta name="Source" content="House of Lords Hansard, Volume: 752, Part: 119 "></head></html>|)
+      response = mock("Response")
+      response.stubs(:body).returns(%Q|<html><head><meta name="Source" content="House of Lords Hansard, Volume: 752, Part: 119 "></head></html>|)
       RestClient.expects(:get).returns(response)
       
       data = File.read("./spec/data/lords/debates/simple-debates.xml")
@@ -111,6 +111,47 @@ describe LordsDebatesXMLParser do
       debate1.columns.should eq ["1095"]
       debate2.columns.should eq ["1095", "1097"]
       question.columns.should eq ["1097", "1099"]
+    end
+  end
+  
+  context "when given a day's worth of debates that uses nested headings" do
+    before(:each) do
+      @component = Component.new
+      
+      response = mock("Response")
+      response.stubs(:body).returns(%Q|<html><head><meta name="Source" content="House of Lords Hansard, Volume: 752, Part: 119 "></head></html>|)
+      RestClient.expects(:get).returns(response)
+      
+      data = File.read("./spec/data/lords/debates/bill-debate.xml")
+      Dir.expects(:"[]").returns(["./xml/lords/debates/daylord2009-01-01a.xml"])
+      File.expects(:read).with("./xml/lords/debates/daylord2009-01-01a.xml").returns(data)
+      @parser = LordsDebatesXMLParser.new("2099-01-01")
+      stub_part("lords", "2099-01-01", "119", "752")
+      Component.expects(:find_or_create_by).returns(@component)
+    end
+    
+    it "should create a Container as a wrapper for the contained Debate" do
+      pre_container = Debate.new
+      debate = Debate.new
+      container = Container.new(ident: "_000001", title: "Pensions Bill", sequence: 1)
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(pre_container)
+      Debate.expects(:find_or_create_by).with(ident: "_000002").returns(debate)
+      pre_container.expects(:becomes).with(Container).returns(container)
+      @parser.parse
+      
+      container.paragraphs.should eq []
+      debate.parent_section.should eq container
+      container.sections.should eq [debate]
+    end
+    
+    it "should assign the title and expected number of paragraphs to the Debate" do
+      container = Debate.new
+      debate = Debate.new
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(container)
+      Debate.expects(:find_or_create_by).with(ident: "_000002").returns(debate)
+      debate.expects(:title=).with("Report (1st Day)")
+      debate.paragraphs.expects(:<<).times(10)
+      @parser.parse
     end
   end
 end
