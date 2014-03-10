@@ -62,11 +62,9 @@ class LordsDebatesXMLParser < XMLParser
   def parse_minor_heading(node)
     if @in_major_section
       unless @parent
-        @section = @section.becomes(Container)
         @section.type = "Container"
-        @parent = @section
+        @parent = @section.dup
       end
-      @section = nil
       parse_major_heading(node)
       @section.parent_section = @parent
       @parent.sections << @section

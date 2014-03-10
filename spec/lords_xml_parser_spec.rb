@@ -131,16 +131,14 @@ describe LordsDebatesXMLParser do
     end
     
     it "should create a Container as a wrapper for the contained Debate" do
-      pre_container = Debate.new
+      container = Debate.new
       debate = Debate.new
-      container = Container.new(ident: "_000001", title: "Pensions Bill", sequence: 1)
-      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(pre_container)
+      Debate.expects(:find_or_create_by).with(ident: "_000001").returns(container)
       Debate.expects(:find_or_create_by).with(ident: "_000002").returns(debate)
-      pre_container.expects(:becomes).with(Container).returns(container)
       @parser.parse
       
       container.paragraphs.should eq []
-      debate.parent_section.should eq container
+      debate.type.should eq "Container"
       container.sections.should eq [debate]
     end
     
