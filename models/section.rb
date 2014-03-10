@@ -68,3 +68,9 @@ end
 
 class Division < Section
 end
+
+class AmendmentGroup < Section
+end
+
+class QuestionGroup < Section
+end
