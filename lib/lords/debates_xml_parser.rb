@@ -64,7 +64,6 @@ class LordsDebatesXMLParser < XMLParser
       unless @parent
         @section = @section.becomes(Container)
         @section.type = "Container"
-        @section.columns = []
         @parent = @section
       end
       @section = nil
@@ -150,6 +149,7 @@ class LordsDebatesXMLParser < XMLParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Debate.find_or_create_by(ident: section_ident)
     section.members = []
+    section.columns = []
     section.sequence = @section_seq
     section.title = title if title
     section.component = @hansard_component
@@ -161,6 +161,7 @@ class LordsDebatesXMLParser < XMLParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Question.find_or_create_by(ident: section_ident)
     section.members = []
+    section.columns = []
     section.sequence = @section_seq
     section.title = title if title
     section.component = @hansard_component
