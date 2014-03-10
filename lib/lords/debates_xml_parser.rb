@@ -122,6 +122,7 @@ class LordsDebatesXMLParser < XMLParser
     current_section.save
     
     wrapper = AmendmentGroup.find_or_create_by(ident: wrapper_ident)
+    wrapper.url = current_section.url
     wrapper.sequence = wrapper_sequence
     wrapper.save
     
