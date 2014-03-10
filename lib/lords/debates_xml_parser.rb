@@ -22,6 +22,7 @@ class LordsDebatesXMLParser < XMLParser
   end
   
   def parse
+    return false unless @doc
     start
     @doc.root.element_children.each do |node|
       case node.name
