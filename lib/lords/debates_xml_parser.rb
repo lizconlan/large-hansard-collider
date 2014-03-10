@@ -209,10 +209,12 @@ class LordsDebatesXMLParser < XMLParser
     para.save
     
     @section.paragraphs << para
-    if @section.members.nil?
-      @section.members = [member_name]
-    else
-      @section.members << member_name unless @section.members.include?(member_name)
+    unless member_name == "Noble Lords"
+      if @section.members.nil?
+        @section.members = [member_name]
+      else
+        @section.members << member_name unless @section.members.include?(member_name)
+      end
     end
     @section.append_column(@column)
     
