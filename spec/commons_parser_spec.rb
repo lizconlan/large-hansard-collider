@@ -112,11 +112,12 @@ describe CommonsParser do
   context "when no data is found" do
     before(:each) do
       @parser.expects(:link_to_first_page).returns(nil)
+      @parser.expects(:house).returns("house-name")
       @parser.expects(:component_name).returns("component-name-goes-here")
     end
     
     it "should report that no component data is found" do
-      $stderr.expects(:write).with("No component-name-goes-here data available for 1 Jan 2099")
+      $stderr.expects(:write).with("No house-name component-name-goes-here data available for 1 Jan 2099")
       $stderr.expects(:write).with("\n")
       
       @parser.parse

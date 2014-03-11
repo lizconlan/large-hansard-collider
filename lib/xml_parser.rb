@@ -48,7 +48,7 @@ class XMLParser
       component = ""
     end
     if files.empty?
-      warn "No #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
+      warn "No #{house} #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
     else
       @source = files.sort.last
       @doc = Nokogiri::XML(File.read(@source))

@@ -6,10 +6,11 @@ require "./models/section"
 require "./models/paragraph"
 
 class LordsDebatesXMLParser < XMLParser
-  attr_reader :component_name
+  attr_reader :component_name, :house
   
   def initialize(date)
     @component_name = "Debates and Oral Answers"
+    @house = "Lords"
     super(date, "daylord", "./xml/lords/debates")
     @section = nil
     @doc_ident = "#{date}_hansard_l"

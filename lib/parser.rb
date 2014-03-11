@@ -128,7 +128,7 @@ class Parser
       else
         component = ""
       end
-      warn "No #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
+      warn "No #{house} #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
     else
       @page = HansardPage.new(first_page)
       
