@@ -39,6 +39,7 @@ class LordsDebatesXMLParser < XMLParser
             @wrapper = wrap_current_section(@section)
           end
           parse_major_heading(node)
+          @section.append_column(@column, @wrapper)
           @section.parent_section = @wrapper
           @section.save
           @wrapper.save
