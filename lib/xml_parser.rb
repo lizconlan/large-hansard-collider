@@ -1,5 +1,6 @@
 #encoding: utf-8
 
+require 'date'
 require 'nokogiri'
 require 'rest-client'
 require 'state_machine'
@@ -41,8 +42,13 @@ class XMLParser
     @volume = nil
     file_pattern = "#{file_prefix}#{date}*"
     files = Dir["#{file_path}/#{file_pattern}*".squeeze("/")]
+    if self.respond_to?(:component_name)
+      component = self.component_name
+    else
+      component = ""
+    end
     if files.empty?
-      warn "no source files found for #{date}"
+      warn "No #{component} data available for #{Date.parse(date).strftime("%e %b %Y")}".squeeze(' ')
     else
       @source = files.sort.last
       @doc = Nokogiri::XML(File.read(@source))
