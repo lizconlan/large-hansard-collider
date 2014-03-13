@@ -172,17 +172,17 @@ describe LordsDebatesXMLParser do
       Component.expects(:find_or_create_by).returns(@component)
     end
     
-    it "should create an AmendmentGroup as a wrapper for the contained Sections" do
+    it "should create an SectionGroup as a wrapper for the contained Sections" do
       amendment1 = Debate.new(ident: "_000001", sequence: 1)
       amendment2 = Section.new(ident: "_000003", sequence: 3)
       amendment3 = Section.new(ident: "_000004", sequence: 4)
       unrelated = Section.new()
-      wrapper = AmendmentGroup.new
+      wrapper =SectionGroup.new
       Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
       amendment1.expects(:ident=).with("_000002")
       amendment1.expects(:sequence=).with(1)
       amendment1.expects(:sequence=).with(2)
-      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      SectionGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
       wrapper.expects(:sequence=).with(1)
       Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
       amendment2.expects(:sequence=).with(3)
@@ -191,15 +191,15 @@ describe LordsDebatesXMLParser do
       @parser.parse
     end
     
-    it "should not include subsequent sections to the AmendmentGroup" do
+    it "should not include subsequent sections to the SectionGroup" do
       amendment1 = Debate.new(ident: "_000001", sequence: 1)
       amendment2 = Section.new(ident: "_000003", sequence: 3)
       amendment3 = Section.new(ident: "_000004", sequence: 4)
       unrelated = Section.new()
-      wrapper = AmendmentGroup.new
+      wrapper = SectionGroup.new
       Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
       amendment1.expects(:ident=).with("_000002")
-      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      SectionGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
       Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
       Debate.expects(:find_or_create_by).with(ident: "_000004").returns(amendment3)
       Debate.expects(:find_or_create_by).with(ident: "_000005").returns(unrelated)
@@ -209,14 +209,14 @@ describe LordsDebatesXMLParser do
       unrelated.parent_section.should be_nil
     end
     
-    it "should assign the titles to the relevant Sections and expected number of paragraphs to the AmendmentGroup" do
+    it "should assign the titles to the relevant Sections and expected number of paragraphs to the SectionGroup" do
       amendment1 = Debate.new(ident: "_000001", sequence: 1)
       amendment2 = Section.new(ident: "_000003", sequence: 3)
       amendment3 = Section.new(ident: "_000004", sequence: 4)
       unrelated = Section.new()
-      wrapper = AmendmentGroup.new
+      wrapper = SectionGroup.new
       Debate.expects(:find_or_create_by).with(ident: "_000001").returns(amendment1)
-      AmendmentGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
+      SectionGroup.expects(:find_or_create_by).with(ident: "_000001").returns(wrapper)
       Debate.expects(:find_or_create_by).with(ident: "_000003").returns(amendment2)
       Debate.expects(:find_or_create_by).with(ident: "_000004").returns(amendment3)
       Debate.expects(:find_or_create_by).with(ident: "_000005").returns(unrelated)
@@ -224,7 +224,8 @@ describe LordsDebatesXMLParser do
       wrapper.paragraphs.expects(:<<).times(4)
       amendment1.expects(:title=).with("Industrial Training Levy (Engineering Construction Industry Training Board) Order 2014")
       amendment2.expects(:title=).with("National Minimum Wage (Amendment) Regulations 2014")
-      amendment3.expects(:title=).with("National Minimum Wage (Variation of Financial Penalty) Regulations 2014 — Motions to Approve")
+      amendment3.expects(:title=).with("National Minimum Wage (Variation of Financial Penalty) Regulations 2014")
+      wrapper.expects(:title=).with("Motions to Approve")
       
       @parser.parse
     end

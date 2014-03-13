@@ -31,22 +31,27 @@ class LordsDebatesXMLParser < XMLParser
     @doc.root.element_children.each do |node|
       case node.name
       when "major-heading"
-        if (@in_major_section and @section and @section.paragraphs.empty?) \
-            and (@wrapper.nil? or (@wrapper and @wrapper.paragraphs.empty?))
-          #I appear to have a section immediately followed by another
-          #let's assume it's a group
-          unless @wrapper
-            @wrapper = wrap_current_section(@section)
-          end
-          parse_major_heading(node)
-          @section.append_column(@column, @wrapper)
-          @section.parent_section = @wrapper
-          @section.save
-          @wrapper.save
+        if strip_text(node.text).length > 255
+          #uhoh
+          fix_heading_problem(node)
         else
-          parse_major_heading(node)
-          @parent = nil
-          @wrapper = nil
+          if (@in_major_section and @section and @section.paragraphs.empty?) \
+              and (@wrapper.nil? or (@wrapper and @wrapper.paragraphs.empty?))
+            #I appear to have a section immediately followed by another
+            #let's assume it's a group
+            unless @wrapper
+              @wrapper = wrap_current_section(@section)
+            end
+            parse_major_heading(node)
+            @section.append_column(@column, @wrapper)
+            @section.parent_section = @wrapper
+            @section.save
+            @wrapper.save
+          else
+            parse_major_heading(node)
+            @parent = nil
+            @wrapper = nil
+          end
         end
         @in_major_section = true
       when "minor-heading"
@@ -70,6 +75,15 @@ class LordsDebatesXMLParser < XMLParser
     start_new_section
     
     text = strip_text(node.text)
+    
+    if @wrapper and node.xpath("i").text != ""
+      italic_text = node.xpath("i").text
+      @wrapper.title = italic_text
+      if text =~ /(\s*—\s#{Regexp.escape(italic_text)}\s*$)/
+        text = text.gsub($1, "")
+      end
+    end
+    
     if text =~ /Question$/
       @section = create_new_question(text)
     else
@@ -80,14 +94,16 @@ class LordsDebatesXMLParser < XMLParser
   
   def parse_minor_heading(node)
     if @in_major_section
-      unless @parent
-        @section.type = "Container"
-        @parent = @section.dup
+      unless strip_text(node.text) =~ /^Motions? to /
+        unless @parent
+          @section.type = "Container"
+          @parent = @section.dup
+        end
+        parse_major_heading(node)
+        @section.parent_section = @parent
+        @parent.sections << @section
+        @parent.save
       end
-      parse_major_heading(node)
-      @section.parent_section = @parent
-      @parent.sections << @section
-      @parent.save
     else
       parse_major_heading(node)
     end
@@ -125,7 +141,8 @@ class LordsDebatesXMLParser < XMLParser
     current_section.sequence = @section_seq
     current_section.save
     
-    wrapper = AmendmentGroup.find_or_create_by(ident: wrapper_ident)
+    wrapper = SectionGroup.find_or_create_by(ident: wrapper_ident)
+    wrapper.columns = [@column]
     wrapper.url = current_section.url
     wrapper.sequence = wrapper_sequence
     wrapper.save
@@ -137,7 +154,6 @@ class LordsDebatesXMLParser < XMLParser
     
     wrapper.members = []
     wrapper.columns = []
-    wrapper.title = "Grouped Amendments"
     wrapper.component = @hansard_component
     wrapper
   end
@@ -192,7 +208,7 @@ class LordsDebatesXMLParser < XMLParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Debate.find_or_create_by(ident: section_ident)
     section.members = []
-    section.columns = []
+    section.columns = [@column]
     section.sequence = @section_seq
     section.title = title if title
     section.component = @hansard_component
@@ -204,7 +220,7 @@ class LordsDebatesXMLParser < XMLParser
     section_ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
     section = Question.find_or_create_by(ident: section_ident)
     section.members = []
-    section.columns = []
+    section.columns = [@column]
     section.sequence = @section_seq
     section.title = title if title
     section.component = @hansard_component
@@ -216,6 +232,7 @@ class LordsDebatesXMLParser < XMLParser
     if @section.columns.count > 2
       @section.columns = [@section.columns.first, @section.columns.last]
     end
+    
     @section.save
     print_debug(@section)
   end
@@ -305,6 +322,44 @@ class LordsDebatesXMLParser < XMLParser
       @section.append_column(@column)
     end
     para
+  end
+  
+  def fix_heading_problem(node)
+    text = strip_text(node.text)
+    #look for a known specific problem - this one's a Hansard web issue, not an XML problem
+    if text == "Intelligence and Security Committee: Annual ReportCompanies Act 2006 (Accounts, Reports and Audit) Regulations 2009 Registrar of Companies and Applications for Striking Off Regulations 2009 Overseas Companies Regulations 2009 Limited Liability Partnerships (Application of Companies Act 2006) Regulations 2009 Companies Act 2006 (Part 35) (Consequential Amendments, Transitional Provisions and Savings) Order 2009 — Motion to Refer to Grand Committee"
+      
+      title = node.xpath("i").text
+      
+      headings = []
+      headings << "Intelligence and Security Committee: Annual Report"
+      headings << "Companies Act 2006 (Accounts, Reports and Audit) Regulations 2009"
+      headings << "Registrar of Companies and Applications for Striking Off Regulations 2009"
+      headings << "Overseas Companies Regulations 2009"
+      headings << "Limited Liability Partnerships (Application of Companies Act 2006) Regulations 2009"
+      headings << "Companies Act 2006 (Part 35) (Consequential Amendments, Transitional Provisions and Savings) Order 2009"
+      
+      @section_seq +=1
+      ident = "#{@hansard_component.ident}_#{@section_seq.to_s.rjust(6, "0")}"
+      @wrapper = SectionGroup.find_or_create_by(ident: ident)
+      @wrapper.component = @hansard_component
+      @wrapper.title = title
+      @wrapper.url = node.attributes["url"].value
+      @wrapper.sequence = @section_seq
+      @wrapper.members = []
+      @wrapper.columns = []
+      @wrapper.save
+      
+      headings.each do |heading|
+        @section = create_new_debate(heading)
+        @section.parent_section = @wrapper
+        @section.save
+        @wrapper.save
+      end
+    else
+      p text
+      raise "title too long - please code a manual fix"
+    end
   end
   
   def print_debug(section)
