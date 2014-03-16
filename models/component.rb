@@ -21,23 +21,4 @@ class Component < ActiveRecord::Base
   def house
     daily_part.house
   end
-  
-  def contributions_by_member(member_name)
-    contribs = []
-    contrib = []
-    last_ident = ""
-    paras = Paragraph.by_member_and_fragment_id_start(member_name, ident).all
-    paras.each do |para|
-      unless para.contribution_ident == last_ident
-        unless contribs.empty? and contrib.empty?
-          contribs << contrib
-          contrib = []
-        end
-      end
-      contrib << para
-      last_ident = para.contribution_ident
-    end
-    contribs << contrib unless contrib.empty?
-    contribs
-  end
 end
